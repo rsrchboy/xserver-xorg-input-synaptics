@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.0-1) unstable; urgency=low
+
+  * New upstream release:
+    - now correcly removes the shared memory segment when exiting X 
+      (closes: #263382).
+
+ -- Mattia Dongili (ma.d.) <dongili@supereva.it>  Mon, 10 Jan 2005 21:14:44 +0100
+
 xfree86-driver-synaptics (0.13.6-2) unstable; urgency=low
 
   * Install in /usr/X11R6/lib as all the xfree drivers on 64 bit archs.  (closes: #280658)
