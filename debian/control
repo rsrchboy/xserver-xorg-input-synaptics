@@ -1,7 +1,7 @@
 Source: xfree86-driver-synaptics
 Section: x11
 Priority: optional
-Maintainer: Mattia Dongili (ma.d.) <dongili@supereva.it>
+Maintainer: Mattia Dongili <malattia@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libx11-dev | xlibs-dev (>> 4.1.0), x-dev | xlibs-dev (>> 4.1.0), libxext-dev | xlibs-dev (>> 4.1.0), libxi-dev | xlibs-dev (>> 4.1.0) 
 Standards-Version: 3.6.1
 

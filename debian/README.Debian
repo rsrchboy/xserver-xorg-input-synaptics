@@ -86,4 +86,4 @@ Use the provided alps.debian.patch if you're compiling a Debian's kernel source
 package. It's a rediffed version from current kernel-source-2.6.8 due to some
 small differences between vanilla kernel's driver/input/mouse/psmouse.h.
 
- -- Mattia Dongili (ma.d.) <dongili@supereva.it>, Tue,  2 Mar 2004 11:42:05 +0100
+ -- Mattia Dongili <malattia@debian.org>, Tue,  2 Mar 2004 11:42:05 +0100

@@ -1,3 +1,9 @@
+xfree86-driver-synaptics (0.14.1-1) unstable; urgency=low
+  
+  * New upstream release.
+ 
+ -- Mattia Dongili <malattia@debian.org>  Tue, 15 Mar 2005 22:33:25 +0100
+ 
 xfree86-driver-synaptics (0.14.0-1) unstable; urgency=low
 
   * New upstream release:
