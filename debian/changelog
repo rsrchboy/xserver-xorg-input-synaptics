@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.2-1) unstable; urgency=low
+  
+  * New upstream release.
+  * Added notes to README.Debian to run syndaemon from .xinitrc 
+    (closes: #296485)
+ 
+ -- Mattia Dongili <malattia@debian.org>  Wed, 18 May 2005 00:24:14 +0200
+ 
 xfree86-driver-synaptics (0.14.1-1) unstable; urgency=low
   
   * New upstream release.
