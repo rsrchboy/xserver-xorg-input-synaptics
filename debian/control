@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: xfree86-driver-synaptics
 Architecture: any
-Depends: ${shlibs:Depends}, libxi6 | xlibs (>> 4.1.0), xserver-xfree86 (>> 4.1.0)
+Depends: ${shlibs:Depends}, libxi6 | xlibs (>> 4.1.0), xserver-xfree86 (>> 4.1.0) | xserver-xorg
 Description: Synaptics TouchPad driver for XFree86 server
  This package provides an input driver for the XFree86 X server to enable
  advanced features of the Synaptics Touchpad including:
