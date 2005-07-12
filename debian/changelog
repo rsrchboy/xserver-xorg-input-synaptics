@@ -1,6 +1,6 @@
-xfree86-driver-synaptics (0.14.2-1xorg1) unstable; urgency=low
+xfree86-driver-synaptics (0.14.2-2) unstable; urgency=low
   
-  * Can now install together with experimental xorg.
+  * Can now install together with xorg.
  
  -- Mattia Dongili <malattia@debian.org>  Wed, 29 Jun 2005 12:00:00 +0200
  
