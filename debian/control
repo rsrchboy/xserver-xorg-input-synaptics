@@ -8,8 +8,8 @@ Standards-Version: 3.6.2
 Package: xfree86-driver-synaptics
 Architecture: any
 Depends: ${shlibs:Depends}, libxi6 | xlibs (>> 4.1.0), xserver-xfree86 (>> 4.1.0) | xserver-xorg
-Description: Synaptics TouchPad driver for XFree86 server
- This package provides an input driver for the XFree86 X server to enable
+Description: Synaptics TouchPad driver for X.Org/XFree86 server
+ This package provides an input driver for the X.Org/XFree86 X server to enable
  advanced features of the Synaptics Touchpad including:
  .
   * Movement with adjustable, non-linear acceleration and speed
@@ -33,4 +33,4 @@ Description: Synaptics TouchPad driver for XFree86 server
   * It also provides a daemon to disable touchpad while typing at the keyboard 
     and thus avoid unwanted mouse movements (see syndaemon(1)).
  .
- Homepage: http://w1.894.telia.com/~u89404340/touchpad/index.html
+ Homepage: http://web.telia.com/~u89404340/touchpad/index.html
