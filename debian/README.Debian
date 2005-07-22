@@ -1,14 +1,15 @@
 xfree86-driver-synaptics for Debian
 -----------------------------------
 
-This package contains the Synaptics TouchPad driver for XFree86 X server.
+This package contains the Synaptics TouchPad driver for X.Org and XFree86 X
+server.
 See also the README file for details on configuration options.
 The following notes are reported from the INSTALL instructions of upstream 
 package (by Stefan Gmeiner <riddlebox@freesurf.ch>), but first of all a
 security notice about SHMConfig:
 
    If you want to be able to change driver parameters without
-   restarting the X server, enable the "SHMConfig" option in the XFree
+   restarting the X server, enable the "SHMConfig" option in the X
    configuration file. You can then use the "synclient" program to
    query and modify driver parameters on the fly.
    SECURITY NOTE! This is not secure if you are in an untrusted 
@@ -18,9 +19,9 @@ security notice about SHMConfig:
 Configuration
 -------------
 
-1. Load the driver by changing the XFree configuration file
-(/etc/X11/XF86Config-4) through adding the line 'Load "synaptics"' in the
-module section.
+1. Load the driver by changing the X.Org/XFree86 configuration file
+(/etc/X11/xorg.conf or /etc/X11/XF86Config-4) through adding the line 'Load
+"synaptics"' in the module section.
 
 2. Add/Replace in the InputDevice section for the touchpad the
 following lines:
