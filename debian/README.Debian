@@ -31,18 +31,23 @@ Section "InputDevice"
   Identifier  	"Mouse[1]"
   Option 	"Device"  	"/dev/psaux"
   Option	"Protocol"	"auto-dev"
-  Option	"LeftEdge"      "1700"
-  Option	"RightEdge"     "5300"
-  Option	"TopEdge"       "1700"
-  Option	"BottomEdge"    "4200"
-  Option	"FingerLow"	"25"
-  Option	"FingerHigh"	"30"
-  Option	"MaxTapTime"	"180"
-  Option	"MaxTapMove"	"220"
-  Option	"VertScrollDelta" "100"
-  Option	"MinSpeed"	"0.06"
-  Option	"MaxSpeed"	"0.12"
-  Option	"AccelFactor" "0.0010"
+#
+# Following lines are optional thus commented in this example.
+# Please read the synaptics(5) manpage for a detailed explanation
+# of the various options' meaning as well as a full list of options
+#
+#  Option	"LeftEdge"      "1700"
+#  Option	"RightEdge"     "5300"
+#  Option	"TopEdge"       "1700"
+#  Option	"BottomEdge"    "4200"
+#  Option	"FingerLow"	"25"
+#  Option	"FingerHigh"	"30"
+#  Option	"MaxTapTime"	"180"
+#  Option	"MaxTapMove"	"220"
+#  Option	"VertScrollDelta" "100"
+#  Option	"MinSpeed"	"0.06"
+#  Option	"MaxSpeed"	"0.12"
+#  Option	"AccelFactor" "0.0010"
 #  Option	"SHMConfig"	"on"
 #  Option	"Repeater"	"/dev/ps2mouse"
 EndSection
@@ -77,6 +82,8 @@ Other relevant information to use this driver
 
 2. For use with an ALPS touchpad, you need to use a 2.6.x kernel and
    apply the alps patch. See the README.alps file for more details.
+   Note! If you use kernel 2.6.11 or later, the alps patch is already
+   included, so you don't have to patch your kernel.
 
 3. Using with kernel 2.4.x for x < 10 needs a kernel patch
    (pc_keyb.c.diff.2.4.3).
