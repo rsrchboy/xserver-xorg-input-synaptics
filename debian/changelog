@@ -3,6 +3,7 @@ xfree86-driver-synaptics (0.14.4-1) unstable; urgency=low
   * New upstream version.
   * Upstream added an -K command line option to syndaemon to ignore
     Modifier+AnyKey combos (closes: #335888).
+  * Removed the rediffed patch against Debian's 2.6.8 kernel.
  
  -- Mattia Dongili <malattia@debian.org>  Mon, 07 Nov 2005 22:54:40 +0100
  
