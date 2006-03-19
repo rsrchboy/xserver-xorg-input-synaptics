@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.4-2) experimental; urgency=low
+  
+  * New binary package name to follow modular xorg naming.
+  * Now suggesting the driver's graphical configuration tools.
+  * README.Debian: removed note about the 2.6.8 patch I removed recently.
+ 
+ -- Mattia Dongili <malattia@debian.org>  Sun, 19 Mar 2006 17:01:09 +0100
+ 
 xfree86-driver-synaptics (0.14.4-1) unstable; urgency=low
   
   * New upstream version.

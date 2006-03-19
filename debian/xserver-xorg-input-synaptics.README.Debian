@@ -88,12 +88,6 @@ Other relevant information to use this driver
 3. Using with kernel 2.4.x for x < 10 needs a kernel patch
    (pc_keyb.c.diff.2.4.3).
 
-Note for ALPS users using Debian's kernel-source-2.6.8
-------------------------------------------------------
-Use the provided alps.debian.patch if you're compiling a Debian's kernel source
-package. It's a rediffed version from current kernel-source-2.6.8 due to some
-small differences between vanilla kernel's driver/input/mouse/psmouse.h.
-
 Running 'syndaemon' automatically
 ---------------------------------
 The easiest way to run the syndaemon binary each time you startup X you can 

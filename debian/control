@@ -2,12 +2,24 @@ Source: xfree86-driver-synaptics
 Section: x11
 Priority: optional
 Maintainer: Mattia Dongili <malattia@debian.org>
-Build-Depends: debhelper (>= 4.0.0), libx11-dev | xlibs-dev (>> 4.1.0), x-dev | xlibs-dev (>> 4.1.0), libxext-dev | xlibs-dev (>> 4.1.0), libxi-dev | xlibs-dev (>> 4.1.0) 
+Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev
 Standards-Version: 3.6.2
 
 Package: xfree86-driver-synaptics
-Architecture: any
-Depends: ${shlibs:Depends}, libxi6 | xlibs (>> 4.1.0), xserver-xfree86 (>> 4.1.0) | xserver-xorg
+Architecture: alpha amd64 arm hppa i386 ia64 mips mipsel powerpc sparc
+Depends: xserver-xorg-input-synaptics (>= 0.14.4-2)
+Description: dummy package to upgrade to X.Org new modular packages
+ This is a dummy package provided to smooth upgrades from 
+ xfree86-driver-synaptics to xserver-xorg-input-synaptics.
+ It can be safely removed once xserver-xorg-input-synaptics is installed.
+
+Package: xserver-xorg-input-synaptics
+Architecture: alpha amd64 arm hppa i386 ia64 mips mipsel powerpc sparc
+Depends: ${shlibs:Depends}, libxi6, xserver-xorg-core (>= 1.0.0)
+Conflicts: xfree86-driver-synaptics (<< 0.14.4-2)
+Replaces: xfree86-driver-synaptics (<< 0.14.4-2)
+Provides: xfree86-driver-synaptics
+Suggests: gsynaptics | ksynaptics | qsynaptics
 Description: Synaptics TouchPad driver for X.Org/XFree86 server
  This package provides an input driver for the X.Org/XFree86 X server to enable
  advanced features of the Synaptics Touchpad including:

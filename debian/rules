@@ -38,8 +38,8 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	# install the package into debian/xfree86-driver-synaptics
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/xfree86-driver-synaptics
+	# install the package into debian/xserver-xorg-input-synaptics
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/xserver-xorg-input-synaptics
 
 
 # Build architecture-independent files here.
@@ -55,11 +55,11 @@ binary-arch: build install
 	dh_installexamples
 	dh_installman
 	dh_link
-	dh_strip -X synaptics_drv.o
+	dh_strip -X synaptics_drv.so
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps -X synaptics_drv.o
+	dh_shlibdeps -X synaptics_drv.so
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
