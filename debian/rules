@@ -55,11 +55,11 @@ binary-arch: build install
 	dh_installexamples
 	dh_installman
 	dh_link
-	dh_strip -X synaptics_drv.so
+	dh_strip
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps -X synaptics_drv.so
+	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

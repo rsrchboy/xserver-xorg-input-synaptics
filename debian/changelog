@@ -1,3 +1,18 @@
+xfree86-driver-synaptics (0.14.4-4) unstable; urgency=low
+
+  * Upload to unstable (Closes: #362108)
+  * Added xorg-driver-synaptics to the Provides, Conflicts,
+    Replaces list to ease Ubuntu mixed migrations (et al.)
+ 
+ -- Mattia Dongili <malattia@debian.org>  Mon, 27 Mar 2006 18:16:48 +0200
+ 
+xfree86-driver-synaptics (0.14.4-3) experimental; urgency=low
+  
+  * building the driver as a shared object, this fixes a lintian warning
+    and better fits in the modular xorg structure.
+ 
+ -- Mattia Dongili <malattia@debian.org>  Wed, 22 Mar 2006 22:33:39 +0100
+ 
 xfree86-driver-synaptics (0.14.4-2) experimental; urgency=low
   
   * New binary package name to follow modular xorg naming.
