@@ -3,7 +3,7 @@ Section: x11
 Priority: optional
 Maintainer: Mattia Dongili <malattia@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev
-Standards-Version: 3.6.2
+Standards-Version: 3.7.2
 
 Package: xfree86-driver-synaptics
 Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
