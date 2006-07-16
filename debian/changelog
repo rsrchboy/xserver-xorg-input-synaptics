@@ -1,9 +1,15 @@
+xfree86-driver-synaptics (0.14.6-1) unstable; urgency=low
+
+  * New upstream release.
+ 
+ -- Mattia Dongili <malattia@debian.org>  Sun, 16 Jul 2006 16:41:01 +0200
+
 xfree86-driver-synaptics (0.14.5-1) unstable; urgency=low
 
   * New upstream release.
-  * Motion with pressure sensitivity merged upstrem. (Closes: #337350)
+  * Motion with pressure sensitivity merged upstream. (Closes: #337350)
  
- -- Mattia Dongili <malattia@debian.org>  Sun, 30 Apr 2006 20:17:23 +0200
+ -- Mattia Dongili <malattia@debian.org>  Sun, 04 Jun 2006 19:45:35 +0200
 
 xfree86-driver-synaptics (0.14.4-5) unstable; urgency=low
 

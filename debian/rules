@@ -18,7 +18,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# compile the package: detect architecture and launch make
-	$(MAKE) BUILD_MODULAR=y
+	$(MAKE) BUILD_MODULAR=y PREFIX=/usr
 
 	touch build-stamp
 
@@ -39,7 +39,7 @@ install: build
 	dh_installdirs
 
 	# install the package into debian/xserver-xorg-input-synaptics
-	$(MAKE) install BUILD_MODULAR=y DESTDIR=$(CURDIR)/debian/xserver-xorg-input-synaptics
+	$(MAKE) install BUILD_MODULAR=y PREFIX=/usr DESTDIR=$(CURDIR)/debian/xserver-xorg-input-synaptics
 
 
 # Build architecture-independent files here.

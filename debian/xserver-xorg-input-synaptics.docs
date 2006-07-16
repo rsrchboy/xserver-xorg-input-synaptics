@@ -4,6 +4,6 @@ TODO
 COMPATIBILITY
 alps.patch
 pc_keyb.c.diff.2.4.3
-changelog
+NEWS
 trouble-shooting.txt
 script/
