@@ -1,3 +1,9 @@
+xfree86-driver-synaptics (0.14.7~git20070517-1) unstable; urgency=low
+
+  * git snapshot of the driver.
+ 
+ -- Mattia Dongili <malattia@debian.org>  Thu, 17 May 2007 19:34:22 +0900
+
 xfree86-driver-synaptics (0.14.6-2) unstable; urgency=low
 
   * Build using Debian's xserver-xorg-dev instead of the package's
