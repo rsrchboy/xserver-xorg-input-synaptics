@@ -9,7 +9,7 @@ VERSION_ID=($(VER_LEVEL_1)*10000+$(VER_LEVEL_2)*100+$(VER_LEVEL_3))
 
 PREFIX ?= /usr/local
 BINDIR = $(DESTDIR)$(PREFIX)/bin
-MANDIR = $(DESTDIR)$(PREFIX)/man
+MANDIR = $(DESTDIR)$(PREFIX)/share/man
 
 ifeq ($(ARCH),)
   ARCH = $(shell /bin/arch)
