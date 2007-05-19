@@ -1,7 +1,21 @@
 xfree86-driver-synaptics (0.14.7~git20070517-1) unstable; urgency=low
 
-  * git snapshot of the driver.
- 
+  * git snapshot of the driver:
+    - from commit e6595886d7ae3a1730cd0d9f86fd0f305c0743c2
+      "[...] synaptics, alps and appletouch pads all work approximately
+      identically without requiring model-specific configuration"
+      (Closes: #351621) (Closes: #406499)
+    - from commit 88211ca60be7cc74015ad4158722e5950884bd78
+      "Don't match wacom tablets in the event device probing."
+      (Closes: #383711)
+    - from commit 473912f50ffd2b26bd2f638f9d87f86cf60e2dd6
+      "Add a config option to prevent the driver from grabbing the event
+      device for exclusive use" (Closes: #380705)
+    - from commit 2d06ab1d2b3170b6fa44b945376b2ad4cd682af9
+      "Allow to easily switch between move and scroll"
+      (Closes: #411266)
+  * set Maintaner to the XSF and me as Uploader
+
  -- Mattia Dongili <malattia@debian.org>  Thu, 17 May 2007 19:34:22 +0900
 
 xfree86-driver-synaptics (0.14.6-2) unstable; urgency=low
