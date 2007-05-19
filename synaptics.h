@@ -87,6 +87,7 @@ typedef struct _SynapticsSHM
 					     */
     Bool guestmouse_off;		    /* Switches the guest mouse off */
     Bool locked_drags;			    /* Enable locked drags */
+    int locked_drag_time;		    /* timeout for locked drags */
     int tap_action[MAX_TAP];		    /* Button to report on tap events */
     Bool circular_scrolling;		    /* Enable circular scrolling */
     double scroll_dist_circ;		    /* Scrolling angle radians */
@@ -238,7 +239,10 @@ typedef struct _SynapticsPrivateRec
 					   palm/finger contact disappears */
     int prev_z;				/* previous z value, for palm detection */
     int avg_width;			/* weighted average of previous fingerWidth values */
-
+    int minx;
+    int maxx;
+    int miny;
+    int maxy;
 } SynapticsPrivate;
 
 
