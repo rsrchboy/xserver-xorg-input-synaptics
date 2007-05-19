@@ -5,6 +5,8 @@ Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
 Uploaders: Mattia Dongili <malattia@debian.org>
 Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev
 Standards-Version: 3.7.2
+XS-Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
+XS-Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
 Package: xfree86-driver-synaptics
 Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
