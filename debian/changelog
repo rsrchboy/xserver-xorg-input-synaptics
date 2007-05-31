@@ -1,3 +1,10 @@
+xfree86-driver-synaptics (0.14.7~git20070517-2) unstable; urgency=low
+
+  * use xsfbs to build the driver and automagically get xserver-xorg deps
+    (Closes: #425818)
+
+ -- Mattia Dongili <malattia@debian.org>  Thu, 31 May 2007 14:17:31 +0900
+
 xfree86-driver-synaptics (0.14.7~git20070517-1) unstable; urgency=low
 
   * git snapshot of the driver:
