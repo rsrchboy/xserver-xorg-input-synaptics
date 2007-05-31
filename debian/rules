@@ -4,6 +4,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+include debian/xsfbs/xsfbs.mk
+
+PACKAGE=xserver-xorg-input-synaptics
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -22,7 +26,7 @@ build-stamp: configure-stamp
 
 	touch build-stamp
 
-clean:
+clean: xsfclean
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
@@ -47,7 +51,7 @@ binary-indep: build install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
-binary-arch: build install
+binary-arch: build install serverabi
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs 

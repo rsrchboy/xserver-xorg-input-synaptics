@@ -18,7 +18,7 @@ Description: dummy package to upgrade to X.Org new modular packages
 
 Package: xserver-xorg-input-synaptics
 Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
-Depends: ${shlibs:Depends}, libxi6, xserver-xorg-core (>= 1.0.0)
+Depends: ${shlibs:Depends}, ${xserver:Depends}, libxi6
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Provides: xserver-xorg-input, xfree86-driver-synaptics, xorg-driver-synaptics
