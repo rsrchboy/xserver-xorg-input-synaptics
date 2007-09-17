@@ -12,7 +12,7 @@ BINDIR = $(DESTDIR)$(PREFIX)/bin
 MANDIR = $(DESTDIR)$(PREFIX)/share/man
 
 ifeq ($(ARCH),)
-  ARCH = $(shell /bin/arch)
+  ARCH = $(shell /bin/uname -m)
 endif
 ifeq ($(ARCH),amd64)
   ARCH = x86_64
