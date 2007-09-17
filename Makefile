@@ -34,10 +34,7 @@ ifeq ($(BUILD_MODULAR),y)
   LDCOMBINEFLAGS = -shared -lc
   PICFLAG = $(call check_gcc,-fPIC,)
   X_INCLUDES_ROOT = $(INSTALLED_X)
-  SDKDIR = $(shell pkg-config xorg-server --variable=sdkdir)
-  ALLINCLUDES = -I. -I$(INSTALLED_X)/include/X11 \
-		-I$(INSTALLED_X)/include/X11/extensions \
-		-I$(SDKDIR)
+  ALLINCLUDES = $(shell pkg-config --cflags xorg-server)
 else
   INSTALLED_X = /usr/X11R6
   INPUT_MODULE_DIR = $(DESTDIR)/$(INSTALLED_X)/$(LIBDIR)/modules/input
