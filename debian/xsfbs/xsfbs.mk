@@ -21,6 +21,11 @@
 # Pass $(DH_OPTIONS) into the environment for debhelper's benefit.
 export DH_OPTIONS
 
+# force quilt to not use ~/.quiltrc
+QUILT = quilt --quiltrc /dev/null
+# force QUILT_PATCHES to the default in case it is exported in the environment
+QUILT_PATCHES = patches/
+
 # Set up parameters for the upstream build environment.
 
 # Determine (source) package name from Debian changelog.
@@ -140,11 +145,13 @@ $(STAMP_DIR)/patch: $(STAMP_DIR)/prepare
 		echo "Couldn't find quilt. Please install it or add it to the build-depends for this package."; \
 		exit 1; \
 	fi; \
-	if quilt next; then \
+	if $(QUILT) next >/dev/null 2>&1; then \
 	  echo -n "Applying patches..."; \
-	  if quilt push -a -v >$(STAMP_DIR)/log/patch 2>&1; then \
+	  if $(QUILT) push -a -v >$(STAMP_DIR)/log/patch 2>&1; then \
+	    cat $(STAMP_DIR)/log/patch; \
 	    echo "successful."; \
 	  else \
+	    cat $(STAMP_DIR)/log/patch; \
 	    echo "failed! (check $(STAMP_DIR)/log/patch for details)"; \
 	    exit 1; \
 	  fi; \
@@ -159,9 +166,11 @@ unpatch:
 	rm -f $(STAMP_DIR)/patch
 	@echo -n "Unapplying patches..."; \
 	if [ -e $(STAMP_DIR)/patches/applied-patches ]; then \
-	  if quilt pop -a -v >$(STAMP_DIR)/log/unpatch 2>&1; then \
+	  if $(QUILT) pop -a -v >$(STAMP_DIR)/log/unpatch 2>&1; then \
+	    cat $(STAMP_DIR)/log/unpatch; \
 	    echo "successful."; \
 	  else \
+	    cat $(STAMP_DIR)/log/unpatch; \
 	    echo "failed! (check $(STAMP_DIR)/log/unpatch for details)"; \
 	    exit 1; \
 	  fi; \
@@ -295,17 +304,17 @@ patch-audit: prepare unpatch
 	@echo -n "Auditing patches..."; \
 	>$(STAMP_DIR)/log/patch; \
 	FUZZY=; \
-	while [ -n "$$(quilt next)" ]; do \
-	  RESULT=$$(quilt push -v | tee -a $(STAMP_DIR)/log/patch | grep ^Hunk | sed 's/^Hunk.*\(succeeded\|FAILED\).*/\1/');\
+	while [ -n "$$($(QUILT) next)" ]; do \
+	  RESULT=$$($(QUILT) push -v | tee -a $(STAMP_DIR)/log/patch | grep ^Hunk | sed 's/^Hunk.*\(succeeded\|FAILED\).*/\1/');\
 	  case "$$RESULT" in \
 	    succeeded) \
-	      echo "fuzzy patch: $$(quilt top)" \
-	        | tee -a $(STAMP_DIR)/log/$$(quilt top); \
+	      echo "fuzzy patch: $$($(QUILT) top)" \
+	        | tee -a $(STAMP_DIR)/log/$$($(QUILT) top); \
 	      FUZZY=yes; \
 	      ;; \
 	    FAILED) \
-	      echo "broken patch: $$(quilt next)" \
-	        | tee -a $(STAMP_DIR)/log/$$(quilt next); \
+	      echo "broken patch: $$($(QUILT) next)" \
+	        | tee -a $(STAMP_DIR)/log/$$($(QUILT) next); \
 	      exit 1; \
 	      ;; \
 	  esac; \
