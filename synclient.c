@@ -1,5 +1,5 @@
 /*
- *   Copyright 2002-2004 Peter Osterlund <petero2@telia.com>
+ *   Copyright 2002-2005,2007 Peter Osterlund <petero2@telia.com>
  *
  *   This program is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU General Public License
@@ -68,6 +68,7 @@ static struct Parameter params[] = {
     DEFINE_PAR("HorizScrollDelta",     scroll_dist_horiz,       PT_INT,    0, 1000),
     DEFINE_PAR("VertEdgeScroll",       scroll_edge_vert,        PT_BOOL,   0, 1),
     DEFINE_PAR("HorizEdgeScroll",      scroll_edge_horiz,       PT_BOOL,   0, 1),
+    DEFINE_PAR("CornerCoasting",       scroll_edge_corner,      PT_BOOL,   0, 1),
     DEFINE_PAR("VertTwoFingerScroll",  scroll_twofinger_vert,   PT_BOOL,   0, 1),
     DEFINE_PAR("HorizTwoFingerScroll", scroll_twofinger_horiz,  PT_BOOL,   0, 1),
     DEFINE_PAR("MinSpeed",             min_speed,               PT_DOUBLE, 0, 1.0),
@@ -81,8 +82,8 @@ static struct Parameter params[] = {
     DEFINE_PAR("EdgeMotionUseAlways",  edge_motion_use_always,  PT_BOOL,   0, 1),
     DEFINE_PAR("UpDownScrolling",      updown_button_scrolling, PT_BOOL,   0, 1),
     DEFINE_PAR("LeftRightScrolling",   leftright_button_scrolling, PT_BOOL,   0, 1),
-    DEFINE_PAR("UpDownRepeat",         updown_button_repeat,    PT_BOOL,   0, 1),
-    DEFINE_PAR("LeftRightRepeat",      leftright_button_repeat, PT_BOOL,   0, 1),
+    DEFINE_PAR("UpDownScrollRepeat",   updown_button_repeat,    PT_BOOL,   0, 1),
+    DEFINE_PAR("LeftRightScrollRepeat",leftright_button_repeat, PT_BOOL,   0, 1),
     DEFINE_PAR("ScrollButtonRepeat",   scroll_button_repeat,    PT_INT,    SBR_MIN , SBR_MAX),
     DEFINE_PAR("TouchpadOff",          touchpad_off,            PT_INT,    0, 2),
     DEFINE_PAR("GuestMouseOff",        guestmouse_off,          PT_BOOL,   0, 1),
@@ -137,13 +138,13 @@ show_settings(SynapticsSHM *synshm)
 	struct Parameter* par = &params[i];
 	switch (par->type) {
 	case PT_INT:
-	    printf("    %-20s = %d\n", par->name, *(int*)((char*)synshm + par->offset));
+	    printf("    %-23s = %d\n", par->name, *(int*)((char*)synshm + par->offset));
 	    break;
 	case PT_BOOL:
-	    printf("    %-20s = %d\n", par->name, *(Bool*)((char*)synshm + par->offset));
+	    printf("    %-23s = %d\n", par->name, *(Bool*)((char*)synshm + par->offset));
 	    break;
 	case PT_DOUBLE:
-	    printf("    %-20s = %g\n", par->name, *(double*)((char*)synshm + par->offset));
+	    printf("    %-23s = %g\n", par->name, *(double*)((char*)synshm + par->offset));
 	    break;
 	}
     }
