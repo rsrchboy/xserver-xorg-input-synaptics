@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.7~git20070706-1) unstable; urgency=low
+
+  * build with xserver-xorg-core 1.4 (Closes: #442314)
+  * update to current git
+  * update xsfbs
+
+ -- Mattia Dongili <malattia@debian.org>  Mon, 17 Sep 2007 15:25:56 +0900
+
 xfree86-driver-synaptics (0.14.7~git20070517-2) unstable; urgency=low
 
   * use xsfbs to build the driver and automagically get xserver-xorg deps

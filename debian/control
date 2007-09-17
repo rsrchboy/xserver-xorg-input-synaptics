@@ -3,7 +3,7 @@ Section: x11
 Priority: optional
 Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
 Uploaders: Mattia Dongili <malattia@debian.org>
-Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev, xserver-xorg-dev (>= 2:1.2.99.902), pkg-config
+Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev, xserver-xorg-dev (>= 2:1.4), pkg-config
 Standards-Version: 3.7.2
 XS-Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 XS-Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
@@ -21,7 +21,7 @@ Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
 Depends: ${shlibs:Depends}, ${xserver:Depends}, libxi6
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
-Provides: xserver-xorg-input, xfree86-driver-synaptics, xorg-driver-synaptics
+Provides: ${xinpdriver:Provides}, xfree86-driver-synaptics, xorg-driver-synaptics
 Suggests: gsynaptics | ksynaptics | qsynaptics
 Description: Synaptics TouchPad driver for X.Org/XFree86 server
  This package provides an input driver for the X.Org/XFree86 X server to enable
