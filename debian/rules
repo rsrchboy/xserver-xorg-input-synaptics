@@ -32,7 +32,7 @@ clean: xsfclean
 	rm -f build-stamp configure-stamp
 
 	# clean up:
-	[ ! -f Makefile ] || $(MAKE) distclean
+	-$(MAKE) clean
 
 	dh_clean 
 
