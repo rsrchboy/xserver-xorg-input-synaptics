@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.7~git20070706-2) unstable; urgency=low
+
+  * 01-synaptics-dont-grab-if-not-on-current-VT.patch from Matthew Garrett in
+    Ubuntu's 0.14.6-0ubuntu10 (Closes: #437273)
+  * update xsfbs
+
+ -- Mattia Dongili <malattia@debian.org>  Tue, 01 Jan 2008 12:38:13 +0900
+
 xfree86-driver-synaptics (0.14.7~git20070706-1) unstable; urgency=low
 
   * build with xserver-xorg-core 1.4 (Closes: #442314)

@@ -8,7 +8,7 @@ include debian/xsfbs/xsfbs.mk
 
 PACKAGE=xserver-xorg-input-synaptics
 
-configure: configure-stamp
+configure: configure-stamp patch
 configure-stamp:
 	dh_testdir
 	# the package: nothing to do
@@ -16,9 +16,8 @@ configure-stamp:
 	touch configure-stamp
 
 
-build: build-stamp
-
-build-stamp: configure-stamp 
+build: configure build-stamp
+build-stamp:
 	dh_testdir
 
 	# compile the package: detect architecture and launch make
