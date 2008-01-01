@@ -1,26 +1,3 @@
-diff --git a/debian/control b/debian/control
-index dd8ebe1..cbf581c 100644
---- a/debian/control
-+++ b/debian/control
-@@ -4,9 +4,10 @@ Priority: optional
- Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
- Uploaders: Mattia Dongili <malattia@debian.org>
- Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev, xserver-xorg-dev (>= 2:1.4), pkg-config, quilt
--Standards-Version: 3.7.2
--XS-Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
--XS-Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
-+Standards-Version: 3.7.3
-+Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
-+Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
-+Homepage: http://web.telia.com/~u89404340/touchpad/index.html
- 
- Package: xfree86-driver-synaptics
- Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
-@@ -48,4 +49,3 @@ Description: Synaptics TouchPad driver for X.Org/XFree86 server
-   * It also provides a daemon to disable touchpad while typing at the keyboard 
-     and thus avoid unwanted mouse movements (see syndaemon(1)).
-  .
-- Homepage: http://web.telia.com/~u89404340/touchpad/index.html
 diff --git a/eventcomm.c b/eventcomm.c
 index e3257cd..565c438 100644
 --- a/eventcomm.c
@@ -134,17 +111,3 @@ index e3257cd..565c438 100644
  }
  
  struct SynapticsProtocolOperations event_proto_operations = {
-diff --git a/synaptics.c b/synaptics.c
-index 802132c..5f7ba6d 100644
---- a/synaptics.c
-+++ b/synaptics.c
-@@ -588,6 +588,9 @@ DeviceOn(DeviceIntPtr dev)
- 
-     DBG(3, ErrorF("Synaptics DeviceOn called\n"));
- 
-+    if (xf86Screens[0]->vtSema == FALSE)
-+	    return !Success;
-+
-     SetDeviceAndProtocol(local);
-     local->fd = xf86OpenSerial(local->options);
-     if (local->fd == -1) {
