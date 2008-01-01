@@ -1,0 +1,150 @@
+diff --git a/debian/control b/debian/control
+index dd8ebe1..cbf581c 100644
+--- a/debian/control
++++ b/debian/control
+@@ -4,9 +4,10 @@ Priority: optional
+ Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
+ Uploaders: Mattia Dongili <malattia@debian.org>
+ Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11proto-core-dev, xserver-xorg-dev (>= 2:1.4), pkg-config, quilt
+-Standards-Version: 3.7.2
+-XS-Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
+-XS-Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
++Standards-Version: 3.7.3
++Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
++Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
++Homepage: http://web.telia.com/~u89404340/touchpad/index.html
+ 
+ Package: xfree86-driver-synaptics
+ Architecture: alpha amd64 arm hppa i386 ia64 m68k mips mipsel powerpc sparc
+@@ -48,4 +49,3 @@ Description: Synaptics TouchPad driver for X.Org/XFree86 server
+   * It also provides a daemon to disable touchpad while typing at the keyboard 
+     and thus avoid unwanted mouse movements (see syndaemon(1)).
+  .
+- Homepage: http://web.telia.com/~u89404340/touchpad/index.html
+diff --git a/eventcomm.c b/eventcomm.c
+index e3257cd..565c438 100644
+--- a/eventcomm.c
++++ b/eventcomm.c
+@@ -22,6 +22,8 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
++#include <dirent.h>
++#include <string.h>
+ #include <stdio.h>
+ #include "synproto.h"
+ #define SYNAPTICS_PRIVATE
+@@ -259,54 +261,60 @@ EventReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
+     return FALSE;
+ }
+ 
++/* filter for the AutoDevProbe scandir on /dev/input */
++static int EventDevOnly(const struct dirent *dir) {
++	return strncmp(EVENT_DEV_NAME, dir->d_name, 5) == 0;
++}
++
+ static Bool
+ EventAutoDevProbe(LocalDevicePtr local)
+ {
+     /* We are trying to find the right eventX device or fall back to
+        the psaux protocol and the given device from XF86Config */
+     int i;
+-    Bool have_evdev = FALSE;
+-    int noent_cnt = 0;
+-    const int max_skip = 10;
++    Bool touchpad_found = FALSE;
++    struct dirent **namelist;
+ 
+-    for (i = 0; ; i++) {
+-	char fname[64];
+-	int fd = -1;
+-	Bool is_touchpad;
++    i = scandir(DEV_INPUT_EVENT, &namelist, EventDevOnly, alphasort);
++    if (i < 0) {
++		ErrorF("Couldn't open %s\n", DEV_INPUT_EVENT);
++		return FALSE;
++    }
++    else if (i == 0) {
++		ErrorF("%s The /dev/input/event* device nodes seem to be missing\n",
++				local->name);
++		free(namelist);
++		return FALSE;
++    }
+ 
+-	sprintf(fname, "%s/%s%d", DEV_INPUT_EVENT, EVENT_DEV_NAME, i);
+-	SYSCALL(fd = open(fname, O_RDONLY));
+-	if (fd < 0) {
+-	    if (errno == ENOENT) {
+-		if (++noent_cnt >= max_skip)
+-		    break;
+-		else
+-		    continue;
+-	    } else {
+-		continue;
+-	    }
+-	}
+-	noent_cnt = 0;
+-	have_evdev = TRUE;
+-	is_touchpad = event_query_is_touchpad(fd);
+-	if (is_touchpad) {
+-	    xf86Msg(X_PROBED, "%s auto-dev sets device to %s\n",
+-		    local->name, fname);
+-	    xf86ReplaceStrOption(local->options, "Device", fname);
+-	    event_query_abs_params(local, fd);
+-	    SYSCALL(close(fd));
+-	    return TRUE;
+-	}
+-	SYSCALL(close(fd));
++    while (i--) {
++		char fname[64];
++		int fd = -1;
++
++		if (!touchpad_found) {
++			sprintf(fname, "%s/%s", DEV_INPUT_EVENT, namelist[i]->d_name);
++			SYSCALL(fd = open(fname, O_RDONLY));
++			if (fd < 0)
++				continue;
++
++			if (event_query_is_touchpad(fd)) {
++				touchpad_found = TRUE;
++			    xf86Msg(X_PROBED, "%s auto-dev sets device to %s\n",
++				    local->name, fname);
++			    xf86ReplaceStrOption(local->options, "Device", fname);
++			    event_query_abs_params(local, fd);
++			}
++			SYSCALL(close(fd));
++		}
++		free(namelist[i]);
+     }
+-    ErrorF("%s no synaptics event device found (checked %d nodes)\n",
+-	   local->name, i + 1);
+-    if (i <= max_skip)
+-	ErrorF("%s The /dev/input/event* device nodes seem to be missing\n",
+-	       local->name);
+-    if (i > max_skip && !have_evdev)
+-	ErrorF("%s The evdev kernel module seems to be missing\n", local->name);
+-    return FALSE;
++	free(namelist);
++
++	if (!touchpad_found) {
++		ErrorF("%s no synaptics event device found\n", local->name);
++		return FALSE;
++	}
++    return TRUE;
+ }
+ 
+ struct SynapticsProtocolOperations event_proto_operations = {
+diff --git a/synaptics.c b/synaptics.c
+index 802132c..5f7ba6d 100644
+--- a/synaptics.c
++++ b/synaptics.c
+@@ -588,6 +588,9 @@ DeviceOn(DeviceIntPtr dev)
+ 
+     DBG(3, ErrorF("Synaptics DeviceOn called\n"));
+ 
++    if (xf86Screens[0]->vtSema == FALSE)
++	    return !Success;
++
+     SetDeviceAndProtocol(local);
+     local->fd = xf86OpenSerial(local->options);
+     if (local->fd == -1) {

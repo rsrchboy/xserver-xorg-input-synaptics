@@ -2,6 +2,8 @@ xfree86-driver-synaptics (0.14.7~git20070706-2) unstable; urgency=low
 
   * 01-synaptics-dont-grab-if-not-on-current-VT.patch from Matthew Garrett in
     Ubuntu's 0.14.6-0ubuntu10 (Closes: #437273)
+  * 02-scandir-dev-input.patch to scan all the event devices in /dev/input
+    (Closes: #455994)
   * update xsfbs
 
  -- Mattia Dongili <malattia@debian.org>  Tue, 01 Jan 2008 12:38:13 +0900
