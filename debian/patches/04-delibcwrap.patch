@@ -1,0 +1,142 @@
+Patch by Jarod Wilson <jwilson@redhat.com>
+Downloaded from http://cvs.fedora.redhat.com/viewcvs/*checkout*/devel/synaptics/synaptics-0.14.6-delibcwrap.patch?rev=1.1
+
+--- xserver-xorg-input-synaptics.orig/synaptics.c
++++ xserver-xorg-input-synaptics/synaptics.c
+@@ -70,7 +70,6 @@
+ #include <misc.h>
+ #include <xf86.h>
+ #define NEED_XF86_TYPES
+-#include <xf86_ansic.h>
+ #include <xf86_OSproc.h>
+ #include <xf86Xinput.h>
+ #include "mipointer.h"
+@@ -236,14 +235,14 @@
+ 	return TRUE;			    /* Already allocated */
+ 
+     if (priv->shm_config) {
+-	if ((shmid = xf86shmget(SHM_SYNAPTICS, 0, 0)) != -1)
+-	    xf86shmctl(shmid, XF86IPC_RMID, NULL);
+-	if ((shmid = xf86shmget(SHM_SYNAPTICS, sizeof(SynapticsSHM),
+-				0777 | XF86IPC_CREAT)) == -1) {
++	if ((shmid = shmget(SHM_SYNAPTICS, 0, 0)) != -1)
++	    shmctl(shmid, IPC_RMID, NULL);
++	if ((shmid = shmget(SHM_SYNAPTICS, sizeof(SynapticsSHM),
++				0777 | IPC_CREAT)) == -1) {
+ 	    xf86Msg(X_ERROR, "%s error shmget\n", local->name);
+ 	    return FALSE;
+ 	}
+-	if ((priv->synpara = (SynapticsSHM*)xf86shmat(shmid, NULL, 0)) == NULL) {
++	if ((priv->synpara = (SynapticsSHM*)shmat(shmid, NULL, 0)) == NULL) {
+ 	    xf86Msg(X_ERROR, "%s error shmat\n", local->name);
+ 	    return FALSE;
+ 	}
+@@ -269,8 +268,8 @@
+ 	return;
+ 
+     if (priv->shm_config) {
+-	if ((shmid = xf86shmget(SHM_SYNAPTICS, 0, 0)) != -1)
+-	    xf86shmctl(shmid, XF86IPC_RMID, NULL);
++	if ((shmid = shmget(SHM_SYNAPTICS, 0, 0)) != -1)
++	    shmctl(shmid, IPC_RMID, NULL);
+     } else {
+ 	xfree(priv->synpara);
+     }
+@@ -284,7 +283,7 @@
+     char *str_par;
+     double value;
+     str_par = xf86FindOptionValue(options, optname);
+-    if ((!str_par) || (xf86sscanf(str_par, "%lf", &value) != 1))
++    if ((!str_par) || (sscanf(str_par, "%lf", &value) != 1))
+ 	return default_value;
+     return value;
+ }
+@@ -491,8 +490,8 @@
+     priv->fifofd = -1;
+     if (repeater) {
+ 	/* create repeater fifo */
+-	if ((xf86mknod(repeater, 666, XF86_S_IFIFO) != 0) &&
+-	    (xf86errno != xf86_EEXIST)) {
++	if ((mknod(repeater, 666, S_IFIFO) != 0) &&
++	    (errno != EEXIST)) {
+ 	    xf86Msg(X_ERROR, "%s can't create repeater fifo\n", local->name);
+ 	} else {
+ 	    /* open the repeater fifo */
+@@ -501,7 +500,7 @@
+ 		xf86Msg(X_ERROR, "%s repeater device open failed\n", local->name);
+ 	    }
+ 	}
+-	xf86free(repeater);
++	free(repeater);
+     }
+ 
+     if (!QueryHardware(local)) {
+@@ -697,7 +696,7 @@
+ static int
+ move_distance(int dx, int dy)
+ {
+-    return xf86sqrt(SQR(dx) + SQR(dy));
++    return sqrt((dx * dx) + (dy * dy));
+ }
+ 
+ /*
+@@ -732,14 +731,14 @@
+     double xCenter = (priv->synpara->left_edge + priv->synpara->right_edge) / 2.0;
+     double yCenter = (priv->synpara->top_edge + priv->synpara->bottom_edge) / 2.0;
+ 
+-    return xf86atan2(-(y - yCenter), x - xCenter);
++    return atan2(-(y - yCenter), x - xCenter);
+ }
+ 
+ /* return angle difference */
+ static double
+ diffa(double a1, double a2)
+ {
+-    double da = xf86fmod(a2 - a1, 2 * M_PI);
++    double da = fmod(a2 - a1, 2 * M_PI);
+     if (da < 0)
+ 	da += 2 * M_PI;
+     if (da > M_PI)
+@@ -847,7 +846,7 @@
+ 	int c;
+ 	while ((c = XisbRead(priv->comm.buffer)) >= 0) {
+ 	    unsigned char u = (unsigned char)c;
+-	    xf86write(priv->fifofd, &u, 1);
++	    write(priv->fifofd, &u, 1);
+ 	    if (++count >= 3)
+ 		break;
+ 	}
+@@ -1405,10 +1404,10 @@
+ 
+ 	    /* save the fraction, report the integer part */
+ 	    tmpf = dx * speed + x_edge_speed * dtime + priv->frac_x;
+-	    priv->frac_x = xf86modf(tmpf, &integral);
++	    priv->frac_x = modf(tmpf, &integral);
+ 	    dx = integral;
+ 	    tmpf = dy * speed + y_edge_speed * dtime + priv->frac_y;
+-	    priv->frac_y = xf86modf(tmpf, &integral);
++	    priv->frac_y = modf(tmpf, &integral);
+ 	    dy = integral;
+ 	}
+ 
+--- xserver-xorg-input-synaptics.orig/synaptics.h
++++ xserver-xorg-input-synaptics/synaptics.h
+@@ -1,6 +1,18 @@
+ #ifndef	_SYNAPTICS_H_
+ #define _SYNAPTICS_H_
+ 
++#include <errno.h>
++#include <stdio.h>
++#include <string.h>
++#include <sys/ipc.h>
++#include <sys/shm.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <math.h>
++#include <stdlib.h>
++
+ #include <X11/Xdefs.h>
+ 
+ /******************************************************************************

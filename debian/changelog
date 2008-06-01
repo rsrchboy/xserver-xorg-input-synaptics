@@ -1,3 +1,10 @@
+xfree86-driver-synaptics (0.14.7~git20070706-3) UNRELEASED; urgency=low
+
+  * Add patch to fix the build with xserver 1.5, which removed the libc
+    wrapper (closes: #471494).
+
+ -- Julien Cristau <jcristau@debian.org>  Wed, 12 Mar 2008 16:36:49 +0100
+
 xfree86-driver-synaptics (0.14.7~git20070706-2) unstable; urgency=low
 
   * 01-synaptics-dont-grab-if-not-on-current-VT.patch from Matthew Garrett in
