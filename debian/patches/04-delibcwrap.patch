@@ -1,6 +1,8 @@
 Patch by Jarod Wilson <jwilson@redhat.com>
 Downloaded from http://cvs.fedora.redhat.com/viewcvs/*checkout*/devel/synaptics/synaptics-0.14.6-delibcwrap.patch?rev=1.1
 
+Index: xserver-xorg-input-synaptics/synaptics.c
+===================================================================
 --- xserver-xorg-input-synaptics.orig/synaptics.c
 +++ xserver-xorg-input-synaptics/synaptics.c
 @@ -70,7 +70,6 @@
@@ -119,6 +121,8 @@ Downloaded from http://cvs.fedora.redhat.com/viewcvs/*checkout*/devel/synaptics/
  	    dy = integral;
  	}
  
+Index: xserver-xorg-input-synaptics/synaptics.h
+===================================================================
 --- xserver-xorg-input-synaptics.orig/synaptics.h
 +++ xserver-xorg-input-synaptics/synaptics.h
 @@ -1,6 +1,18 @@
@@ -140,3 +144,16 @@ Downloaded from http://cvs.fedora.redhat.com/viewcvs/*checkout*/devel/synaptics/
  #include <X11/Xdefs.h>
  
  /******************************************************************************
+Index: xserver-xorg-input-synaptics/Makefile
+===================================================================
+--- xserver-xorg-input-synaptics.orig/Makefile
++++ xserver-xorg-input-synaptics/Makefile
+@@ -31,7 +31,7 @@
+   INSTALLED_X = $(shell pkg-config xorg-server --variable=prefix)
+   INPUT_MODULE_DIR = $(DESTDIR)$(shell pkg-config xorg-server --variable=moduledir)/input
+   SYNAPTICS_DRV = synaptics_drv.so
+-  LDCOMBINEFLAGS = -shared -lc
++  LDCOMBINEFLAGS = -shared -lc -lm
+   PICFLAG = $(call check_gcc,-fPIC,)
+   X_INCLUDES_ROOT = $(INSTALLED_X)
+   ALLINCLUDES = $(shell pkg-config --cflags xorg-server)
