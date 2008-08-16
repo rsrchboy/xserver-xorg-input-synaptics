@@ -43,6 +43,8 @@ install: build
 
 	# install the package into debian/xserver-xorg-input-synaptics
 	$(MAKE) install BUILD_MODULAR=y PREFIX=/usr DESTDIR=$(CURDIR)/debian/xserver-xorg-input-synaptics
+	install -d debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
+	install debian/10-synaptics.fdi debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty/
 
 
 # Build architecture-independent files here.

@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.14.7~git20070706-2.1.lenny1) UNRELEASED; urgency=low
+
+  * Add 10-synaptics.fdi, installed in /usr/share/hal/fdi/policy/20thirdparty,
+    to get the driver loaded automatically if a touchpad is detected
+    (closes: #464662).
+
+ -- Julien Cristau <jcristau@debian.org>  Sat, 16 Aug 2008 03:14:21 +0200
+
 xfree86-driver-synaptics (0.14.7~git20070706-2.1) unstable; urgency=low
 
   * Non-maintainer upload, with Mattia's agreement.
