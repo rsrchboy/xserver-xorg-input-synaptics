@@ -1,0 +1,48 @@
+From 89b1add387b52ef55f5a8f87603153d27207e2f6 Mon Sep 17 00:00:00 2001
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Fri, 1 Aug 2008 22:58:14 +0200
+Subject: [PATCH] Fix crash on kernels with extended keymap space
+
+The len argument of EVIOCGBIT(ev,len) is the size of the receiving
+buffer in bytes, not maximim number of bits to retrieve.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Julien Cristau <jcristau@debian.org>
+---
+ src/eventcomm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index 36c4c9e..e654102 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -79,7 +79,7 @@ event_query_is_touchpad(int fd)
+ 
+     /* Check for ABS_X, ABS_Y, ABS_PRESSURE and BTN_TOOL_FINGER */
+ 
+-    SYSCALL(ret = ioctl(fd, EVIOCGBIT(0, EV_MAX), evbits));
++    SYSCALL(ret = ioctl(fd, EVIOCGBIT(0, sizeof(evbits)), evbits));
+     if (ret < 0)
+ 	return FALSE;
+     if (!TEST_BIT(EV_SYN, evbits) ||
+@@ -87,7 +87,7 @@ event_query_is_touchpad(int fd)
+ 	!TEST_BIT(EV_KEY, evbits))
+ 	return FALSE;
+ 
+-    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_ABS, KEY_MAX), evbits));
++    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(evbits)), evbits));
+     if (ret < 0)
+ 	return FALSE;
+     if (!TEST_BIT(ABS_X, evbits) ||
+@@ -95,7 +95,7 @@ event_query_is_touchpad(int fd)
+ 	!TEST_BIT(ABS_PRESSURE, evbits))
+ 	return FALSE;
+ 
+-    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_KEY, KEY_MAX), evbits));
++    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(evbits)), evbits));
+     if (ret < 0)
+ 	return FALSE;
+     if (!TEST_BIT(BTN_TOOL_FINGER, evbits))
+-- 
+1.5.6.3
+

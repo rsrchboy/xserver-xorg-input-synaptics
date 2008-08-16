@@ -2,3 +2,4 @@
 02-scandir-dev-input.patch
 03-escape-dashes-in-manpages.patch
 04-delibcwrap.patch
+05-Fix-crash-on-kernels-with-extended-keymap-space.patch
