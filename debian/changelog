@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.14.7~git20070706-2.1.lenny1) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.14.7~git20070706-2.1.lenny1) unstable; urgency=low
 
   * Add 10-synaptics.fdi, installed in /usr/share/hal/fdi/policy/20thirdparty,
     to get the driver loaded automatically if a touchpad is detected
@@ -6,7 +6,7 @@ xfree86-driver-synaptics (0.14.7~git20070706-2.1.lenny1) UNRELEASED; urgency=low
   * Add patch from xorg git to fix usage of the EVIOCGBIT ioctl()
     (closes: #493101).
 
- -- Julien Cristau <jcristau@debian.org>  Sat, 16 Aug 2008 03:14:21 +0200
+ -- Julien Cristau <jcristau@debian.org>  Mon, 18 Aug 2008 01:41:39 +0200
 
 xfree86-driver-synaptics (0.14.7~git20070706-2.1) unstable; urgency=low
 

@@ -14,8 +14,8 @@ Signed-off-by: Julien Cristau <jcristau@debian.org>
 
 diff --git a/src/eventcomm.c b/src/eventcomm.c
 index 36c4c9e..e654102 100644
---- a/src/eventcomm.c
-+++ b/src/eventcomm.c
+--- a/eventcomm.c
++++ b/eventcomm.c
 @@ -79,7 +79,7 @@ event_query_is_touchpad(int fd)
  
      /* Check for ABS_X, ABS_Y, ABS_PRESSURE and BTN_TOOL_FINGER */
