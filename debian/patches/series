@@ -1,4 +1,1 @@
 01-synaptics-dont-grab-if-not-on-current-VT.patch
-02-scandir-dev-input.patch
-03-escape-dashes-in-manpages.patch
-04-delibcwrap.patch
