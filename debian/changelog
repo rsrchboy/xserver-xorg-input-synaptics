@@ -1,11 +1,12 @@
 xfree86-driver-synaptics (0.15.1~git20080821-1) UNRELEASED; urgency=low
 
   * Update to latest upstream git
-  * removed patches merged upstream:
+  * Remove patches merged upstream:
     - 02-scandir-dev-input.patch
     - 03-escape-dashes-in-manpages.patch
     - 04-delibcwrap.patch
   * Update debian/rules (taken from the evdev driver) for the autotoolized build
+  * Refresh 01-synaptics-dont-grab-if-not-on-current-VT.patch
 
  -- Mattia Dongili <malattia@debian.org>  Sat, 23 Aug 2008 20:27:50 +0900
 

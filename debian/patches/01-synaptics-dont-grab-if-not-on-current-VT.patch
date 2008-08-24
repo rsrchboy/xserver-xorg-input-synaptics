@@ -1,8 +1,8 @@
-diff --git a/synaptics.c b/synaptics.c
-index 802132c..5f7ba6d 100644
---- a/synaptics.c
-+++ b/synaptics.c
-@@ -588,6 +588,9 @@ DeviceOn(DeviceIntPtr dev)
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-08-23 20:07:18.227433722 +0900
++++ xserver-xorg-input-synaptics/src/synaptics.c	2008-08-24 12:06:27.626422532 +0900
+@@ -563,6 +563,9 @@ DeviceOn(DeviceIntPtr dev)
  
      DBG(3, ErrorF("Synaptics DeviceOn called\n"));
  
