@@ -79,11 +79,11 @@ LTLIBRARIES = $(@DRIVER_NAME@_drv_la_LTLIBRARIES)
 @DRIVER_NAME@_drv_la_LIBADD =
 am__@DRIVER_NAME@_drv_la_SOURCES_DIST = @DRIVER_NAME@.c synapticsstr.h \
 	alpscomm.c alpscomm.h ps2comm.c ps2comm.h synproto.h \
-	properties.c eventcomm.c eventcomm.h psmcomm.c psmcomm.h
+	eventcomm.c eventcomm.h psmcomm.c psmcomm.h
 @BUILD_EVENTCOMM_TRUE@am__objects_1 = eventcomm.lo
 @BUILD_PSMCOMM_TRUE@am__objects_2 = psmcomm.lo
 am_@DRIVER_NAME@_drv_la_OBJECTS = @DRIVER_NAME@.lo alpscomm.lo \
-	ps2comm.lo properties.lo $(am__objects_1) $(am__objects_2)
+	ps2comm.lo $(am__objects_1) $(am__objects_2)
 @DRIVER_NAME@_drv_la_OBJECTS = $(am_@DRIVER_NAME@_drv_la_OBJECTS)
 @DRIVER_NAME@_drv_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -245,7 +245,7 @@ top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)/include/
 @DRIVER_NAME@_drv_la_SOURCES = @DRIVER_NAME@.c synapticsstr.h \
 	alpscomm.c alpscomm.h ps2comm.c ps2comm.h synproto.h \
-	properties.c $(am__append_1) $(am__append_2)
+	$(am__append_1) $(am__append_2)
 all: all-am
 
 .SUFFIXES:
@@ -318,7 +318,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/@DRIVER_NAME@.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alpscomm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eventcomm.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/properties.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ps2comm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psmcomm.Plo@am__quote@
 

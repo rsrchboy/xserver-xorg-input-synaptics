@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.15.0+git20080821-1) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.15.0+git20080820-1) UNRELEASED; urgency=low
 
   * Update to latest upstream git
   * Remove patches merged upstream:
@@ -7,6 +7,7 @@ xfree86-driver-synaptics (0.15.0+git20080821-1) UNRELEASED; urgency=low
     - 04-delibcwrap.patch
   * Update debian/rules (taken from the evdev driver) for the autotoolized build
   * Refresh 01-synaptics-dont-grab-if-not-on-current-VT.patch
+  * Cherry pick aplletouch support from upstream
 
  -- Mattia Dongili <malattia@debian.org>  Sat, 23 Aug 2008 20:27:50 +0900
 
