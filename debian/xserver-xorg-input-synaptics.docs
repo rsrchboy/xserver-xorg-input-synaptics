@@ -1,9 +1,5 @@
 README
-README.alps
+docs/README.alps
 TODO
-COMPATIBILITY
-alps.patch
-pc_keyb.c.diff.2.4.3
 NEWS
-trouble-shooting.txt
-script/
+docs/trouble-shooting.txt

@@ -1,0 +1,3 @@
+usr/lib/xorg/modules/input/*.so
+usr/bin/*
+usr/share/hal/fdi/policy/20thirdparty/*

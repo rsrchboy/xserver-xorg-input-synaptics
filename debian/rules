@@ -10,6 +10,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+PACKAGE=xserver-xorg-input-synaptics
+
 include debian/xsfbs/xsfbs.mk
 
 CFLAGS = -Wall -g
@@ -68,6 +70,8 @@ install: build
 	dh_installdirs
 
 	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	install -D fdi/11-x11-synaptics.fdi \
+		$(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
 
 # Build architecture-dependent files here.
 binary-arch: build install serverabi
@@ -76,7 +80,7 @@ binary-arch: build install serverabi
 
 	dh_installdocs
 	dh_installchangelogs ChangeLog
-	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la --exclude=usr/share/man/man4
+	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la --exclude=usr/share/man
 	dh_installman
 	dh_link
 	dh_strip
