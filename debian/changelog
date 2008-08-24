@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.15.1~git20080821-1) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.15.0+git20080821-1) UNRELEASED; urgency=low
 
   * Update to latest upstream git
   * Remove patches merged upstream:
