@@ -16,8 +16,16 @@ security notice about SHMConfig:
    multiuser environment. All local users can change the parameters at any
    time.
 
-Configuration
--------------
+Xorg auto-configuration
+-----------------------
+Recent X.Org has support for automatic configuration. The synaptics driver does
+not support automatic configuration yet but the information required is
+supplied by a third party fdi script through HAL.
+The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
+
+
+Manual configuration
+--------------------
 
 1. Load the driver by changing the X.Org/XFree86 configuration file
 (/etc/X11/xorg.conf or /etc/X11/XF86Config-4) through adding the line 'Load
@@ -28,7 +36,7 @@ following lines:
 
 Section "InputDevice"
   Driver  	"synaptics"
-  Identifier  	"Mouse[1]"
+  Identifier  	"touchpad"
   Option 	"Device"  	"/dev/psaux"
   Option	"Protocol"	"auto-dev"
 #
@@ -59,7 +67,8 @@ The Option "Repeater" is at the moment for testing.
 
 Section "ServerLayout"
 ...
-  InputDevice "Mouse[1]"  "CorePointer"
+  InputDevice    "touchpad"  "CorePointer"
+  InputDevice    "USB Mouse" "SendCoreEvents"
 ...
 
    Note! You can not have more than one core pointer, so if you want
