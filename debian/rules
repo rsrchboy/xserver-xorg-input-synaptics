@@ -70,8 +70,9 @@ install: build
 	dh_installdirs
 
 	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
-	install -D fdi/11-x11-synaptics.fdi \
-		$(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
+	install -d $(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
+	install -m 0644 fdi/11-x11-synaptics.fdi \
+		$(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
 
 # Build architecture-dependent files here.
 binary-arch: build install serverabi
