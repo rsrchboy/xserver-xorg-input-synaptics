@@ -69,9 +69,11 @@
 #include <xf86_OSproc.h>
 #include <xf86Xinput.h>
 #include "mipointer.h"
+#include <exevents.h>
 
 #include "synaptics.h"
 #include "synapticsstr.h"
+#include "synaptics-properties.h"
 
 typedef enum {
     BOTTOM_EDGE = 1,
@@ -120,6 +122,8 @@ static Bool DeviceOff(DeviceIntPtr);
 static Bool DeviceClose(DeviceIntPtr);
 static Bool QueryHardware(LocalDevicePtr);
 
+void InitDeviceProperties(LocalDevicePtr local);
+Bool SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
 
 InputDriverRec SYNAPTICS = {
     1,
@@ -491,6 +495,7 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
 	xf86CloseSerial(local->fd);
     }
     local->fd = -1;
+
     return local;
 
  SetupProc_fail:
@@ -659,6 +664,11 @@ DeviceInit(DeviceIntPtr dev)
 
     if (!alloc_param_data(local))
 	return !Success;
+
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
+    InitDeviceProperties(local);
+    XIRegisterPropertyHandler(local->dev, SetProperty, NULL);
+#endif
 
     return Success;
 }
@@ -2024,3 +2034,4 @@ QueryHardware(LocalDevicePtr local)
     priv->proto_ops->DeviceOffHook(local);
     return TRUE;
 }
+
