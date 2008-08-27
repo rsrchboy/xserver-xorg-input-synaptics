@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.14.7~git20070706-3.lenny1) unstable; urgency=low
+xfree86-driver-synaptics (0.14.7~git20070706-3) unstable; urgency=low
 
   * Add appletouch support in the fdi file (Closes: #495799).
   * Install the fdi file with 0644 permissions.
@@ -6,7 +6,7 @@ xfree86-driver-synaptics (0.14.7~git20070706-3.lenny1) unstable; urgency=low
     configuration and show a clearer example for the Server (manual)
     configuration (Closes: #443995 and also Closes: #492120).
 
- -- Mattia Dongili <malattia@debian.org>  Mon, 25 Aug 2008 22:30:08 +0900
+ -- Mattia Dongili <malattia@debian.org>  Wed, 27 Aug 2008 23:05:42 +0900
 
 xfree86-driver-synaptics (0.14.7~git20070706-2.1.lenny1) unstable; urgency=low
 
