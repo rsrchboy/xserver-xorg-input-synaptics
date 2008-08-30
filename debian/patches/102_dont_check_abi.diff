@@ -1,0 +1,33 @@
+Index: xserver-xorg-input-synaptics/src/properties.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/properties.c	2008-08-30 13:22:29.000000000 +0300
++++ xserver-xorg-input-synaptics/src/properties.c	2008-08-30 13:22:44.000000000 +0300
+@@ -28,7 +28,6 @@
+ #endif
+ 
+ #include "xf86Module.h"
+-#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
+ 
+ #include <X11/Xatom.h>
+ #include <xf86Xinput.h>
+@@ -546,5 +545,4 @@
+     return TRUE;
+ }
+ 
+-#endif
+ 
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-08-30 13:22:22.000000000 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2008-08-30 13:23:26.000000000 +0300
+@@ -670,10 +670,8 @@
+     if (!alloc_param_data(local))
+ 	return !Success;
+ 
+-#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
+     InitDeviceProperties(local);
+     XIRegisterPropertyHandler(local->dev, SetProperty, NULL);
+-#endif
+ 
+     return Success;
+ }

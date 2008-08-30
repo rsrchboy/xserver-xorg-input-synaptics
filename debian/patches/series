@@ -1,2 +1,3 @@
 01-synaptics-dont-grab-if-not-on-current-VT.patch
 101_ubuntu.diff
+102_dont_check_abi.diff

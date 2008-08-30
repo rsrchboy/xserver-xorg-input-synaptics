@@ -1,3 +1,11 @@
+xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu2) intrepid; urgency=low
+
+  * 102_dont_check_abi.diff:
+    - Don't check ABI_MAJOR, since we have all that's needed for 
+      properties.
+
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 13:27:54 +0300
+
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu1) intrepid; urgency=low
 
   * Merge from Debian experimental, remaining changes:
