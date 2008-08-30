@@ -4,8 +4,10 @@ xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu4) UNRELEASED; urgency=low
     xutils-dev.
   * Enable 102 again, since the problem with it was that Makefile.in was
     not regenerated.
+  * Add 103_fix_off_by_one.diff to fix the number of arguments for 
+    properties. Thanks William Grant!
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 18:09:28 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 18:14:00 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu3) intrepid; urgency=low
 

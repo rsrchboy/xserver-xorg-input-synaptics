@@ -1,0 +1,22 @@
+Index: xserver-xorg-input-synaptics/src/properties.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/properties.c	2008-08-30 18:12:34.000000000 +0300
++++ xserver-xorg-input-synaptics/src/properties.c	2008-08-30 18:13:35.000000000 +0300
+@@ -455,7 +455,7 @@
+         int i;
+         CARD8 *action;
+ 
+-        if (prop->size >= MAX_TAP || prop->format != 8 || prop->type != XA_INTEGER)
++        if (prop->size > MAX_TAP || prop->format != 8 || prop->type != XA_INTEGER)
+             return FALSE;
+ 
+         action = (CARD8*)prop->data;
+@@ -467,7 +467,7 @@
+         int i;
+         CARD8 *action;
+ 
+-        if (prop->size >= MAX_CLICK || prop->format != 8 || prop->type != XA_INTEGER)
++        if (prop->size > MAX_CLICK || prop->format != 8 || prop->type != XA_INTEGER)
+             return FALSE;
+ 
+         action = (CARD8*)prop->data;
