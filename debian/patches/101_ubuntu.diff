@@ -1,0 +1,62 @@
+--- a/src/synaptics.c	2008-02-14 07:29:55.000000000 +0000
++++ b/src/synaptics.c	2008-02-14 07:44:17.000000000 +0000
+@@ -306,6 +306,8 @@ SynapticsPreInit(InputDriverPtr drv, IDe
+     char *repeater;
+     pointer opts;
+ 
++    ErrorF("Atom %d, CARD32 %d, unsigned long %d\n", sizeof(Atom), sizeof(CARD32), sizeof(unsigned long));
++
+     /* allocate memory for SynapticsPrivateRec */
+     priv = xcalloc(1, sizeof(SynapticsPrivate));
+     if (!priv)
+@@ -1952,7 +1954,49 @@ HandleState(LocalDevicePtr local, struct
+ static int
+ ControlProc(LocalDevicePtr local, xDeviceCtl * control)
+ {
+-    DBG(3, ErrorF("Control Proc called\n"));
++    SynapticsPrivate *priv = (SynapticsPrivate *) local->private;
++    SynapticsSHM *para = priv->synpara;
++    int* r = (int *)(control+2);
++    int param = r[0];
++    int value = r[1];
++    pointer opts = local->options;
++    AxisInfoPtr a;
++    int i;
++
++    /* This is a very ugly hack, but right now the X server only supports
++       sending DEVICE_RESOLUTION */
++
++    for (i = 0; i < 2; i++) {
++           a = local->dev->valuator->axes + i;
++           a->max_resolution = 1000;
++    }
++
++    if (control->control != DEVICE_RESOLUTION)
++           return BadMatch;
++
++    switch (param) {
++    case 0: /* Touchpad Off */
++	    if (value)
++		    para->touchpad_off = 1;
++	    else
++		    para->touchpad_off = 0;
++	    break;
++    case 1: /* Tap-to-click */
++           if (value)
++                   para->tap_time = xf86SetIntOption(opts, "MaxTapTime", 180);
++           else
++                   para->tap_time = 0;
++           break;
++    case 2: /* Vertical Scrolling */
++           para->scroll_edge_vert = value;
++           break;
++    case 3: /* Horizontal Scrolling */
++           para->scroll_edge_horiz = value;
++           break;
++    default:
++           return BadValue;
++    }
++
+     return Success;
+ }
+ 
