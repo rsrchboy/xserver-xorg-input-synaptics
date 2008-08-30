@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu4) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu4) intrepid; urgency=low
 
   * Run autoreconf at build time; build-depend on automake, libtool and
     xutils-dev.
@@ -6,8 +6,11 @@ xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu4) UNRELEASED; urgency=low
     not regenerated.
   * Add 103_fix_off_by_one.diff to fix the number of arguments for 
     properties. Thanks William Grant!
+  * Pull 3d39926875446e from upstream/master: 
+    - Re-enable TapButtons and CornerButtons to work by default.
+    (LP: #262292)
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 18:14:00 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 18:20:14 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu3) intrepid; urgency=low
 
