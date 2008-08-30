@@ -35,18 +35,22 @@ endif
 
 #confflags += --disable-static
 
-build: build-stamp
-build-stamp: $(STAMP_DIR)/patch
-	dh_testdir
+configure: $(STAMP_DIR)/patch
+	autoreconf -vfi
 
-	test -d obj-$(DEB_BUILD_GNU_TYPE) || mkdir obj-$(DEB_BUILD_GNU_TYPE)
+obj-$(DEB_BUILD_GNU_TYPE)/config.status: configure
+	mkdir -p obj-$(DEB_BUILD_GNU_TYPE)
 	cd obj-$(DEB_BUILD_GNU_TYPE) && \
 	../configure --prefix=/usr --mandir=\$${prefix}/share/man \
 	             --infodir=\$${prefix}/share/info $(confflags) \
 	             CFLAGS="$(CFLAGS)" 
-	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE)
+	
 
-	touch build-stamp
+build: build-stamp
+build-stamp: obj-$(DEB_BUILD_GNU_TYPE)/config.status
+	dh_testdir
+	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE)
+	>$@
 
 clean: xsfclean
 	dh_testdir
@@ -58,8 +62,9 @@ clean: xsfclean
 	rm -f conftest* */conftest*
 	rm -rf autom4te.cache */autom4te.cache
 	rm -rf obj-*
-	# for snapshot builds
-	#chmod +x configure
+	rm -f $$(find -name Makefile.in)
+	rm -f compile config.guess config.sub configure depcomp install-sh
+	rm -f ltmain.sh missing INSTALL aclocal.m4 config.h.in
 
 	dh_clean
 
