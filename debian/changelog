@@ -1,3 +1,10 @@
+xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu3) intrepid; urgency=low
+
+  * Disable 102 for now, since the property stuff doesn't seem to be 
+    working right. (LP: #262986)
+
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Sat, 30 Aug 2008 16:52:51 +0300
+
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu2) intrepid; urgency=low
 
   * 102_dont_check_abi.diff:
