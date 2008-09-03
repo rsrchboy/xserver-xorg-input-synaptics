@@ -1,3 +1,9 @@
+xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu6) UNRELEASED; urgency=low
+
+  * Drop 101_ubuntu.diff, superseded by input properties.
+
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Wed, 03 Sep 2008 17:55:12 +0300
+
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu5) intrepid; urgency=low
 
   * Rebuild to fix dependency against xserver-xorg-core.
