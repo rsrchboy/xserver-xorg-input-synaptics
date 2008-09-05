@@ -1,3 +1,10 @@
+xfree86-driver-synaptics (0.15.0+git20080820-2) UNRELEASED; urgency=low
+
+  * Run autoreconf at build time; build-depend on automake, libtool and
+    xutils-dev.
+
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Fri, 05 Sep 2008 10:18:01 +0300
+
 xfree86-driver-synaptics (0.15.0+git20080820-1) experimental; urgency=low
 
   * Update to latest upstream git
