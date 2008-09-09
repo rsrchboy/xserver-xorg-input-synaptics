@@ -1,3 +1,2 @@
 01-synaptics-dont-grab-if-not-on-current-VT.patch
 102_dont_check_abi.diff
-103_fix_off_by_one.diff

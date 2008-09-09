@@ -1,8 +1,10 @@
-xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu6) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.15.1-0ubuntu1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * Drop 101_ubuntu.diff, superseded by input properties.
+  * Drop 103_fix_off_by_one.diff, applied upstream.
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Wed, 03 Sep 2008 17:55:12 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Tue, 09 Sep 2008 12:27:11 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu5) intrepid; urgency=low
 
