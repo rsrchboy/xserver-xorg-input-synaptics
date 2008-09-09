@@ -1,0 +1,13 @@
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-09-09 12:42:53.000000000 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2008-09-09 12:43:15.000000000 +0300
+@@ -447,7 +447,7 @@
+     pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", vertScrollDelta);
+     pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", TRUE);
+     pars->special_scroll_area_right  = xf86SetBoolOption(opts, "SpecialScrollAreaRight", TRUE);
+-    pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", TRUE);
++    pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", FALSE);
+     pars->scroll_edge_corner = xf86SetBoolOption(opts, "CornerCoasting", FALSE);
+     pars->scroll_twofinger_vert = xf86SetBoolOption(opts, "VertTwoFingerScroll", FALSE);
+     pars->scroll_twofinger_horiz = xf86SetBoolOption(opts, "HorizTwoFingerScroll", FALSE);

@@ -2,3 +2,4 @@
 102_dont_check_abi.diff
 103_preprobe.patch
 104_edges.patch
+105_no_horizscroll.patch
