@@ -1,0 +1,135 @@
+From aeb2fa0764bad4203237eb89bf34963dc92bb7f2 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@redhat.com>
+Date: Tue, 9 Sep 2008 00:24:06 +0930
+Subject: [PATCH] Pre-probe the device (eventcomm only).
+
+For auto-dev, we'd probe the device node and get the axis ranges. If we
+specify the device however we didn't retrieve the axis ranges and thus got
+stuck with the defaults - losing out on automatic edge and accel calculation.
+
+This is an issue if the device is hotplugged, as HAL will specify the device
+node.
+
+This patch adds another hook to synproto_operations to pre-probe the device.
+This hook is only used by eventcomm and opens the FD, queries the axis range
+and closes the FD again.
+---
+ src/alpscomm.c  |    3 ++-
+ src/eventcomm.c |   28 +++++++++++++++++++++++++++-
+ src/ps2comm.c   |    3 ++-
+ src/psmcomm.c   |    3 ++-
+ src/synaptics.c |    5 +++--
+ src/synproto.h  |    1 +
+ 6 files changed, 37 insertions(+), 6 deletions(-)
+
+diff --git a/src/alpscomm.c b/src/alpscomm.c
+index 4f19d04..0b93fef 100644
+--- a/src/alpscomm.c
++++ b/src/alpscomm.c
+@@ -262,5 +262,6 @@ struct SynapticsProtocolOperations alps_proto_operations = {
+     ALPSDeviceOffHook,
+     ALPSQueryHardware,
+     ALPSReadHwState,
+-    ALPSAutoDevProbe
++    ALPSAutoDevProbe,
++    NULL /* ProbeDevice */
+ };
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index e3ac20e..6c37dbd 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -305,6 +305,31 @@ static int EventDevOnly(const struct dirent *dir) {
+ 	return strncmp(EVENT_DEV_NAME, dir->d_name, 5) == 0;
+ }
+ 
++/**
++ * Probe the given device name for axis ranges, if appropriate.
++ */
++static Bool
++EventProbeDevice(LocalDevicePtr local, char* device)
++{
++    int fd;
++
++    SYSCALL(fd = open(device, O_RDONLY));
++    if (fd < 0)
++        goto out;
++
++    if (!event_query_is_touchpad(fd))
++        goto out;
++
++    event_query_axis_ranges(fd, local);
++
++out:
++    if (fd >= 0)
++        SYSCALL(close(fd));
++
++    /* Always return TRUE, PreInit will complain for us if necessary */
++    return TRUE;
++}
++
+ static Bool
+ EventAutoDevProbe(LocalDevicePtr local)
+ {
+@@ -361,5 +386,6 @@ struct SynapticsProtocolOperations event_proto_operations = {
+     EventDeviceOffHook,
+     EventQueryHardware,
+     EventReadHwState,
+-    EventAutoDevProbe
++    EventAutoDevProbe,
++    EventProbeDevice
+ };
+diff --git a/src/ps2comm.c b/src/ps2comm.c
+index 32e3dc9..cc2a202 100644
+--- a/src/ps2comm.c
++++ b/src/ps2comm.c
+@@ -758,5 +758,6 @@ struct SynapticsProtocolOperations psaux_proto_operations = {
+     PS2DeviceOffHook,
+     PS2QueryHardware,
+     PS2ReadHwState,
+-    PS2AutoDevProbe
++    PS2AutoDevProbe,
++    NULL /* ProbeDevice */
+ };
+diff --git a/src/psmcomm.c b/src/psmcomm.c
+index 95364ab..c36bed3 100644
+--- a/src/psmcomm.c
++++ b/src/psmcomm.c
+@@ -177,5 +177,6 @@ struct SynapticsProtocolOperations psm_proto_operations = {
+     PSMDeviceOffHook,
+     PSMQueryHardware,
+     PSMReadHwState,
+-    PSMAutoDevProbe
++    PSMAutoDevProbe,
++    NULL /* ProbeDevice */
+ };
+diff --git a/src/synaptics.c b/src/synaptics.c
+index 397cfd8..53d3290 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -180,8 +180,9 @@ SetDeviceAndProtocol(LocalDevicePtr local)
+     }
+     if (device && strstr(device, "/dev/input/event")) {
+ #ifdef BUILD_EVENTCOMM
+-	/* trust the device name if we've been given one */
+-	proto = SYN_PROTO_EVENT;
++        if (event_proto_operations.ProbeDevice &&
++            event_proto_operations.ProbeDevice(local, device))
++            proto = SYN_PROTO_EVENT;
+ #endif
+     } else {
+ 	str_par = xf86FindOptionValue(local->options, "Protocol");
+diff --git a/src/synproto.h b/src/synproto.h
+index d5ae8f9..246adbd 100644
+--- a/src/synproto.h
++++ b/src/synproto.h
+@@ -96,6 +96,7 @@ struct SynapticsProtocolOperations {
+ 			struct SynapticsProtocolOperations *proto_ops,
+ 			struct CommData *comm, struct SynapticsHwState *hwRet);
+     Bool (*AutoDevProbe)(LocalDevicePtr local);
++    Bool (*ProbeDevice)(LocalDevicePtr local, char* name);
+ };
+ 
+ extern struct SynapticsProtocolOperations psaux_proto_operations;
+-- 
+1.6.0.1
+

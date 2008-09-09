@@ -3,8 +3,12 @@ xfree86-driver-synaptics (0.15.1-0ubuntu1) UNRELEASED; urgency=low
   * New upstream release.
   * Drop 101_ubuntu.diff, superseded by input properties.
   * Drop 103_fix_off_by_one.diff, applied upstream.
+  * 103_preprobe.patch:
+    - Pre-probe the device (eventcomm only)
+    104_edges.patch:
+    - Improve edge autodetection and accel
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Tue, 09 Sep 2008 12:27:11 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Tue, 09 Sep 2008 12:38:09 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu5) intrepid; urgency=low
 
