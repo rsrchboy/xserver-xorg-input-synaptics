@@ -10,8 +10,10 @@ xfree86-driver-synaptics (0.15.1-0ubuntu1) UNRELEASED; urgency=low
   * 105_no_horizscroll.patch:
     - Disable horizontal scrolling by defaulting to FALSE instead of changing
       the fdi file.
+  * 102_dont_check_abi.diff:
+    - Remove one more check from src/synaptics.c, which was added recently.
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Tue, 09 Sep 2008 12:46:59 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Tue, 09 Sep 2008 12:51:36 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu5) intrepid; urgency=low
 

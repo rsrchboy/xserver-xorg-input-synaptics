@@ -1,7 +1,7 @@
 Index: xserver-xorg-input-synaptics/src/properties.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/properties.c	2008-08-30 13:22:29.000000000 +0300
-+++ xserver-xorg-input-synaptics/src/properties.c	2008-08-30 13:22:44.000000000 +0300
+--- xserver-xorg-input-synaptics.orig/src/properties.c	2008-09-09 12:46:41.000000000 +0300
++++ xserver-xorg-input-synaptics/src/properties.c	2008-09-09 12:48:16.000000000 +0300
 @@ -28,7 +28,6 @@
  #endif
  
@@ -18,9 +18,20 @@ Index: xserver-xorg-input-synaptics/src/properties.c
  
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-08-30 13:22:22.000000000 +0300
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2008-08-30 13:23:26.000000000 +0300
-@@ -670,10 +670,8 @@
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-09-09 12:48:14.000000000 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2008-09-09 12:48:35.000000000 +0300
+@@ -124,10 +124,8 @@
+ static Bool DeviceClose(DeviceIntPtr);
+ static Bool QueryHardware(LocalDevicePtr);
+ 
+-#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
+ void InitDeviceProperties(LocalDevicePtr local);
+ Bool SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
+-#endif
+ 
+ InputDriverRec SYNAPTICS = {
+     1,
+@@ -677,10 +675,8 @@
      if (!alloc_param_data(local))
  	return !Success;
  
