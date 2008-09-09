@@ -12,6 +12,7 @@
  * Copyright © 2006 Stefan Bethge
  * Copyright © 2006 Christian Thaeter
  * Copyright © 2007 Joseph P. Skudlarek
+ * Copyright © 2008 Fedor P. Goncharov
  *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
@@ -46,6 +47,7 @@
  *      Henry Davies <hdavies@ameritech.net> for the
  *      Linuxcare Inc. David Kennedy <dkennedy@linuxcare.com>
  *      Fred Hucht <fred@thp.Uni-Duisburg.de>
+ *      Fedor P. Goncharov <fedgo@gorodok.net>
  *
  * Trademarks are the property of their respective owners.
  */
@@ -122,8 +124,10 @@ static Bool DeviceOff(DeviceIntPtr);
 static Bool DeviceClose(DeviceIntPtr);
 static Bool QueryHardware(LocalDevicePtr);
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
 void InitDeviceProperties(LocalDevicePtr local);
 Bool SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
+#endif
 
 InputDriverRec SYNAPTICS = {
     1,
@@ -172,11 +176,13 @@ SetDeviceAndProtocol(LocalDevicePtr local)
     device = xf86FindOptionValue(local->options, "Device");
     if (!device) {
 	device = xf86FindOptionValue(local->options, "Path");
-	xf86SetStrOption(local->options, "Device", device);
+	xf86ReplaceStrOption(local->options, "Device", device);
     }
     if (device && strstr(device, "/dev/input/event")) {
+#ifdef BUILD_EVENTCOMM
 	/* trust the device name if we've been given one */
 	proto = SYN_PROTO_EVENT;
+#endif
     } else {
 	str_par = xf86FindOptionValue(local->options, "Protocol");
 	if (str_par && !strcmp(str_par, "psaux")) {
@@ -192,8 +198,10 @@ SetDeviceAndProtocol(LocalDevicePtr local)
 	} else if (str_par && !strcmp(str_par, "alps")) {
 	    proto = SYN_PROTO_ALPS;
 	} else { /* default to auto-dev */
+#ifdef BUILD_EVENTCOMM
 	    if (event_proto_operations.AutoDevProbe(local))
 		proto = SYN_PROTO_EVENT;
+#endif
 	}
     }
     switch (proto) {
@@ -384,7 +392,7 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->finger_high = xf86SetIntOption(opts, "FingerHigh", 30);
     pars->finger_press = xf86SetIntOption(opts, "FingerPress", 256);
     pars->tap_time = xf86SetIntOption(opts, "MaxTapTime", 180);
-    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 220);
+    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 25);
     pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
     pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
     pars->fast_taps = xf86SetIntOption(opts, "FastTaps", FALSE);
@@ -393,6 +401,7 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", 100);
     pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", 100);
     pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", TRUE);
+    pars->special_scroll_area_right  = xf86SetBoolOption(opts, "SpecialScrollAreaRight", TRUE);
     pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", TRUE);
     pars->scroll_edge_corner = xf86SetBoolOption(opts, "CornerCoasting", FALSE);
     pars->scroll_twofinger_vert = xf86SetBoolOption(opts, "VertTwoFingerScroll", FALSE);
@@ -759,7 +768,7 @@ edge_detection(SynapticsPrivate *priv, int x, int y)
     if (priv->synpara->circular_pad)
 	return circular_edge_detection(priv, x, y);
 
-    if (x > priv->synpara->right_edge)
+    if (x >= priv->synpara->right_edge)
 	edge |= RIGHT_EDGE;
     else if (x < priv->synpara->left_edge)
 	edge |= LEFT_EDGE;
@@ -1119,8 +1128,7 @@ HandleTapProcessing(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     touch = finger && !priv->finger_state;
     release = !finger && priv->finger_state;
-    move = ((priv->tap_max_fingers <= 1) &&
-	    ((abs(hw->x - priv->touch_on.x) >= para->tap_move) ||
+    move = (((abs(hw->x - priv->touch_on.x) >= para->tap_move) ||
 	     (abs(hw->y - priv->touch_on.y) >= para->tap_move)));
 
     if (touch) {
@@ -1838,14 +1846,32 @@ HandleState(LocalDevicePtr local, struct SynapticsHwState *hw)
 
     /*
      * Some touchpads have a scroll wheel region where a very large X
-     * coordinate is reported. For such touchpads, we adjust the X
-     * coordinate to eliminate the discontinuity.
+     * coordinate is reported. 
+     *
+     *    We suggest two  solution this problem:
      */
     if (hw->x <= XMAX_VALID) {
 	if (priv->largest_valid_x < hw->x)
 	    priv->largest_valid_x = hw->x;
     } else {
-	hw->x = priv->largest_valid_x;
+      if (!(para->special_scroll_area_right))
+      /*               First:
+      * Adjust the X coordinate to eliminate the discontinuity 
+      * and use it region as 1 coordinate size line.
+      */
+	hw->x = priv->largest_valid_x + 1;
+      else {
+      /*               Second (default):
+       * Adjust the X coordinate to eliminate the discontinuity
+       * and use it region as scroll area automaticly.
+       */	
+	
+	if (priv->synpara->right_edge > priv->largest_valid_x + 1)
+	  priv->synpara->right_edge=priv->largest_valid_x + 1;
+	para->special_scroll_area_right = FALSE;
+       
+	hw->x = priv->largest_valid_x + 1;
+      }
     }
 
     edge = edge_detection(priv, hw->x, hw->y);
