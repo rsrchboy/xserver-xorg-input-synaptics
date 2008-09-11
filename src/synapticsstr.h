@@ -54,7 +54,9 @@ enum MidButtonEmulation {
     MBE_RIGHT,			/* Right button pressed, waiting for left button or timeout */
     MBE_MID,			/* Left and right buttons pressed, waiting for both buttons
 				   to be released */
-    MBE_TIMEOUT			/* Waiting for both buttons to be released. */
+    MBE_TIMEOUT,		/* Waiting for both buttons to be released. */
+    MBE_LEFT_CLICK,		/* Emulate left button click. */
+    MBE_RIGHT_CLICK,		/* Emulate right button click. */
 };
 
 /* See docs/tapndrag.dia for a state machine diagram */
@@ -137,6 +139,7 @@ typedef struct _SynapticsPrivateRec
     int prev_z;				/* previous z value, for palm detection */
     int avg_width;			/* weighted average of previous fingerWidth values */
 
+    int minx, maxx, miny, maxy;         /* min/max dimensions as detected */
 } SynapticsPrivate;
 
 #endif /* _SYNAPTICSSTR_H_ */

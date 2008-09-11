@@ -13,6 +13,7 @@
  * Copyright © 2006 Christian Thaeter
  * Copyright © 2007 Joseph P. Skudlarek
  * Copyright © 2008 Fedor P. Goncharov
+ * Copyright © 2008 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
@@ -176,12 +177,16 @@ SetDeviceAndProtocol(LocalDevicePtr local)
     device = xf86FindOptionValue(local->options, "Device");
     if (!device) {
 	device = xf86FindOptionValue(local->options, "Path");
-	xf86ReplaceStrOption(local->options, "Device", device);
+	if (device) {
+	    local->options =
+	    	xf86ReplaceStrOption(local->options, "Device", device);
+	}
     }
     if (device && strstr(device, "/dev/input/event")) {
 #ifdef BUILD_EVENTCOMM
-	/* trust the device name if we've been given one */
-	proto = SYN_PROTO_EVENT;
+        if (event_proto_operations.ProbeDevice &&
+            event_proto_operations.ProbeDevice(local, device))
+            proto = SYN_PROTO_EVENT;
 #endif
     } else {
 	str_par = xf86FindOptionValue(local->options, "Protocol");
@@ -306,6 +311,10 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     char *repeater;
     pointer opts;
     int status;
+    float minSpeed, maxSpeed;
+    int horizScrollDelta, vertScrollDelta,
+        edgeMotionMinSpeed, edgeMotionMaxSpeed;
+    int l, r, t, b; /* left, right, top, bottom */
 
     /* allocate memory for SynapticsPrivateRec */
     priv = xcalloc(1, sizeof(SynapticsPrivate));
@@ -321,7 +330,7 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
 
     /* initialize the InputInfoRec */
     local->name                    = dev->identifier;
-    local->type_name               = XI_MOUSE; /* XI_TOUCHPAD and KDE killed the X Server at startup ? */
+    local->type_name               = XI_TOUCHPAD;
     local->device_control          = DeviceControl;
     local->read_input              = ReadInput;
     local->control_proc            = ControlProc;
@@ -344,19 +353,12 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
 
     xf86CollectInputOptions(local, NULL, NULL);
 
-    opts = local->options;
+    xf86OptionListReport(local->options);
 
-    xf86OptionListReport(opts);
-
-    /* set hard-coded axis ranges before querying the device.
-     * These defaults are overwritten with the ones provided by the device
-     * during SetDeviceAndProtocol (if applicable). */
-    priv->synpara_default.left_edge   = 1900;
-    priv->synpara_default.right_edge  = 5400;
-    priv->synpara_default.top_edge    = 1900;
-    priv->synpara_default.bottom_edge = 4000;
-
+    /* may change local->options */
     SetDeviceAndProtocol(local);
+
+    opts = local->options;
 
     /* open the touchpad device */
     local->fd = xf86OpenSerial(opts);
@@ -382,11 +384,58 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     /* read the parameters */
     pars = &priv->synpara_default;
     pars->version = (PACKAGE_VERSION_MAJOR*10000+PACKAGE_VERSION_MINOR*100+PACKAGE_VERSION_PATCHLEVEL);
-    /* pars->xyz_edge contains defaults or values reported by hardware*/
-    pars->left_edge = xf86SetIntOption(opts, "LeftEdge", pars->left_edge);
-    pars->right_edge = xf86SetIntOption(opts, "RightEdge", pars->right_edge);
-    pars->top_edge = xf86SetIntOption(opts, "TopEdge", pars->top_edge);
-    pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", pars->bottom_edge);
+
+    /* The synaptics specs specify typical edge widths of 4% on x, and 5.4% on
+     * y (page 7) [Synaptics TouchPad Interfacing Guide, 510-000080 - A
+     * Second Edition, http://www.synaptics.com/support/dev_support.cfm, 8 Sep
+     * 2008]
+     * If the range was autodetected, apply these edge widths to all four
+     * sides.
+     */
+    if (priv->maxx && priv->maxy)
+    {
+        int width, height;
+        int ewidth, eheight; /* edge width/height */
+
+        width = abs(priv->maxx - priv->minx);
+        height = abs(priv->maxy - priv->miny);
+        ewidth = width * .04;
+        eheight = height * .055;
+
+        l = priv->minx + ewidth;
+        r = priv->maxx - ewidth;
+        t = priv->miny + eheight;
+        b = priv->maxy - eheight;
+
+        /* Default min/max speed are 0.09/0.18. Assuming we have a device that
+         * reports height 3040 (typical y range in synaptics specs) this gives
+         * us the same result. */
+        minSpeed = 273.0/height;
+        maxSpeed = 547.0/height;
+
+        /* Again, based on typical x/y range and defaults */
+        horizScrollDelta = width * .025;
+        vertScrollDelta = height * .04;
+        edgeMotionMinSpeed = 1;
+        edgeMotionMaxSpeed = width * .1;
+    } else {
+        l = 1900;
+        r = 5400;
+        t = 1900;
+        b = 4000;
+        minSpeed = 0.09;
+        maxSpeed = 0.18;
+
+        horizScrollDelta = 100;
+        vertScrollDelta = 100;
+        edgeMotionMinSpeed = 1;
+        edgeMotionMaxSpeed = 400;
+    }
+
+    pars->left_edge = xf86SetIntOption(opts, "LeftEdge", l);
+    pars->right_edge = xf86SetIntOption(opts, "RightEdge", r);
+    pars->top_edge = xf86SetIntOption(opts, "TopEdge", t);
+    pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", b);
 
     pars->finger_low = xf86SetIntOption(opts, "FingerLow", 25);
     pars->finger_high = xf86SetIntOption(opts, "FingerHigh", 30);
@@ -398,8 +447,8 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->fast_taps = xf86SetIntOption(opts, "FastTaps", FALSE);
     pars->emulate_mid_button_time = xf86SetIntOption(opts, "EmulateMidButtonTime", 75);
     pars->emulate_twofinger_z = xf86SetIntOption(opts, "EmulateTwoFingerMinZ", 257);
-    pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", 100);
-    pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", 100);
+    pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", horizScrollDelta);
+    pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", vertScrollDelta);
     pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", TRUE);
     pars->special_scroll_area_right  = xf86SetBoolOption(opts, "SpecialScrollAreaRight", TRUE);
     pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", TRUE);
@@ -408,8 +457,8 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->scroll_twofinger_horiz = xf86SetBoolOption(opts, "HorizTwoFingerScroll", FALSE);
     pars->edge_motion_min_z = xf86SetIntOption(opts, "EdgeMotionMinZ", 30);
     pars->edge_motion_max_z = xf86SetIntOption(opts, "EdgeMotionMaxZ", 160);
-    pars->edge_motion_min_speed = xf86SetIntOption(opts, "EdgeMotionMinSpeed", 1);
-    pars->edge_motion_max_speed = xf86SetIntOption(opts, "EdgeMotionMaxSpeed", 400);
+    pars->edge_motion_min_speed = xf86SetIntOption(opts, "EdgeMotionMinSpeed", edgeMotionMinSpeed);
+    pars->edge_motion_max_speed = xf86SetIntOption(opts, "EdgeMotionMaxSpeed", edgeMotionMaxSpeed);
     pars->edge_motion_use_always = xf86SetBoolOption(opts, "EdgeMotionUseAlways", FALSE);
     repeater = xf86SetStrOption(opts, "Repeater", NULL);
     pars->updown_button_scrolling = xf86SetBoolOption(opts, "UpDownScrolling", TRUE);
@@ -421,8 +470,8 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->guestmouse_off = xf86SetBoolOption(opts, "GuestMouseOff", FALSE);
     pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", FALSE);
     pars->locked_drag_time = xf86SetIntOption(opts, "LockedDragTimeout", 5000);
-    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 2);
-    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 3);
+    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 0);
+    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 0);
     pars->tap_action[LT_TAP] = xf86SetIntOption(opts, "LTCornerButton", 0);
     pars->tap_action[LB_TAP] = xf86SetIntOption(opts, "LBCornerButton", 0);
     pars->tap_action[F1_TAP] = xf86SetIntOption(opts, "TapButton1",     1);
@@ -441,8 +490,8 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     pars->press_motion_min_z = xf86SetIntOption(opts, "PressureMotionMinZ", pars->edge_motion_min_z);
     pars->press_motion_max_z = xf86SetIntOption(opts, "PressureMotionMaxZ", pars->edge_motion_max_z);
 
-    pars->min_speed = synSetFloatOption(opts, "MinSpeed", 0.09);
-    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", 0.18);
+    pars->min_speed = synSetFloatOption(opts, "MinSpeed", minSpeed);
+    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", maxSpeed);
     pars->accl = synSetFloatOption(opts, "AccelFactor", 0.0015);
     pars->trackstick_speed = synSetFloatOption(opts, "TrackstickSpeed", 40);
     pars->scroll_dist_circ = synSetFloatOption(opts, "CircScrollDelta", 0.1);
@@ -877,6 +926,8 @@ HandleMidButtonEmulation(SynapticsPrivate *priv, struct SynapticsHwState *hw, in
 
     while (!done) {
 	switch (priv->mid_emu_state) {
+	case MBE_LEFT_CLICK:
+	case MBE_RIGHT_CLICK:
 	case MBE_OFF:
 	    priv->button_delay_millis = hw->millis;
 	    if (hw->left) {
@@ -892,7 +943,12 @@ HandleMidButtonEmulation(SynapticsPrivate *priv, struct SynapticsHwState *hw, in
 				 hw->millis);
 	    if (timeleft > 0)
 		*delay = MIN(*delay, timeleft);
-	    if (!hw->left || (timeleft <= 0)) {
+
+            /* timeout, but within the same ReadInput cycle! */
+            if ((timeleft <= 0) && !hw->left) {
+		priv->mid_emu_state = MBE_LEFT_CLICK;
+		done = TRUE;
+            } else if ((!hw->left) || (timeleft <= 0)) {
 		hw->left = TRUE;
 		priv->mid_emu_state = MBE_TIMEOUT;
 		done = TRUE;
@@ -908,7 +964,12 @@ HandleMidButtonEmulation(SynapticsPrivate *priv, struct SynapticsHwState *hw, in
 				 hw->millis);
 	    if (timeleft > 0)
 		*delay = MIN(*delay, timeleft);
-	    if (!hw->right || (timeleft <= 0)) {
+
+	     /* timeout, but within the same ReadInput cycle! */
+            if ((timeleft <= 0) && !hw->right) {
+		priv->mid_emu_state = MBE_RIGHT_CLICK;
+		done = TRUE;
+            } else if (!hw->right || (timeleft <= 0)) {
 		hw->right = TRUE;
 		priv->mid_emu_state = MBE_TIMEOUT;
 		done = TRUE;
@@ -1917,6 +1978,18 @@ HandleState(LocalDevicePtr local, struct SynapticsHwState *hw)
     /* Post events */
     if (dx || dy)
 	xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
+
+    if (priv->mid_emu_state == MBE_LEFT_CLICK)
+    {
+	xf86PostButtonEvent(local->dev, FALSE, 1, 1, 0, 0);
+	xf86PostButtonEvent(local->dev, FALSE, 1, 0, 0, 0);
+	priv->mid_emu_state = MBE_OFF;
+    } else if (priv->mid_emu_state == MBE_RIGHT_CLICK)
+    {
+	xf86PostButtonEvent(local->dev, FALSE, 3, 1, 0, 0);
+	xf86PostButtonEvent(local->dev, FALSE, 3, 0, 0, 0);
+	priv->mid_emu_state = MBE_OFF;
+    }
 
     change = buttons ^ priv->lastButtons;
     while (change) {

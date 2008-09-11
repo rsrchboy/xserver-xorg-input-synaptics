@@ -108,11 +108,11 @@ event_query_is_touchpad(int fd)
     return TRUE;
 }
 
-/* Query device for axis ranges and store outcome in the default parameter. */
+/* Query device for axis ranges */
 static void
 event_query_axis_ranges(int fd, LocalDevicePtr local)
 {
-    SynapticsSHM *pars = &((SynapticsPrivate *)local->private)->synpara_default;
+    SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
     struct input_absinfo abs;
     int rc;
 
@@ -121,8 +121,8 @@ event_query_axis_ranges(int fd, LocalDevicePtr local)
     {
 	xf86Msg(X_INFO, "%s: x-axis range %d - %d\n", local->name,
 		abs.minimum, abs.maximum);
-	pars->left_edge  = abs.minimum;
-	pars->right_edge = abs.maximum;
+	priv->minx = abs.minimum;
+	priv->maxx = abs.maximum;
     } else
 	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", local->name,
 		strerror(errno));
@@ -132,8 +132,8 @@ event_query_axis_ranges(int fd, LocalDevicePtr local)
     {
 	xf86Msg(X_INFO, "%s: y-axis range %d - %d\n", local->name,
 		abs.minimum, abs.maximum);
-	pars->top_edge    = abs.minimum;
-	pars->bottom_edge = abs.maximum;
+	priv->miny = abs.minimum;
+	priv->maxy = abs.maximum;
     } else
 	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", local->name,
 		strerror(errno));
@@ -305,6 +305,31 @@ static int EventDevOnly(const struct dirent *dir) {
 	return strncmp(EVENT_DEV_NAME, dir->d_name, 5) == 0;
 }
 
+/**
+ * Probe the given device name for axis ranges, if appropriate.
+ */
+static Bool
+EventProbeDevice(LocalDevicePtr local, char* device)
+{
+    int fd;
+
+    SYSCALL(fd = open(device, O_RDONLY));
+    if (fd < 0)
+        goto out;
+
+    if (!event_query_is_touchpad(fd))
+        goto out;
+
+    event_query_axis_ranges(fd, local);
+
+out:
+    if (fd >= 0)
+        SYSCALL(close(fd));
+
+    /* Always return TRUE, PreInit will complain for us if necessary */
+    return TRUE;
+}
+
 static Bool
 EventAutoDevProbe(LocalDevicePtr local)
 {
@@ -340,7 +365,8 @@ EventAutoDevProbe(LocalDevicePtr local)
 				touchpad_found = TRUE;
 			    xf86Msg(X_PROBED, "%s auto-dev sets device to %s\n",
 				    local->name, fname);
-			    xf86ReplaceStrOption(local->options, "Device", fname);
+			    local->options =
+			    	xf86ReplaceStrOption(local->options, "Device", fname);
 			    event_query_axis_ranges(fd, local);
 			}
 			SYSCALL(close(fd));
@@ -361,5 +387,6 @@ struct SynapticsProtocolOperations event_proto_operations = {
     EventDeviceOffHook,
     EventQueryHardware,
     EventReadHwState,
-    EventAutoDevProbe
+    EventAutoDevProbe,
+    EventProbeDevice
 };
