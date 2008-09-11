@@ -1,6 +1,6 @@
-xfree86-driver-synaptics (0.15.2-0ubuntu1) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.15.2-0ubuntu1) intrepid; urgency=low
 
-  * New upstream release.
+  * New upstream release. (LP: #262276, #268071, #247433, #262305)
   * Drop 101_ubuntu.diff, superseded by input properties.
   * Drop 103_fix_off_by_one.diff, applied upstream.
   * 101_no_horizscroll.patch:
@@ -9,7 +9,7 @@ xfree86-driver-synaptics (0.15.2-0ubuntu1) UNRELEASED; urgency=low
   * 102_dont_check_abi.diff:
     - Remove one more check from src/synaptics.c, which was added recently.
 
- -- Timo Aaltonen <tepsipakki@ubuntu.com>  Fri, 12 Sep 2008 01:25:08 +0300
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Fri, 12 Sep 2008 01:32:57 +0300
 
 xfree86-driver-synaptics (0.15.0+git20080820-1ubuntu5) intrepid; urgency=low
 
