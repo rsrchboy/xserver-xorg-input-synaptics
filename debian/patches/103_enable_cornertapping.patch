@@ -1,0 +1,24 @@
+Index: xfree86-driver-synaptics-0.15.2/src/synaptics.c
+===================================================================
+--- xfree86-driver-synaptics-0.15.2.orig/src/synaptics.c	2008-09-10 20:53:29.000000000 +0200
++++ xfree86-driver-synaptics-0.15.2/src/synaptics.c	2008-09-18 18:33:57.000000000 +0200
+@@ -441,7 +441,7 @@
+     pars->finger_high = xf86SetIntOption(opts, "FingerHigh", 30);
+     pars->finger_press = xf86SetIntOption(opts, "FingerPress", 256);
+     pars->tap_time = xf86SetIntOption(opts, "MaxTapTime", 180);
+-    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 25);
++    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 220);
+     pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
+     pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
+     pars->fast_taps = xf86SetIntOption(opts, "FastTaps", FALSE);
+@@ -470,8 +470,8 @@
+     pars->guestmouse_off = xf86SetBoolOption(opts, "GuestMouseOff", FALSE);
+     pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", FALSE);
+     pars->locked_drag_time = xf86SetIntOption(opts, "LockedDragTimeout", 5000);
+-    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 0);
+-    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 0);
++    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 2);
++    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 3);
+     pars->tap_action[LT_TAP] = xf86SetIntOption(opts, "LTCornerButton", 0);
+     pars->tap_action[LB_TAP] = xf86SetIntOption(opts, "LBCornerButton", 0);
+     pars->tap_action[F1_TAP] = xf86SetIntOption(opts, "TapButton1",     1);
