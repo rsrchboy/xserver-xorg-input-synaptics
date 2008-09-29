@@ -1,7 +1,7 @@
 Index: xserver-xorg-input-synaptics/src/properties.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/properties.c	2008-09-09 12:46:41.000000000 +0300
-+++ xserver-xorg-input-synaptics/src/properties.c	2008-09-09 12:48:16.000000000 +0300
+--- xserver-xorg-input-synaptics.orig/src/properties.c	2008-09-29 10:07:16.000000000 +0300
++++ xserver-xorg-input-synaptics/src/properties.c	2008-09-29 10:12:48.000000000 +0300
 @@ -28,7 +28,6 @@
  #endif
  
@@ -10,7 +10,7 @@ Index: xserver-xorg-input-synaptics/src/properties.c
  
  #include <X11/Xatom.h>
  #include <xf86Xinput.h>
-@@ -546,5 +545,4 @@
+@@ -508,5 +507,4 @@
      return TRUE;
  }
  
@@ -18,26 +18,26 @@ Index: xserver-xorg-input-synaptics/src/properties.c
  
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-09-09 12:48:14.000000000 +0300
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2008-09-09 12:48:35.000000000 +0300
-@@ -124,10 +124,8 @@
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2008-09-29 10:12:39.000000000 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2008-09-29 10:13:30.000000000 +0300
+@@ -125,10 +125,8 @@
  static Bool DeviceClose(DeviceIntPtr);
  static Bool QueryHardware(LocalDevicePtr);
  
 -#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
  void InitDeviceProperties(LocalDevicePtr local);
- Bool SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
+ int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
 -#endif
  
  InputDriverRec SYNAPTICS = {
      1,
-@@ -677,10 +675,8 @@
+@@ -726,10 +724,8 @@
      if (!alloc_param_data(local))
  	return !Success;
  
 -#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
      InitDeviceProperties(local);
-     XIRegisterPropertyHandler(local->dev, SetProperty, NULL);
+     XIRegisterPropertyHandler(local->dev, SetProperty, NULL, NULL);
 -#endif
  
      return Success;
