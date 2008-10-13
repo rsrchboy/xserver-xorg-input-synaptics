@@ -2,3 +2,4 @@
 101_no_horizscroll.patch
 102_dont_check_abi.diff
 103_enable_cornertapping.patch
+104_syndaemon_xinput_props.patch
