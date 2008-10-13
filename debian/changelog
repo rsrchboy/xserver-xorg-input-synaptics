@@ -5,9 +5,9 @@ xfree86-driver-synaptics (0.15.2-0ubuntu5) intrepid; urgency=low
   * debian/patches/104_syndaemon_xinput_props.patch:  Add support for XInput
     device properties to syndaemon.
   * debian/patches/105_no_bcm5974_shmconfig.patch: Remove the SHMConfig
-    enabling line from the bcm5974 section of the fdi file.
+    enabling line from the bcm5974 section of the fdi file. (LP: #282004)
 
- -- William Grant <wgrant@ubuntu.com>  Mon, 13 Oct 2008 21:22:58 +1100
+ -- William Grant <wgrant@ubuntu.com>  Mon, 13 Oct 2008 21:48:05 +1100
 
 xfree86-driver-synaptics (0.15.2-0ubuntu4) intrepid; urgency=low
 
