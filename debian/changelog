@@ -1,3 +1,14 @@
+xfree86-driver-synaptics (0.15.2-0ubuntu5) intrepid; urgency=low
+
+  * Cherry-picked commit db6e63, "Return correctly on successful property
+    setting"
+  * debian/patches/104_syndaemon_xinput_props.patch:  Add support for XInput
+    device properties to syndaemon.
+  * debian/patches/105_no_bcm5974_shmconfig.patch: Remove the SHMConfig
+    enabling line from the bcm5974 section of the fdi file.
+
+ -- William Grant <wgrant@ubuntu.com>  Mon, 13 Oct 2008 21:22:58 +1100
+
 xfree86-driver-synaptics (0.15.2-0ubuntu4) intrepid; urgency=low
 
   * Cherry-picked commit 355e845, "Adjust to new property API".
