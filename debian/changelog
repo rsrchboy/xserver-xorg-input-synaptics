@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.15.0+git20080820-2) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.99.3-1) UNRELEASED; urgency=low
 
   [ Timo Aaltonen ]
   * Run autoreconf at build time; build-depend on automake, libtool and
@@ -6,6 +6,7 @@ xfree86-driver-synaptics (0.15.0+git20080820-2) UNRELEASED; urgency=low
 
   [ Julien Cristau ]
   * Add watch file.
+  * New upstream release.
 
  -- Timo Aaltonen <tepsipakki@ubuntu.com>  Fri, 05 Sep 2008 10:18:01 +0300
 
