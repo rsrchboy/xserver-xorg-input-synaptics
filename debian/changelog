@@ -1,3 +1,15 @@
+xfree86-driver-synaptics (0.99.3-0ubuntu1) UNRELEASED; urgency=low
+
+  * Merge from Debian experimental.
+  * Drop obsolete patches:
+    -101_no_horizscroll.patch
+    -102_dont_check_abi.diff
+    -104_syndaemon_xinput_props.patch
+    -105_no_bcm5974_shmconfig.patch
+  * Update 103_enable_cornertapping.patch to apply.
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Sat, 17 Jan 2009 00:01:59 +0200
+
 xfree86-driver-synaptics (0.99.3-1) UNRELEASED; urgency=low
 
   [ Timo Aaltonen ]
