@@ -54,7 +54,9 @@ enum MidButtonEmulation {
     MBE_RIGHT,			/* Right button pressed, waiting for left button or timeout */
     MBE_MID,			/* Left and right buttons pressed, waiting for both buttons
 				   to be released */
-    MBE_TIMEOUT			/* Waiting for both buttons to be released. */
+    MBE_TIMEOUT,		/* Waiting for both buttons to be released. */
+    MBE_LEFT_CLICK,		/* Emulate left button click. */
+    MBE_RIGHT_CLICK,		/* Emulate right button click. */
 };
 
 /* See docs/tapndrag.dia for a state machine diagram */
@@ -93,7 +95,6 @@ typedef struct _SynapticsPrivateRec
     OsTimerPtr timer;			/* for up/down-button repeat, tap processing, etc */
 
     struct CommData comm;
-    int fifofd;		 		/* fd for fifo */
 
     SynapticsMoveHistRec move_hist[SYNAPTICS_MOVE_HISTORY]; /* movement history */
     int hist_index;			/* Last added entry in move_hist[] */
@@ -137,6 +138,14 @@ typedef struct _SynapticsPrivateRec
     int prev_z;				/* previous z value, for palm detection */
     int avg_width;			/* weighted average of previous fingerWidth values */
 
+    int minx, maxx, miny, maxy;         /* min/max dimensions as detected */
+    int minp, maxp, minw, maxw;		/* min/max pressure and finger width as detected */
+    Bool has_left;			/* left button detected for this device */
+    Bool has_right;			/* right button detected for this device */
+    Bool has_middle;			/* middle button detected for this device */
+    Bool has_double;			/* double click detected for this device */
+    Bool has_triple;			/* triple click detected for this device */
+    Bool has_pressure;			/* device reports pressure */
 } SynapticsPrivate;
 
 #endif /* _SYNAPTICSSTR_H_ */

@@ -77,7 +77,9 @@ static Bool
 event_query_is_touchpad(int fd)
 {
     int ret;
-    unsigned long evbits[NBITS(KEY_MAX)];
+    unsigned long evbits[NBITS(EV_MAX)];
+    unsigned long absbits[NBITS(ABS_MAX)];
+    unsigned long keybits[NBITS(KEY_MAX)];
 
     /* Check for ABS_X, ABS_Y, ABS_PRESSURE and BTN_TOOL_FINGER */
 
@@ -89,54 +91,110 @@ event_query_is_touchpad(int fd)
 	!TEST_BIT(EV_KEY, evbits))
 	return FALSE;
 
-    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(evbits)), evbits));
+    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(absbits)), absbits));
     if (ret < 0)
 	return FALSE;
-    if (!TEST_BIT(ABS_X, evbits) ||
-	!TEST_BIT(ABS_Y, evbits) ||
-	!TEST_BIT(ABS_PRESSURE, evbits))
+    if (!TEST_BIT(ABS_X, absbits) ||
+	!TEST_BIT(ABS_Y, absbits))
 	return FALSE;
 
-    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(evbits)), evbits));
+    SYSCALL(ret = ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keybits)), keybits));
     if (ret < 0)
 	return FALSE;
-    if (!TEST_BIT(BTN_TOOL_FINGER, evbits))
+
+    /* we expect touchpad either report raw pressure or touches */
+    if (!TEST_BIT(ABS_PRESSURE, absbits) && !TEST_BIT(BTN_TOUCH, keybits))
 	return FALSE;
-    if (TEST_BIT(BTN_TOOL_PEN, evbits))
+    /* all Synaptics-like touchpad report BTN_TOOL_FINGER */
+    if (!TEST_BIT(BTN_TOOL_FINGER, keybits))
+	return FALSE;
+    if (TEST_BIT(BTN_TOOL_PEN, keybits))
 	return FALSE;			    /* Don't match wacom tablets */
 
     return TRUE;
 }
 
-/* Query device for axis ranges and store outcome in the default parameter. */
+/* Query device for axis ranges */
 static void
-event_query_axis_ranges(int fd, LocalDevicePtr local)
+event_query_axis_ranges(LocalDevicePtr local)
 {
-    SynapticsSHM *pars = &((SynapticsPrivate *)local->private)->synpara_default;
+    SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
     struct input_absinfo abs;
+    unsigned long absbits[NBITS(ABS_MAX)];
+    unsigned long keybits[NBITS(KEY_MAX)];
+    char buf[256];
     int rc;
 
-    SYSCALL(rc = ioctl(fd, EVIOCGABS(ABS_X), &abs));
-    if (rc == 0)
+    SYSCALL(rc = ioctl(local->fd, EVIOCGABS(ABS_X), &abs));
+    if (rc >= 0)
     {
 	xf86Msg(X_INFO, "%s: x-axis range %d - %d\n", local->name,
 		abs.minimum, abs.maximum);
-	pars->left_edge  = abs.minimum;
-	pars->right_edge = abs.maximum;
+	priv->minx = abs.minimum;
+	priv->maxx = abs.maximum;
     } else
 	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", local->name,
 		strerror(errno));
 
-    SYSCALL(rc = ioctl(fd, EVIOCGABS(ABS_Y), &abs));
-    if (rc == 0)
+    SYSCALL(rc = ioctl(local->fd, EVIOCGABS(ABS_Y), &abs));
+    if (rc >= 0)
     {
 	xf86Msg(X_INFO, "%s: y-axis range %d - %d\n", local->name,
 		abs.minimum, abs.maximum);
-	pars->top_edge    = abs.minimum;
-	pars->bottom_edge = abs.maximum;
+	priv->miny = abs.minimum;
+	priv->maxy = abs.maximum;
     } else
 	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", local->name,
 		strerror(errno));
+
+    priv->has_pressure = FALSE;
+    SYSCALL(rc = ioctl(local->fd, EVIOCGBIT(EV_ABS, sizeof(absbits)), absbits));
+    if (rc >= 0)
+	priv->has_pressure = TEST_BIT(ABS_PRESSURE, absbits);
+    else
+	xf86Msg(X_ERROR, "%s: failed to query ABS bits (%s)\n", local->name,
+		strerror(errno));
+
+    if (priv->has_pressure)
+    {
+	SYSCALL(rc = ioctl(local->fd, EVIOCGABS(ABS_PRESSURE), &abs));
+	if (rc >= 0)
+	{
+	    xf86Msg(X_INFO, "%s: pressure range %d - %d\n", local->name,
+		    abs.minimum, abs.maximum);
+	    priv->minp = abs.minimum;
+	    priv->maxp = abs.maximum;
+	}
+    } else
+	xf86Msg(X_INFO,
+		"%s: device does not report pressure, will use touch data.\n",
+		local->name);
+
+    SYSCALL(rc = ioctl(local->fd, EVIOCGABS(ABS_TOOL_WIDTH), &abs));
+    if (rc >= 0)
+    {
+	xf86Msg(X_INFO, "%s: finger width range %d - %d\n", local->name,
+		abs.minimum, abs.maximum);
+	priv->minw = abs.minimum;
+	priv->maxw = abs.maximum;
+    }
+
+    SYSCALL(rc = ioctl(local->fd, EVIOCGBIT(EV_KEY, sizeof(keybits)), keybits));
+    if (rc >= 0)
+    {
+	buf[0] = 0;
+	if ((priv->has_left = TEST_BIT(BTN_LEFT, keybits)))
+	   strcat(buf, " left");
+	if ((priv->has_right = TEST_BIT(BTN_RIGHT, keybits)))
+	   strcat(buf, " right");
+	if ((priv->has_middle = TEST_BIT(BTN_MIDDLE, keybits)))
+	   strcat(buf, " middle");
+	if ((priv->has_double = TEST_BIT(BTN_TOOL_DOUBLETAP, keybits)))
+	   strcat(buf, " double");
+	if ((priv->has_triple = TEST_BIT(BTN_TOOL_TRIPLETAP, keybits)))
+	   strcat(buf, " triple");
+	xf86Msg(X_INFO, "%s: buttons:%s\n", local->name, buf);
+    }
 }
 
 static Bool
@@ -146,24 +204,6 @@ EventQueryHardware(LocalDevicePtr local, struct SynapticsHwInfo *synhw)
 	return FALSE;
 
     xf86Msg(X_PROBED, "%s touchpad found\n", local->name);
-
-    /* awful */
-    if (strstr(local->name, "ALPS")) {
-	SynapticsSHM *pars = ((SynapticsPrivate *)local->private)->synpara;
-	void *opts = local->options;
-
-	pars->left_edge = xf86SetIntOption(opts, "LeftEdge", 120);
-	pars->right_edge = xf86SetIntOption(opts, "RightEdge", 830);
-	pars->top_edge = xf86SetIntOption(opts, "TopEdge", 120);
-	pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", 650);
-	pars->finger_low = xf86SetIntOption(opts, "FingerLow", 14);
-	pars->finger_high = xf86SetIntOption(opts, "FingerHigh", 15);
-	pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 110);
-	pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", 20);
-	pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", 20);
-	pars->min_speed = xf86SetRealOption(opts, "MinSpeed", 0.3);
-	pars->max_speed = xf86SetRealOption(opts, "MaxSpeed", 0.75);
-    }
 
     return TRUE;
 }
@@ -192,6 +232,8 @@ EventReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
     struct input_event ev;
     Bool v;
     struct SynapticsHwState *hw = &(comm->hwState);
+    SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
+    SynapticsSHM *para = priv->synpara;
 
     while (SynapticsReadEvent(comm, &ev)) {
 	switch (ev.type) {
@@ -267,6 +309,10 @@ EventReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
 	    case BTN_B:
 		hw->guest_right = v;
 		break;
+	    case BTN_TOUCH:
+		if (!priv->has_pressure)
+			hw->z = v ? para->finger_high + 1 : 0;
+		break;
 	    }
 	    break;
 	case EV_ABS:
@@ -305,6 +351,16 @@ static int EventDevOnly(const struct dirent *dir) {
 	return strncmp(EVENT_DEV_NAME, dir->d_name, 5) == 0;
 }
 
+/**
+ * Probe the open device for dimensions.
+ */
+static void
+EventReadDevDimensions(LocalDevicePtr local)
+{
+    if (event_query_is_touchpad(local->fd))
+	event_query_axis_ranges(local);
+}
+
 static Bool
 EventAutoDevProbe(LocalDevicePtr local)
 {
@@ -340,8 +396,8 @@ EventAutoDevProbe(LocalDevicePtr local)
 				touchpad_found = TRUE;
 			    xf86Msg(X_PROBED, "%s auto-dev sets device to %s\n",
 				    local->name, fname);
-			    xf86ReplaceStrOption(local->options, "Device", fname);
-			    event_query_axis_ranges(fd, local);
+			    local->options =
+			    	xf86ReplaceStrOption(local->options, "Device", fname);
 			}
 			SYSCALL(close(fd));
 		}
@@ -361,5 +417,6 @@ struct SynapticsProtocolOperations event_proto_operations = {
     EventDeviceOffHook,
     EventQueryHardware,
     EventReadHwState,
-    EventAutoDevProbe
+    EventAutoDevProbe,
+    EventReadDevDimensions
 };

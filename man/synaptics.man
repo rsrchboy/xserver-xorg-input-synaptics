@@ -101,13 +101,19 @@ user can access the configuration.
 X coordinate for left edge.
 .TP 7
 .BI "Option \*qRightEdge\*q \*q" integer \*q
-X coordinate for right edge.
+X coordinate for right edge. If this option is set,
+.BI SpecialScrollAreaRight
+is ignored.
 .TP 7
 .BI "Option \*qTopEdge\*q \*q" integer \*q
 Y coordinate for top edge.
 .TP 7
 .BI "Option \*qBottomEdge\*q \*q" integer \*q
 Y coordinate for bottom edge.
+.TP 7
+.BI "Option \*qSpecialScrollAreaRight\*q \*q" boolean \*q
+Some touchpads have a scroll region on the right edge. Disable this option if
+you have one but don't want use it as scroll wheel region.
 .TP 7
 .BI "Option \*qFingerLow\*q \*q" integer \*q
 When finger pressure drops below this value, the driver counts it as a
@@ -179,9 +185,6 @@ Fastest setting for edge motion speed.
 If on, edge motion is also used for normal movements.
 .
 If off, egde motion is used only when dragging.
-.TP
-.BI "Option \*qRepeater\*q \*q" string \*q
-Repeater device.
 .TP
 .BI "Option \*qMinSpeed\*q \*q" float \*q
 Minimum speed factor.
@@ -606,6 +609,34 @@ and finger movement distance.
 Trackstick mode is exited when the finger pressure drops below
 FingerLow or when the finger is moved further than MaxTapMove away
 from the initial position.
+.SH "NOTES"
+There is an example hal policy file in
+.I ${sourcecode}/fdi/11-x11-synaptics.fdi
+which will enable the driver based on the information if the hardware
+is available. Feel free to copy it to
+.I /etc/hal/fdi/policy
+and customize it to your needs. You can pass custom options to the driver
+using x11_options properties. Note that this requires xorg-server-1.5 or
+higher.
+.LP
+If either of
+.BI "Protocol \*q" auto-dev \*q
+(default) or
+.BI "Protocol \*q" event \*q
+is used, the driver initializes defaults based on the capabilities reported by
+the kernel driver. Acceleration and edges are based on the dimensions reported
+by the kernel. If the kernel reports multi-finger detection, two-finger
+vertical scrolling is enabled, horizontal two-finger scrolling is disabled and
+edge scrolling is disabled. If no multi-finger capabilities are reported,
+edge scrolling is enabled for both horizontal and vertical scrolling.
+
+.SH "REMOVED OPTIONS"
+The following options are no longer part of the driver configuration:
+.TP
+.BI "Option \*qRepeater\*q \*q" string \*q
+.TP
+.BI "Option \*qHistorySize\*q \*q" integer \*q
+
 .SH "AUTHORS"
 .LP
 Peter Osterlund <petero2@telia.com> and many others.
