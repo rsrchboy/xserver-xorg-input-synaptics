@@ -22,7 +22,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([xf86-input-synaptics],
-        0.15.2,
+        0.99.3,
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
         xf86-input-synaptics)
 
@@ -66,7 +66,7 @@ AM_CONDITIONAL([BUILD_EVENTCOMM], [test "x${BUILD_EVENTCOMM}" = "xyes"])
 if test "x${BUILD_EVENTCOMM}" = "xyes" ; then
 	AC_DEFINE(BUILD_EVENTCOMM, 1, [Optional backend eventcomm enabled])
 fi
-AM_CONDITIONAL([BUILD_PSMCOMM], [test "x$BUILD_PSMCOMM}" = "xyes"])
+AM_CONDITIONAL([BUILD_PSMCOMM], [test "x${BUILD_PSMCOMM}" = "xyes"])
 if test "x${BUILD_PSMCOMM}" = "xyes" ; then
 	AC_DEFINE(BUILD_PSMCOMM, 1, [Optional backend psmcomm enabled])
 fi
@@ -104,6 +104,7 @@ XORG_DRIVER_CHECK_EXT(XINPUT, inputproto)
 # Checks for pkg-config packages
 PKG_CHECK_MODULES(XORG, xorg-server xproto $REQUIRED_MODULES)
 sdkdir=$(pkg-config --variable=sdkdir xorg-server)
+AC_SUBST([sdkdir])
 
 CFLAGS="$CFLAGS $XORG_CFLAGS "' -I$(top_srcdir)/src'
 AC_SUBST([CFLAGS])
@@ -122,4 +123,5 @@ AC_OUTPUT([Makefile
            man/Makefile
            tools/Makefile
            fdi/Makefile
-           include/Makefile])
+           include/Makefile
+           xorg-synaptics.pc])

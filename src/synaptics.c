@@ -59,20 +59,18 @@
 #endif
 
 #include <unistd.h>
-#include <sys/ioctl.h>
 #include <misc.h>
 #include <xf86.h>
 #include <sys/shm.h>
-#include <sys/ipc.h>
-#include <sys/stat.h>
-#include <errno.h>
 #include <math.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <xf86_OSproc.h>
 #include <xf86Xinput.h>
-#include "mipointer.h"
 #include <exevents.h>
+
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 0
+#include "mipointer.h"
+#endif
 
 #include "synaptics.h"
 #include "synapticsstr.h"
@@ -92,7 +90,6 @@ typedef enum {
 #define MAX(a, b) (((a)>(b))?(a):(b))
 #define MIN(a, b) (((a)<(b))?(a):(b))
 #define TIME_DIFF(a, b) ((int)((a)-(b)))
-#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
 #define SQR(x) ((x) * (x))
 
@@ -112,6 +109,7 @@ typedef enum {
  * Forward declaration
  ****************************************************************************/
 static InputInfoPtr SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags);
+static void SynapticsUnInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
 static Bool DeviceControl(DeviceIntPtr, int);
 static void ReadInput(LocalDevicePtr);
 static int HandleState(LocalDevicePtr, struct SynapticsHwState*);
@@ -124,10 +122,12 @@ static Bool DeviceOn(DeviceIntPtr);
 static Bool DeviceOff(DeviceIntPtr);
 static Bool DeviceClose(DeviceIntPtr);
 static Bool QueryHardware(LocalDevicePtr);
+static void ReadDevDimensions(LocalDevicePtr);
 
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
 void InitDeviceProperties(LocalDevicePtr local);
-int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop);
+int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
+                BOOL checkonly);
 #endif
 
 InputDriverRec SYNAPTICS = {
@@ -135,7 +135,7 @@ InputDriverRec SYNAPTICS = {
     "synaptics",
     NULL,
     SynapticsPreInit,
-    NULL,
+    SynapticsUnInit,
     NULL,
     0
 };
@@ -160,7 +160,11 @@ SetupProc(pointer module, pointer options, int *errmaj, int *errmin)
     return module;
 }
 
-XF86ModuleData synapticsModuleData = {&VersionRec, &SetupProc, NULL };
+_X_EXPORT XF86ModuleData synapticsModuleData = {
+    &VersionRec,
+    &SetupProc,
+    NULL
+};
 
 
 /*****************************************************************************
@@ -184,9 +188,7 @@ SetDeviceAndProtocol(LocalDevicePtr local)
     }
     if (device && strstr(device, "/dev/input/event")) {
 #ifdef BUILD_EVENTCOMM
-        if (event_proto_operations.ProbeDevice &&
-            event_proto_operations.ProbeDevice(local, device))
-            proto = SYN_PROTO_EVENT;
+	proto = SYN_PROTO_EVENT;
 #endif
     } else {
 	str_par = xf86FindOptionValue(local->options, "Protocol");
@@ -298,6 +300,210 @@ synSetFloatOption(pointer options, const char *optname, double default_value)
     return value;
 }
 
+static void set_default_parameters(LocalDevicePtr local)
+{
+    SynapticsPrivate *priv = local->private; /* read-only */
+    pointer opts = local->options; /* read-only */
+    SynapticsSHM *pars = &priv->synpara_default; /* modified */
+
+    int horizScrollDelta, vertScrollDelta;		/* pixels */
+    int tapMove;					/* pixels */
+    int l, r, t, b; /* left, right, top, bottom */
+    int edgeMotionMinSpeed, edgeMotionMaxSpeed;		/* pixels/second */
+    double accelFactor;					/* 1/pixels */
+    int fingerLow, fingerHigh, fingerPress;		/* pressure */
+    int emulateTwoFingerMinZ;				/* pressure */
+    int edgeMotionMinZ, edgeMotionMaxZ;			/* pressure */
+    int pressureMotionMinZ, pressureMotionMaxZ;		/* pressure */
+    int palmMinWidth, palmMinZ;				/* pressure */
+    int tapButton1, tapButton2, tapButton3;
+    int clickFinger1, clickFinger2, clickFinger3;
+    Bool vertEdgeScroll, horizEdgeScroll;
+    Bool vertTwoFingerScroll, horizTwoFingerScroll;
+
+    /* read the parameters */
+    pars->version = (PACKAGE_VERSION_MAJOR*10000+PACKAGE_VERSION_MINOR*100+PACKAGE_VERSION_PATCHLEVEL);
+
+    /* The synaptics specs specify typical edge widths of 4% on x, and 5.4% on
+     * y (page 7) [Synaptics TouchPad Interfacing Guide, 510-000080 - A
+     * Second Edition, http://www.synaptics.com/support/dev_support.cfm, 8 Sep
+     * 2008]
+     * If the range was autodetected, apply these edge widths to all four
+     * sides.
+     */
+    if (priv->minx < priv->maxx && priv->miny < priv->maxy)
+    {
+        int width, height, diag;
+        int ewidth, eheight; /* edge width/height */
+
+        width = abs(priv->maxx - priv->minx);
+        height = abs(priv->maxy - priv->miny);
+        diag = sqrt(width * width + height * height);
+        ewidth = width * .04;
+        eheight = height * .055;
+
+        l = priv->minx + ewidth;
+        r = priv->maxx - ewidth;
+        t = priv->miny + eheight;
+        b = priv->maxy - eheight;
+
+        /* Again, based on typical x/y range and defaults */
+        horizScrollDelta = diag * .020;
+        vertScrollDelta = diag * .020;
+        tapMove = diag * .044;
+        edgeMotionMinSpeed = 1;
+        edgeMotionMaxSpeed = diag * .080;
+        accelFactor = 50.0 / diag;
+    } else {
+        l = 1900;
+        r = 5400;
+        t = 1900;
+        b = 4000;
+
+        horizScrollDelta = 100;
+        vertScrollDelta = 100;
+        tapMove = 220;
+        edgeMotionMinSpeed = 1;
+        edgeMotionMaxSpeed = 400;
+        accelFactor = 0.010;
+    }
+
+    if (priv->minp < priv->maxp) {
+	int range = priv->maxp - priv->minp;
+
+	/* scaling based on defaults below and a pressure of 256 */
+	fingerLow = priv->minp + range * .098;
+	fingerHigh = priv->minp + range * .117;
+	fingerPress = priv->minp + range * 1.000;
+	emulateTwoFingerMinZ = priv->minp + range * 1.1;
+	edgeMotionMinZ = priv->minp + range * .117;
+	edgeMotionMaxZ = priv->minp + range * .625;
+	pressureMotionMinZ = priv->minp + range * .117;
+	pressureMotionMaxZ = priv->minp + range * .625;
+	palmMinZ = priv->minp + range * .781;
+    } else {
+	fingerLow = 25;
+	fingerHigh = 30;
+	fingerPress = 256;
+	emulateTwoFingerMinZ = 257;
+	edgeMotionMinZ = 30;
+	edgeMotionMaxZ = 160;
+	pressureMotionMinZ = 30;
+	pressureMotionMaxZ = 160;
+	palmMinZ = 200;
+    }
+
+    if (priv->minw < priv->maxw) {
+	int range = priv->maxw - priv->minw;
+
+	/* scaling based on defaults below and a tool width of 16 */
+	palmMinWidth = priv->minw + range * .625;
+
+    } else {
+	palmMinWidth = 10;
+    }
+
+    /* Enable tap if we don't have a phys left button */
+    tapButton1 = priv->has_left ? 0 : 1;
+    tapButton2 = priv->has_left ? 0 : 3;
+    tapButton3 = priv->has_left ? 0 : 2;
+
+    /* Enable multifinger-click if we don't have right/middle button,
+       otherwise clickFinger is always button 1. */
+    clickFinger1 = 1;
+    clickFinger2 = priv->has_right ? 1 : 3;
+    clickFinger3 = priv->has_middle ? 1 : 2;
+
+    /* Enable vert edge scroll if we can't detect doubletap */
+    vertEdgeScroll = priv->has_double ? FALSE : TRUE;
+    horizEdgeScroll = FALSE;
+
+    /* Enable twofinger scroll if we can detect doubletap */
+    vertTwoFingerScroll = priv->has_double ? TRUE : FALSE;
+    horizTwoFingerScroll = FALSE;
+
+    /* set the parameters */
+    pars->left_edge = xf86SetIntOption(opts, "LeftEdge", l);
+    pars->right_edge = xf86SetIntOption(opts, "RightEdge", r);
+    pars->top_edge = xf86SetIntOption(opts, "TopEdge", t);
+    pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", b);
+
+    pars->finger_low = xf86SetIntOption(opts, "FingerLow", fingerLow);
+    pars->finger_high = xf86SetIntOption(opts, "FingerHigh", fingerHigh);
+    pars->finger_press = xf86SetIntOption(opts, "FingerPress", fingerPress);
+    pars->tap_time = xf86SetIntOption(opts, "MaxTapTime", 180);
+    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", tapMove);
+    pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
+    pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
+    pars->fast_taps = xf86SetBoolOption(opts, "FastTaps", FALSE);
+    pars->emulate_mid_button_time = xf86SetIntOption(opts, "EmulateMidButtonTime", 75);
+    pars->emulate_twofinger_z = xf86SetIntOption(opts, "EmulateTwoFingerMinZ", emulateTwoFingerMinZ);
+    pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", horizScrollDelta);
+    pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", vertScrollDelta);
+    pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", vertEdgeScroll);
+    if (xf86CheckIfOptionUsedByName(opts, "RightEdge")) {
+      pars->special_scroll_area_right  = FALSE;
+    } else {
+      pars->special_scroll_area_right  = xf86SetBoolOption(opts, "SpecialScrollAreaRight", TRUE);
+    }
+    pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", horizEdgeScroll);
+    pars->scroll_edge_corner = xf86SetBoolOption(opts, "CornerCoasting", FALSE);
+    pars->scroll_twofinger_vert = xf86SetBoolOption(opts, "VertTwoFingerScroll", vertTwoFingerScroll);
+    pars->scroll_twofinger_horiz = xf86SetBoolOption(opts, "HorizTwoFingerScroll", horizTwoFingerScroll);
+    pars->edge_motion_min_z = xf86SetIntOption(opts, "EdgeMotionMinZ", edgeMotionMinZ);
+    pars->edge_motion_max_z = xf86SetIntOption(opts, "EdgeMotionMaxZ", edgeMotionMaxZ);
+    pars->edge_motion_min_speed = xf86SetIntOption(opts, "EdgeMotionMinSpeed", edgeMotionMinSpeed);
+    pars->edge_motion_max_speed = xf86SetIntOption(opts, "EdgeMotionMaxSpeed", edgeMotionMaxSpeed);
+    pars->edge_motion_use_always = xf86SetBoolOption(opts, "EdgeMotionUseAlways", FALSE);
+    pars->updown_button_scrolling = xf86SetBoolOption(opts, "UpDownScrolling", TRUE);
+    pars->leftright_button_scrolling = xf86SetBoolOption(opts, "LeftRightScrolling", TRUE);
+    pars->updown_button_repeat = xf86SetBoolOption(opts, "UpDownScrollRepeat", TRUE);
+    pars->leftright_button_repeat = xf86SetBoolOption(opts, "LeftRightScrollRepeat", TRUE);
+    pars->scroll_button_repeat = xf86SetIntOption(opts,"ScrollButtonRepeat", 100);
+    pars->touchpad_off = xf86SetIntOption(opts, "TouchpadOff", 0);
+    pars->guestmouse_off = xf86SetBoolOption(opts, "GuestMouseOff", FALSE);
+    pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", FALSE);
+    pars->locked_drag_time = xf86SetIntOption(opts, "LockedDragTimeout", 5000);
+    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 0);
+    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 0);
+    pars->tap_action[LT_TAP] = xf86SetIntOption(opts, "LTCornerButton", 0);
+    pars->tap_action[LB_TAP] = xf86SetIntOption(opts, "LBCornerButton", 0);
+    pars->tap_action[F1_TAP] = xf86SetIntOption(opts, "TapButton1",     tapButton1);
+    pars->tap_action[F2_TAP] = xf86SetIntOption(opts, "TapButton2",     tapButton2);
+    pars->tap_action[F3_TAP] = xf86SetIntOption(opts, "TapButton3",     tapButton3);
+    pars->click_action[F1_CLICK1] = xf86SetIntOption(opts, "ClickFinger1", clickFinger1);
+    pars->click_action[F2_CLICK1] = xf86SetIntOption(opts, "ClickFinger2", clickFinger2);
+    pars->click_action[F3_CLICK1] = xf86SetIntOption(opts, "ClickFinger3", clickFinger3);
+    pars->circular_scrolling = xf86SetBoolOption(opts, "CircularScrolling", FALSE);
+    pars->circular_trigger   = xf86SetIntOption(opts, "CircScrollTrigger", 0);
+    pars->circular_pad       = xf86SetBoolOption(opts, "CircularPad", FALSE);
+    pars->palm_detect        = xf86SetBoolOption(opts, "PalmDetect", FALSE);
+    pars->palm_min_width     = xf86SetIntOption(opts, "PalmMinWidth", palmMinWidth);
+    pars->palm_min_z         = xf86SetIntOption(opts, "PalmMinZ", palmMinZ);
+    pars->single_tap_timeout = xf86SetIntOption(opts, "SingleTapTimeout", 180);
+    pars->press_motion_min_z = xf86SetIntOption(opts, "PressureMotionMinZ", pressureMotionMinZ);
+    pars->press_motion_max_z = xf86SetIntOption(opts, "PressureMotionMaxZ", pressureMotionMaxZ);
+
+    pars->min_speed = synSetFloatOption(opts, "MinSpeed", 0.4);
+    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", 0.7);
+    pars->accl = synSetFloatOption(opts, "AccelFactor", accelFactor);
+    pars->trackstick_speed = synSetFloatOption(opts, "TrackstickSpeed", 40);
+    pars->scroll_dist_circ = synSetFloatOption(opts, "CircScrollDelta", 0.1);
+    pars->coasting_speed = synSetFloatOption(opts, "CoastingSpeed", 0.0);
+    pars->press_motion_min_factor = synSetFloatOption(opts, "PressureMotionMinFactor", 1.0);
+    pars->press_motion_max_factor = synSetFloatOption(opts, "PressureMotionMaxFactor", 1.0);
+    pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
+
+    /* Warn about (and fix) incorrectly configured TopEdge/BottomEdge parameters */
+    if (pars->top_edge > pars->bottom_edge) {
+	int tmp = pars->top_edge;
+	pars->top_edge = pars->bottom_edge;
+	pars->bottom_edge = tmp;
+	xf86Msg(X_WARNING, "%s: TopEdge is bigger than BottomEdge. Fixing.\n",
+		local->name);
+    }
+}
+
 /*
  *  called by the module loader for initialization
  */
@@ -306,15 +512,6 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
 {
     LocalDevicePtr local;
     SynapticsPrivate *priv;
-    pointer optList;
-    SynapticsSHM *pars;
-    char *repeater;
-    pointer opts;
-    int status;
-    float minSpeed, maxSpeed;
-    int horizScrollDelta, vertScrollDelta,
-        edgeMotionMinSpeed, edgeMotionMaxSpeed;
-    int l, r, t, b; /* left, right, top, bottom */
 
     /* allocate memory for SynapticsPrivateRec */
     priv = xcalloc(1, sizeof(SynapticsPrivate));
@@ -358,12 +555,10 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     /* may change local->options */
     SetDeviceAndProtocol(local);
 
-    opts = local->options;
-
     /* open the touchpad device */
-    local->fd = xf86OpenSerial(opts);
+    local->fd = xf86OpenSerial(local->options);
     if (local->fd == -1) {
-	ErrorF("Synaptics driver unable to open device\n");
+	xf86Msg(X_ERROR, "Synaptics driver unable to open device\n");
 	goto SetupProc_fail;
     }
     xf86ErrorFVerb(6, "port opened successfully\n");
@@ -378,138 +573,15 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     priv->tap_button_state = TBS_BUTTON_UP;
     priv->touch_on.millis = 0;
 
+    /* read hardware dimensions */
+    ReadDevDimensions(local);
+
     /* install shared memory or normal memory for parameters */
-    priv->shm_config = xf86SetBoolOption(opts, "SHMConfig", FALSE);
+    priv->shm_config = xf86SetBoolOption(local->options, "SHMConfig", FALSE);
 
-    /* read the parameters */
-    pars = &priv->synpara_default;
-    pars->version = (PACKAGE_VERSION_MAJOR*10000+PACKAGE_VERSION_MINOR*100+PACKAGE_VERSION_PATCHLEVEL);
+    set_default_parameters(local);
 
-    /* The synaptics specs specify typical edge widths of 4% on x, and 5.4% on
-     * y (page 7) [Synaptics TouchPad Interfacing Guide, 510-000080 - A
-     * Second Edition, http://www.synaptics.com/support/dev_support.cfm, 8 Sep
-     * 2008]
-     * If the range was autodetected, apply these edge widths to all four
-     * sides.
-     */
-    if (priv->maxx && priv->maxy)
-    {
-        int width, height;
-        int ewidth, eheight; /* edge width/height */
-
-        width = abs(priv->maxx - priv->minx);
-        height = abs(priv->maxy - priv->miny);
-        ewidth = width * .04;
-        eheight = height * .055;
-
-        l = priv->minx + ewidth;
-        r = priv->maxx - ewidth;
-        t = priv->miny + eheight;
-        b = priv->maxy - eheight;
-
-        /* Default min/max speed are 0.09/0.18. Assuming we have a device that
-         * reports height 3040 (typical y range in synaptics specs) this gives
-         * us the same result. */
-        minSpeed = 273.0/height;
-        maxSpeed = 547.0/height;
-
-        /* Again, based on typical x/y range and defaults */
-        horizScrollDelta = width * .025;
-        vertScrollDelta = height * .04;
-        edgeMotionMinSpeed = 1;
-        edgeMotionMaxSpeed = width * .1;
-    } else {
-        l = 1900;
-        r = 5400;
-        t = 1900;
-        b = 4000;
-        minSpeed = 0.09;
-        maxSpeed = 0.18;
-
-        horizScrollDelta = 100;
-        vertScrollDelta = 100;
-        edgeMotionMinSpeed = 1;
-        edgeMotionMaxSpeed = 400;
-    }
-
-    pars->left_edge = xf86SetIntOption(opts, "LeftEdge", l);
-    pars->right_edge = xf86SetIntOption(opts, "RightEdge", r);
-    pars->top_edge = xf86SetIntOption(opts, "TopEdge", t);
-    pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", b);
-
-    pars->finger_low = xf86SetIntOption(opts, "FingerLow", 25);
-    pars->finger_high = xf86SetIntOption(opts, "FingerHigh", 30);
-    pars->finger_press = xf86SetIntOption(opts, "FingerPress", 256);
-    pars->tap_time = xf86SetIntOption(opts, "MaxTapTime", 180);
-    pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", 25);
-    pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
-    pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
-    pars->fast_taps = xf86SetIntOption(opts, "FastTaps", FALSE);
-    pars->emulate_mid_button_time = xf86SetIntOption(opts, "EmulateMidButtonTime", 75);
-    pars->emulate_twofinger_z = xf86SetIntOption(opts, "EmulateTwoFingerMinZ", 257);
-    pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", horizScrollDelta);
-    pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", vertScrollDelta);
-    pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", TRUE);
-    pars->special_scroll_area_right  = xf86SetBoolOption(opts, "SpecialScrollAreaRight", TRUE);
-    pars->scroll_edge_horiz = xf86SetBoolOption(opts, "HorizEdgeScroll", TRUE);
-    pars->scroll_edge_corner = xf86SetBoolOption(opts, "CornerCoasting", FALSE);
-    pars->scroll_twofinger_vert = xf86SetBoolOption(opts, "VertTwoFingerScroll", FALSE);
-    pars->scroll_twofinger_horiz = xf86SetBoolOption(opts, "HorizTwoFingerScroll", FALSE);
-    pars->edge_motion_min_z = xf86SetIntOption(opts, "EdgeMotionMinZ", 30);
-    pars->edge_motion_max_z = xf86SetIntOption(opts, "EdgeMotionMaxZ", 160);
-    pars->edge_motion_min_speed = xf86SetIntOption(opts, "EdgeMotionMinSpeed", edgeMotionMinSpeed);
-    pars->edge_motion_max_speed = xf86SetIntOption(opts, "EdgeMotionMaxSpeed", edgeMotionMaxSpeed);
-    pars->edge_motion_use_always = xf86SetBoolOption(opts, "EdgeMotionUseAlways", FALSE);
-    repeater = xf86SetStrOption(opts, "Repeater", NULL);
-    pars->updown_button_scrolling = xf86SetBoolOption(opts, "UpDownScrolling", TRUE);
-    pars->leftright_button_scrolling = xf86SetBoolOption(opts, "LeftRightScrolling", TRUE);
-    pars->updown_button_repeat = xf86SetBoolOption(opts, "UpDownScrollRepeat", TRUE);
-    pars->leftright_button_repeat = xf86SetBoolOption(opts, "LeftRightScrollRepeat", TRUE);
-    pars->scroll_button_repeat = xf86SetIntOption(opts,"ScrollButtonRepeat", 100);
-    pars->touchpad_off = xf86SetIntOption(opts, "TouchpadOff", 0);
-    pars->guestmouse_off = xf86SetBoolOption(opts, "GuestMouseOff", FALSE);
-    pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", FALSE);
-    pars->locked_drag_time = xf86SetIntOption(opts, "LockedDragTimeout", 5000);
-    pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 0);
-    pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 0);
-    pars->tap_action[LT_TAP] = xf86SetIntOption(opts, "LTCornerButton", 0);
-    pars->tap_action[LB_TAP] = xf86SetIntOption(opts, "LBCornerButton", 0);
-    pars->tap_action[F1_TAP] = xf86SetIntOption(opts, "TapButton1",     1);
-    pars->tap_action[F2_TAP] = xf86SetIntOption(opts, "TapButton2",     2);
-    pars->tap_action[F3_TAP] = xf86SetIntOption(opts, "TapButton3",     3);
-    pars->click_action[F1_CLICK1] = xf86SetIntOption(opts, "ClickFinger1",     1);
-    pars->click_action[F2_CLICK1] = xf86SetIntOption(opts, "ClickFinger2",     1);
-    pars->click_action[F3_CLICK1] = xf86SetIntOption(opts, "ClickFinger3",     1);
-    pars->circular_scrolling = xf86SetBoolOption(opts, "CircularScrolling", FALSE);
-    pars->circular_trigger   = xf86SetIntOption(opts, "CircScrollTrigger", 0);
-    pars->circular_pad       = xf86SetBoolOption(opts, "CircularPad", FALSE);
-    pars->palm_detect        = xf86SetBoolOption(opts, "PalmDetect", TRUE);
-    pars->palm_min_width     = xf86SetIntOption(opts, "PalmMinWidth", 10);
-    pars->palm_min_z         = xf86SetIntOption(opts, "PalmMinZ", 200);
-    pars->single_tap_timeout = xf86SetIntOption(opts, "SingleTapTimeout", 180);
-    pars->press_motion_min_z = xf86SetIntOption(opts, "PressureMotionMinZ", pars->edge_motion_min_z);
-    pars->press_motion_max_z = xf86SetIntOption(opts, "PressureMotionMaxZ", pars->edge_motion_max_z);
-
-    pars->min_speed = synSetFloatOption(opts, "MinSpeed", minSpeed);
-    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", maxSpeed);
-    pars->accl = synSetFloatOption(opts, "AccelFactor", 0.0015);
-    pars->trackstick_speed = synSetFloatOption(opts, "TrackstickSpeed", 40);
-    pars->scroll_dist_circ = synSetFloatOption(opts, "CircScrollDelta", 0.1);
-    pars->coasting_speed = synSetFloatOption(opts, "CoastingSpeed", 0.0);
-    pars->press_motion_min_factor = synSetFloatOption(opts, "PressureMotionMinFactor", 1.0);
-    pars->press_motion_max_factor = synSetFloatOption(opts, "PressureMotionMaxFactor", 1.0);
-    pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
-
-    /* Warn about (and fix) incorrectly configured TopEdge/BottomEdge parameters */
-    if (pars->top_edge > pars->bottom_edge) {
-	int tmp = pars->top_edge;
-	pars->top_edge = pars->bottom_edge;
-	pars->bottom_edge = tmp;
-	xf86Msg(X_WARNING, "%s: TopEdge is bigger than BottomEdge. Fixing.\n",
-		local->name);
-    }
-
-    priv->largest_valid_x = MIN(pars->right_edge, XMAX_NOMINAL);
+    priv->largest_valid_x = MIN(priv->synpara_default.right_edge, XMAX_NOMINAL);
 
     if (!alloc_param_data(local))
 	goto SetupProc_fail;
@@ -517,32 +589,16 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     priv->comm.buffer = XisbNew(local->fd, 200);
     DBG(9, XisbTrace(priv->comm.buffer, 1));
 
-    priv->fifofd = -1;
-    if (repeater) {
-	/* create repeater fifo */
-	status = mknod(repeater, 666, S_IFIFO);
-	if ((status != 0) && (status != EEXIST)) {
-	    xf86Msg(X_ERROR, "%s can't create repeater fifo\n", local->name);
-	} else {
-	    /* open the repeater fifo */
-	    optList = xf86NewOption("Device", repeater);
-	    if ((priv->fifofd = xf86OpenSerial(optList)) == -1) {
-		xf86Msg(X_ERROR, "%s repeater device open failed\n", local->name);
-	    }
-	}
-	free(repeater);
-    }
-
     if (!QueryHardware(local)) {
 	xf86Msg(X_ERROR, "%s Unable to query/initialize Synaptics hardware.\n", local->name);
 	goto SetupProc_fail;
     }
 
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 0
-    local->history_size = xf86SetIntOption(opts, "HistorySize", 0);
+    local->history_size = xf86SetIntOption(local->options, "HistorySize", 0);
 #endif
 
-    xf86ProcessCommonOptions(local, opts);
+    xf86ProcessCommonOptions(local, local->options);
     local->flags |= XI86_CONFIGURED;
 
     if (local->fd != -1) {
@@ -569,6 +625,20 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     local->private = NULL;
     return local;
 }
+
+
+/*
+ *  Uninitialize the device.
+ */
+static void SynapticsUnInit(InputDriverPtr drv,
+                            InputInfoPtr   local,
+                            int            flags)
+{
+    xfree(local->private);
+    local->private = NULL;
+    xf86DeleteInput(local, 0);
+}
+
 
 /*
  *  Alter the control parameters for the mouse. Note that all special
@@ -686,6 +756,7 @@ static Bool
 DeviceInit(DeviceIntPtr dev)
 {
     LocalDevicePtr local = (LocalDevicePtr) dev->public.devicePrivate;
+    SynapticsPrivate *priv = (SynapticsPrivate *) (local->private);
     unsigned char map[SYN_MAX_BUTTONS + 1];
     int i;
 
@@ -711,11 +782,18 @@ DeviceInit(DeviceIntPtr dev)
 #endif
 			    );
     /* X valuator */
-    xf86InitValuatorAxisStruct(dev, 0, 0, -1, 1, 0, 1);
+    if (priv->minx < priv->maxx)
+	xf86InitValuatorAxisStruct(dev, 0, priv->minx, priv->maxx, 1, 0, 1);
+    else
+	xf86InitValuatorAxisStruct(dev, 0, 0, -1, 1, 0, 1);
     xf86InitValuatorDefaults(dev, 0);
     /* Y valuator */
-    xf86InitValuatorAxisStruct(dev, 1, 0, -1, 1, 0, 1);
+    if (priv->miny < priv->maxy)
+	xf86InitValuatorAxisStruct(dev, 1, priv->miny, priv->maxy, 1, 0, 1);
+    else
+	xf86InitValuatorAxisStruct(dev, 1, 0, -1, 1, 0, 1);
     xf86InitValuatorDefaults(dev, 1);
+
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 0
     xf86MotionHistoryAllocate(local);
 #endif
@@ -817,7 +895,7 @@ edge_detection(SynapticsPrivate *priv, int x, int y)
     if (priv->synpara->circular_pad)
 	return circular_edge_detection(priv, x, y);
 
-    if (x >= priv->synpara->right_edge)
+    if (x > priv->synpara->right_edge)
 	edge |= RIGHT_EDGE;
     else if (x < priv->synpara->left_edge)
 	edge |= LEFT_EDGE;
@@ -878,18 +956,6 @@ static Bool
 SynapticsGetHwState(LocalDevicePtr local, SynapticsPrivate *priv,
 		    struct SynapticsHwState *hw)
 {
-    if (priv->fifofd >= 0) {
-	/* when there is no synaptics touchpad pipe the data to the repeater fifo */
-	int count = 0;
-	int c;
-	while ((c = XisbRead(priv->comm.buffer)) >= 0) {
-	    unsigned char u = (unsigned char)c;
-	    write(priv->fifofd, &u, 1);
-	    if (++count >= 3)
-		break;
-	}
-	return FALSE;
-    }
     return priv->proto_ops->ReadHwState(local, &priv->synhw, priv->proto_ops,
 					&priv->comm, hw);
 }
@@ -1189,8 +1255,9 @@ HandleTapProcessing(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     touch = finger && !priv->finger_state;
     release = !finger && priv->finger_state;
-    move = (((abs(hw->x - priv->touch_on.x) >= para->tap_move) ||
-	     (abs(hw->y - priv->touch_on.y) >= para->tap_move)));
+    move = ((priv->tap_max_fingers <= ((priv->horiz_scroll_twofinger_on || priv->vert_scroll_twofinger_on)? 2 : 1)) &&
+	     ((abs(hw->x - priv->touch_on.x) >= para->tap_move) ||
+	     (abs(hw->y - priv->touch_on.y) >= para->tap_move)) && finger);
 
     if (touch) {
 	priv->touch_on.x = hw->x;
@@ -1612,7 +1679,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	    priv->circ_scroll_on = FALSE;
 	}
 
-	if (hw->numFingers < 2) {
+	if (!finger || hw->numFingers < 2) {
 	    if (priv->vert_scroll_twofinger_on) {
 		DBG(7, ErrorF("vert two-finger scroll off\n"));
 		priv->vert_scroll_twofinger_on = FALSE;
@@ -1907,32 +1974,20 @@ HandleState(LocalDevicePtr local, struct SynapticsHwState *hw)
 
     /*
      * Some touchpads have a scroll wheel region where a very large X
-     * coordinate is reported. 
-     *
-     *    We suggest two  solution this problem:
+     * coordinate is reported. In this case for eliminate discontinuity,
+     * we adjust X and simulate new zone which adjacent to right edge.
      */
     if (hw->x <= XMAX_VALID) {
 	if (priv->largest_valid_x < hw->x)
 	    priv->largest_valid_x = hw->x;
     } else {
-      if (!(para->special_scroll_area_right))
-      /*               First:
-      * Adjust the X coordinate to eliminate the discontinuity 
-      * and use it region as 1 coordinate size line.
-      */
 	hw->x = priv->largest_valid_x + 1;
-      else {
-      /*               Second (default):
-       * Adjust the X coordinate to eliminate the discontinuity
-       * and use it region as scroll area automaticly.
-       */	
-	
-	if (priv->synpara->right_edge > priv->largest_valid_x + 1)
-	  priv->synpara->right_edge=priv->largest_valid_x + 1;
-	para->special_scroll_area_right = FALSE;
-       
-	hw->x = priv->largest_valid_x + 1;
-      }
+    /*
+     * If user didn't set right_edge manualy, auto-adjust to bounds of
+     * hardware scroll area.
+     */
+	if (para->special_scroll_area_right)
+	  priv->synpara->right_edge = priv->largest_valid_x;
     }
 
     edge = edge_detection(priv, hw->x, hw->y);
@@ -2107,6 +2162,15 @@ ConvertProc(LocalDevicePtr local,
 }
 
 
+static void
+ReadDevDimensions(LocalDevicePtr local)
+{
+    SynapticsPrivate *priv = (SynapticsPrivate *) local->private;
+
+    if (priv->proto_ops->ReadDevDimensions)
+	priv->proto_ops->ReadDevDimensions(local);
+}
+
 static Bool
 QueryHardware(LocalDevicePtr local)
 {
@@ -2117,20 +2181,11 @@ QueryHardware(LocalDevicePtr local)
 
     if (priv->proto_ops->QueryHardware(local, &priv->synhw)) {
 	para->synhw = priv->synhw;
-	if (priv->fifofd != -1) {
-	    xf86CloseSerial(priv->fifofd);
-	    priv->fifofd = -1;
-	}
-	return TRUE;
+    } else {
+	xf86Msg(X_PROBED, "%s: no supported touchpad found\n", local->name);
+	priv->proto_ops->DeviceOffHook(local);
     }
 
-    if (priv->fifofd == -1) {
-	xf86Msg(X_ERROR, "%s no synaptics touchpad detected and no repeater device\n",
-		local->name);
-	return FALSE;
-    }
-    xf86Msg(X_PROBED, "%s no synaptics touchpad, data piped to repeater fifo\n", local->name);
-    priv->proto_ops->DeviceOffHook(local);
     return TRUE;
 }
 

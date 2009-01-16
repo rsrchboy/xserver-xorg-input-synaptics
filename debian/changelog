@@ -1,3 +1,15 @@
+xfree86-driver-synaptics (0.99.3-1) UNRELEASED; urgency=low
+
+  [ Timo Aaltonen ]
+  * Run autoreconf at build time; build-depend on automake, libtool and
+    xutils-dev.
+
+  [ Julien Cristau ]
+  * Add watch file.
+  * New upstream release.
+
+ -- Timo Aaltonen <tepsipakki@ubuntu.com>  Fri, 05 Sep 2008 10:18:01 +0300
+
 xfree86-driver-synaptics (0.15.2-0ubuntu5) intrepid; urgency=low
 
   * Cherry-picked commit db6e63, "Return correctly on successful property
