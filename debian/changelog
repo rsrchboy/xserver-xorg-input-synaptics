@@ -1,4 +1,4 @@
-xfree86-driver-synaptics (0.99.3-1ubuntu1) UNRELEASED; urgency=low
+xfree86-driver-synaptics (0.99.3-1ubuntu1) jaunty; urgency=low
 
   * Merge from Debian experimental.
   * Drop obsolete patches:
@@ -8,7 +8,7 @@ xfree86-driver-synaptics (0.99.3-1ubuntu1) UNRELEASED; urgency=low
     -105_no_bcm5974_shmconfig.patch
   * Update 103_enable_cornertapping.patch to apply.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Sat, 17 Jan 2009 00:01:59 +0200
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Fri, 23 Jan 2009 14:30:34 +0200
 
 xfree86-driver-synaptics (0.99.3-1) experimental; urgency=low
 
