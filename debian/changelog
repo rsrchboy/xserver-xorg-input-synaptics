@@ -1,3 +1,20 @@
+xfree86-driver-synaptics (0.99.3-1ubuntu2) jaunty; urgency=low
+
+  [ Alberto Milone (tseliot) ]
+  * 103_enable_cornertapping.patch:
+    - Update patch for the new upstream release. (LP: #320632)
+  * 104_always_enable_tapping.patch:
+    - Enable tapping even when a physical left button is available. (LP: #320585)
+  * 105_always_enable_multifinger_click.patch:
+    - Enable multifinger click (where available) even when physical right/middle
+      buttons are available. (LP: #320585)
+  * 106_always_enable_vert_edge_scroll.patch:
+    - Enable scrolling even when doubletap is available. (LP: #320632)
+  * 107_reduce_cursor_speed.patch:
+    - Reduce the cursor speed. (LP: #320639)
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Sat, 24 Jan 2009 20:29:04 +0200
+
 xfree86-driver-synaptics (0.99.3-1ubuntu1) jaunty; urgency=low
 
   * Merge from Debian experimental.

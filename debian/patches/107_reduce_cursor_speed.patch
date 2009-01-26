@@ -1,0 +1,15 @@
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-01-26 09:52:48.000000000 +0200
++++ xserver-xorg-input-synaptics/src/synaptics.c	2009-01-26 09:52:54.000000000 +0200
+@@ -483,8 +483,8 @@
+     pars->press_motion_min_z = xf86SetIntOption(opts, "PressureMotionMinZ", pressureMotionMinZ);
+     pars->press_motion_max_z = xf86SetIntOption(opts, "PressureMotionMaxZ", pressureMotionMaxZ);
+ 
+-    pars->min_speed = synSetFloatOption(opts, "MinSpeed", 0.4);
+-    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", 0.7);
++    pars->min_speed = synSetFloatOption(opts, "MinSpeed", 0.02);
++    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", 0.5);
+     pars->accl = synSetFloatOption(opts, "AccelFactor", accelFactor);
+     pars->trackstick_speed = synSetFloatOption(opts, "TrackstickSpeed", 40);
+     pars->scroll_dist_circ = synSetFloatOption(opts, "CircScrollDelta", 0.1);

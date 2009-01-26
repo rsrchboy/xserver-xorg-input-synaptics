@@ -1,2 +1,6 @@
 01-synaptics-dont-grab-if-not-on-current-VT.patch
 103_enable_cornertapping.patch
+104_always_enable_tapping.patch
+105_always_enable_multifinger_click.patch
+106_always_enable_vert_edge_scroll.patch
+107_reduce_cursor_speed.patch
