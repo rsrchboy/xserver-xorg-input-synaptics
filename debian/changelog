@@ -1,3 +1,10 @@
+xfree86-driver-synaptics (0.99.3-3) UNRELEASED; urgency=low
+
+  * Get rid of the xfree86-driver-synaptics transitional package.  It was
+    already a transitional package in etch.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 26 Jan 2009 04:50:06 +0100
+
 xfree86-driver-synaptics (0.99.3-2) experimental; urgency=low
 
   * Update our copy of xsfbs to get a fixed serverabi rule and generate
