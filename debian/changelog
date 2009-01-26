@@ -1,9 +1,15 @@
-xfree86-driver-synaptics (0.99.3-3) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (0.99.3-3) UNRELEASED; urgency=low
 
+  [ Julien Cristau ]
   * Get rid of the xfree86-driver-synaptics transitional package.  It was
     already a transitional package in etch.
 
- -- Julien Cristau <jcristau@debian.org>  Mon, 26 Jan 2009 04:50:06 +0100
+  [ Timo Aaltonen ]
+  * Rename the source package to xserver-xorg-input-synaptics, since 
+    it's hosted on freedesktop now and to be consistent with the rest
+    of the input drivers.
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 26 Jan 2009 09:23:23 +0200
 
 xfree86-driver-synaptics (0.99.3-2) experimental; urgency=low
 

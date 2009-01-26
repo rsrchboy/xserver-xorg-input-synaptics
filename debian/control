@@ -1,4 +1,4 @@
-Source: xfree86-driver-synaptics
+Source: xserver-xorg-input-synaptics
 Section: x11
 Priority: optional
 Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
@@ -7,7 +7,6 @@ Build-Depends: debhelper (>= 4.0.0), libx11-dev, libxext-dev, libxi-dev, x11prot
 Standards-Version: 3.7.3
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
-Homepage: http://web.telia.com/~u89404340/touchpad/index.html
 
 Package: xserver-xorg-input-synaptics
 Architecture: alpha amd64 arm armeb armel hppa i386 ia64 m68k mips mipsel powerpc sparc
@@ -16,8 +15,8 @@ Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Provides: ${xinpdriver:Provides}, xfree86-driver-synaptics, xorg-driver-synaptics
 Suggests: gsynaptics | ksynaptics | qsynaptics
-Description: Synaptics TouchPad driver for X.Org/XFree86 server
- This package provides an input driver for the X.Org/XFree86 X server to enable
+Description: Synaptics TouchPad driver for X.Org server
+ This package provides an input driver for the X.Org X server to enable
  advanced features of the Synaptics Touchpad including:
  .
   * Movement with adjustable, non-linear acceleration and speed
