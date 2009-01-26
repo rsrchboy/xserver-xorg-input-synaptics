@@ -4,3 +4,4 @@
 105_always_enable_multifinger_click.patch
 106_always_enable_vert_edge_scroll.patch
 107_reduce_cursor_speed.patch
+108_syndaemon_xinput_props.patch

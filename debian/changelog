@@ -1,3 +1,12 @@
+xfree86-driver-synaptics (0.99.3-2ubuntu1) jaunty; urgency=low
+
+  * Merge from Debian experimental.
+  * Revive syndaemon_xinput_props.patch, now refreshed as 108.
+    Thanks to John S. Gruber for noticing it was dropped in haste.
+    (LP: #321355)
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 26 Jan 2009 09:57:07 +0200
+
 xfree86-driver-synaptics (0.99.3-2) experimental; urgency=low
 
   * Update our copy of xsfbs to get a fixed serverabi rule and generate
