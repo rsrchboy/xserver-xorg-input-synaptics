@@ -58,6 +58,7 @@
 #include "config.h"
 #endif
 
+#include <xorg-server.h>
 #include <unistd.h>
 #include <misc.h>
 #include <xf86.h>
@@ -289,17 +290,6 @@ free_param_data(SynapticsPrivate *priv)
     priv->synpara = NULL;
 }
 
-static double
-synSetFloatOption(pointer options, const char *optname, double default_value)
-{
-    char *str_par;
-    double value;
-    str_par = xf86FindOptionValue(options, optname);
-    if ((!str_par) || (sscanf(str_par, "%lf", &value) != 1))
-	return default_value;
-    return value;
-}
-
 static void set_default_parameters(LocalDevicePtr local)
 {
     SynapticsPrivate *priv = local->private; /* read-only */
@@ -313,6 +303,7 @@ static void set_default_parameters(LocalDevicePtr local)
     double accelFactor;					/* 1/pixels */
     int fingerLow, fingerHigh, fingerPress;		/* pressure */
     int emulateTwoFingerMinZ;				/* pressure */
+    int emulateTwoFingerMinW;				/* width */
     int edgeMotionMinZ, edgeMotionMaxZ;			/* pressure */
     int pressureMotionMinZ, pressureMotionMaxZ;		/* pressure */
     int palmMinWidth, palmMinZ;				/* pressure */
@@ -372,15 +363,15 @@ static void set_default_parameters(LocalDevicePtr local)
 	int range = priv->maxp - priv->minp;
 
 	/* scaling based on defaults below and a pressure of 256 */
-	fingerLow = priv->minp + range * .098;
-	fingerHigh = priv->minp + range * .117;
+	fingerLow = priv->minp + range * (25.0/256);
+	fingerHigh = priv->minp + range * (30.0/256);
 	fingerPress = priv->minp + range * 1.000;
-	emulateTwoFingerMinZ = priv->minp + range * 1.1;
-	edgeMotionMinZ = priv->minp + range * .117;
-	edgeMotionMaxZ = priv->minp + range * .625;
-	pressureMotionMinZ = priv->minp + range * .117;
-	pressureMotionMaxZ = priv->minp + range * .625;
-	palmMinZ = priv->minp + range * .781;
+	emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
+	edgeMotionMinZ = priv->minp + range * (30.0/256);
+	edgeMotionMaxZ = priv->minp + range * (160.0/256);
+	pressureMotionMinZ = priv->minp + range * (30.0/256);
+	pressureMotionMaxZ = priv->minp + range * (160.0/256);
+	palmMinZ = priv->minp + range * (200.0/256);
     } else {
 	fingerLow = 25;
 	fingerHigh = 30;
@@ -397,10 +388,11 @@ static void set_default_parameters(LocalDevicePtr local)
 	int range = priv->maxw - priv->minw;
 
 	/* scaling based on defaults below and a tool width of 16 */
-	palmMinWidth = priv->minw + range * .625;
-
+	palmMinWidth = priv->minw + range * (10.0/16);
+	emulateTwoFingerMinW = priv->minw + range * (7.0/16);
     } else {
 	palmMinWidth = 10;
+	emulateTwoFingerMinW = 7;
     }
 
     /* Enable tap if we don't have a phys left button */
@@ -438,6 +430,7 @@ static void set_default_parameters(LocalDevicePtr local)
     pars->fast_taps = xf86SetBoolOption(opts, "FastTaps", FALSE);
     pars->emulate_mid_button_time = xf86SetIntOption(opts, "EmulateMidButtonTime", 75);
     pars->emulate_twofinger_z = xf86SetIntOption(opts, "EmulateTwoFingerMinZ", emulateTwoFingerMinZ);
+    pars->emulate_twofinger_w = xf86SetIntOption(opts, "EmulateTwoFingerMinW", emulateTwoFingerMinW);
     pars->scroll_dist_vert = xf86SetIntOption(opts, "VertScrollDelta", horizScrollDelta);
     pars->scroll_dist_horiz = xf86SetIntOption(opts, "HorizScrollDelta", vertScrollDelta);
     pars->scroll_edge_vert = xf86SetBoolOption(opts, "VertEdgeScroll", vertEdgeScroll);
@@ -484,14 +477,14 @@ static void set_default_parameters(LocalDevicePtr local)
     pars->press_motion_min_z = xf86SetIntOption(opts, "PressureMotionMinZ", pressureMotionMinZ);
     pars->press_motion_max_z = xf86SetIntOption(opts, "PressureMotionMaxZ", pressureMotionMaxZ);
 
-    pars->min_speed = synSetFloatOption(opts, "MinSpeed", 0.4);
-    pars->max_speed = synSetFloatOption(opts, "MaxSpeed", 0.7);
-    pars->accl = synSetFloatOption(opts, "AccelFactor", accelFactor);
-    pars->trackstick_speed = synSetFloatOption(opts, "TrackstickSpeed", 40);
-    pars->scroll_dist_circ = synSetFloatOption(opts, "CircScrollDelta", 0.1);
-    pars->coasting_speed = synSetFloatOption(opts, "CoastingSpeed", 0.0);
-    pars->press_motion_min_factor = synSetFloatOption(opts, "PressureMotionMinFactor", 1.0);
-    pars->press_motion_max_factor = synSetFloatOption(opts, "PressureMotionMaxFactor", 1.0);
+    pars->min_speed = xf86SetRealOption(opts, "MinSpeed", 0.4);
+    pars->max_speed = xf86SetRealOption(opts, "MaxSpeed", 0.7);
+    pars->accl = xf86SetRealOption(opts, "AccelFactor", accelFactor);
+    pars->trackstick_speed = xf86SetRealOption(opts, "TrackstickSpeed", 40);
+    pars->scroll_dist_circ = xf86SetRealOption(opts, "CircScrollDelta", 0.1);
+    pars->coasting_speed = xf86SetRealOption(opts, "CoastingSpeed", 0.0);
+    pars->press_motion_min_factor = xf86SetRealOption(opts, "PressureMotionMinFactor", 1.0);
+    pars->press_motion_max_factor = xf86SetRealOption(opts, "PressureMotionMaxFactor", 1.0);
     pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
 
     /* Warn about (and fix) incorrectly configured TopEdge/BottomEdge parameters */
@@ -1942,7 +1935,8 @@ HandleState(LocalDevicePtr local, struct SynapticsHwState *hw)
     }
 
     /* Two finger emulation */
-    if (hw->z >= para->emulate_twofinger_z && hw->numFingers == 1) {
+    if (hw->numFingers == 1 && hw->z >= para->emulate_twofinger_z &&
+        hw->fingerWidth >= para->emulate_twofinger_w) {
 	hw->numFingers = 2;
     }
 

@@ -22,7 +22,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([xf86-input-synaptics],
-        0.99.3,
+        1.1.0,
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
         xf86-input-synaptics)
 
@@ -41,8 +41,6 @@ AM_CONFIG_HEADER([config.h])
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AC_PROG_CC
-
-AH_TOP([#include "xorg-server.h"])
 
 AC_MSG_CHECKING([which optional backends will be build])
 case "${host}" in
@@ -71,24 +69,6 @@ if test "x${BUILD_PSMCOMM}" = "xyes" ; then
 	AC_DEFINE(BUILD_PSMCOMM, 1, [Optional backend psmcomm enabled])
 fi
 
-#AC_DEFINE(XFree86LOADER,1,[Stub define for loadable drivers])
-#
-#AC_ARG_ENABLE(XINPUT, AS_HELP_STRING([--enable-xinput],
-#              [Build XInput support (default: yes)]),
-#              [XINPUT=$enableval],[XINPUT=yes])
-#AM_CONDITIONAL(XINPUT, test "x$XINPUT" = "xyes")
-#if test "x$XINPUT" = "xyes" ; then
-#    AC_DEFINE(XINPUT,1,[Enable XInput support])
-#fi
-#
-#AC_ARG_ENABLE(XKB, AS_HELP_STRING([--enable-xkb],
-#              [Build XKB support (default: yes)]),
-#              [XKB=$enableval],[XKB=yes])
-#AM_CONDITIONAL(XKB, test "x$XKB" = "xyes")
-#if test "x$XKB" = "xyes" ; then
-#    AC_DEFINE(XKB,1,[Enable XKB support])
-#fi
-
 AC_ARG_WITH(xorg-module-dir,
             AC_HELP_STRING([--with-xorg-module-dir=DIR],
                            [Default xorg module directory [[default=$libdir/xorg/modules]]]),
@@ -98,7 +78,6 @@ inputdir=${moduledir}/input
 AC_SUBST(inputdir)
 
 # Checks for extensions
-XORG_DRIVER_CHECK_EXT(RANDR, randrproto)
 XORG_DRIVER_CHECK_EXT(XINPUT, inputproto)
 
 # Checks for pkg-config packages
@@ -111,6 +90,8 @@ AC_SUBST([CFLAGS])
 
 # Checks for libraries.
 PKG_CHECK_MODULES(XLIB, x11) # needed for syndaemon
+PKG_CHECK_MODULES(XRECORD, xtst, AC_DEFINE([HAVE_XRECORD],[],[Use XRecord]), true)
+PKG_CHECK_MODULES(XI, xi);
 
 # Checks for header files.
 AC_HEADER_STDC
