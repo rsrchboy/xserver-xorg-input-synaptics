@@ -1,3 +1,57 @@
+xserver-xorg-input-synaptics (0.99.3-3) experimental; urgency=low
+
+  [ Julien Cristau ]
+  * Get rid of the xfree86-driver-synaptics transitional package.  It was
+    already a transitional package in etch.
+
+  [ Timo Aaltonen ]
+  * Rename the source package to xserver-xorg-input-synaptics, since 
+    it's hosted on freedesktop now and to be consistent with the rest
+    of the input drivers.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 26 Jan 2009 09:08:10 +0100
+
+xfree86-driver-synaptics (0.99.3-2) experimental; urgency=low
+
+  * Update our copy of xsfbs to get a fixed serverabi rule and generate
+    Provides/Depends correctly.
+  * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 26 Jan 2009 04:43:08 +0100
+
+xfree86-driver-synaptics (0.99.3-1) experimental; urgency=low
+
+  [ Timo Aaltonen ]
+  * Run autoreconf at build time; build-depend on automake, libtool and
+    xutils-dev.
+
+  [ Julien Cristau ]
+  * Add watch file.
+  * New upstream release.
+  * Build against xserver 1.6 rc1.
+  * Handle parallel builds.
+
+ -- Julien Cristau <jcristau@debian.org>  Wed, 21 Jan 2009 22:27:10 +0100
+
+xfree86-driver-synaptics (0.15.0+git20080820-1) experimental; urgency=low
+
+  * Update to latest upstream git
+  * Remove patches merged upstream:
+    - 02-scandir-dev-input.patch
+    - 03-escape-dashes-in-manpages.patch
+    - 04-delibcwrap.patch
+  * Update debian/rules (taken from the evdev driver) for the autotoolized build
+  * Refresh 01-synaptics-dont-grab-if-not-on-current-VT.patch
+  * Cherry pick appletouch support from upstream
+
+ -- Mattia Dongili <malattia@debian.org>  Sun, 24 Aug 2008 17:44:12 +0900
+
+xfree86-driver-synaptics (0.14.7~git20070706-2.2) experimental; urgency=low
+
+  * Build against xserver 1.5 rc5.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 14 Jul 2008 16:14:31 +0200
+
 xfree86-driver-synaptics (0.14.7~git20070706-3) unstable; urgency=low
 
   * Add appletouch support in the fdi file (Closes: #495799).

@@ -1,73 +1,107 @@
 #!/usr/bin/make -f
-# GNU copyright 2004 by Mattia Dongili.
+# debian/rules for the Debian xserver-xorg-input-synaptics package.
+# Copyright © 2008 Mattia Dongili <malattia@debian.org>
+#
+# Based on debian/rules for the Debian xserver-xorg-input-evdev package.
+# Copyright © 2004 Scott James Remnant <scott@netsplit.com>
+# Copyright © 2005 Daniel Stone <daniel@fooishbar.org>
+# Copyright © 2005 David Nusinow <dnusinow@debian.org>
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include debian/xsfbs/xsfbs.mk
-
 PACKAGE=xserver-xorg-input-synaptics
 
-configure: configure-stamp patch
-configure-stamp:
+include debian/xsfbs/xsfbs.mk
+
+CFLAGS = -Wall -g
+ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	MAKEFLAGS += -j$(NUMJOBS)
+endif
+
+DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
+	confflags += --build=$(DEB_HOST_GNU_TYPE)
+else
+	confflags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+endif
+
+#confflags += --disable-static
+
+configure: $(STAMP_DIR)/patch
+	autoreconf -vfi
+
+obj-$(DEB_BUILD_GNU_TYPE)/config.status: configure
+	mkdir -p obj-$(DEB_BUILD_GNU_TYPE)
+	cd obj-$(DEB_BUILD_GNU_TYPE) && \
+	../configure --prefix=/usr --mandir=\$${prefix}/share/man \
+	             --infodir=\$${prefix}/share/info $(confflags) \
+	             CFLAGS="$(CFLAGS)" 
+	
+
+build: build-stamp
+build-stamp: obj-$(DEB_BUILD_GNU_TYPE)/config.status
 	dh_testdir
-	# the package: nothing to do
-
-	touch configure-stamp
-
-
-build: configure build-stamp
-build-stamp:
-	dh_testdir
-
-	# compile the package: detect architecture and launch make
-	$(MAKE) BUILD_MODULAR=y PREFIX=/usr
-
-	touch build-stamp
+	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE)
+	>$@
 
 clean: xsfclean
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	rm -f build-stamp
 
-	# clean up:
-	$(MAKE) clean
+	rm -f config.cache config.log config.status
+	rm -f */config.cache */config.log */config.status
+	rm -f conftest* */conftest*
+	rm -rf autom4te.cache */autom4te.cache
+	rm -rf obj-*
+	rm -f $$(find -name Makefile.in)
+	rm -f compile config.guess config.sub configure depcomp install-sh
+	rm -f ltmain.sh missing aclocal.m4 config.h.in
 
-	dh_clean 
+	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_clean -k
 	dh_installdirs
 
-	# install the package into debian/xserver-xorg-input-synaptics
-	$(MAKE) install BUILD_MODULAR=y PREFIX=/usr DESTDIR=$(CURDIR)/debian/xserver-xorg-input-synaptics
-	install -d debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
-	install -m 0644 debian/11-x11-synaptics.fdi debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty/
-
-
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
+	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	install -d $(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
+	install -m 0644 fdi/11-x11-synaptics.fdi \
+		$(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
 
 # Build architecture-dependent files here.
 binary-arch: build install serverabi
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+
 	dh_installdocs
-	dh_installexamples
+	dh_installchangelogs ChangeLog
+	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la --exclude=usr/share/man
 	dh_installman
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps
+	dh_shlibdeps -- --warnings=6
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
 
+# Build architecture-independent files here.
+binary-indep: build install
+# Nothing to do
+
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+.PHONY: build clean binary-indep binary-arch binary install

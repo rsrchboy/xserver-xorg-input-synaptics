@@ -1,8 +1,7 @@
-xfree86-driver-synaptics for Debian
+xserver-xorg-input-synaptics for Debian
 -----------------------------------
 
-This package contains the Synaptics TouchPad driver for X.Org and XFree86 X
-server.
+This package contains the Synaptics TouchPad driver for X.Org X server.
 See also the README file for details on configuration options.
 The following notes are reported from the INSTALL instructions of upstream 
 package (by Stefan Gmeiner <riddlebox@freesurf.ch>), but first of all a
@@ -27,8 +26,8 @@ The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
 Manual configuration
 --------------------
 
-1. Load the driver by changing the X.Org/XFree86 configuration file
-(/etc/X11/xorg.conf or /etc/X11/XF86Config-4) through adding the line 'Load
+1. Load the driver by changing the X.Org configuration file
+(/etc/X11/xorg.conf) through adding the line 'Load
 "synaptics"' in the module section.
 
 2. Add/Replace in the InputDevice section for the touchpad the
@@ -76,7 +75,7 @@ Section "ServerLayout"
    devices except one to "AlwaysCore" instead of "CorePointer".
 
 4. Start/Restart the X Server. If the touchpad doesn't work:
-   a) Check the XFree Logfiles
+   a) Check the X.Org Logfiles
    b) Try to start the XServer with 'startx -- -logverbose 8' for more
       Output
 
