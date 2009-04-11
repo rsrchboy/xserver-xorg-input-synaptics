@@ -1,0 +1,16 @@
+xserver-xorg-input-synaptics (1.1.0-2) unstable; urgency=low
+
+ * Tapping has been disabled by default on many touchpads by upstream. If
+   you want to re-enable it, you can do so explicitly by adding the
+   following to your xorg.conf:
+   
+        Section "InputDevice"
+                Identifier "synaptics"
+                Driver "synaptics"
+                Option "TouchpadOff" "2"
+        EndSection
+
+   For more details see synaptics(4) and
+   http://who-t.blogspot.com/2009/04/synaptics-11-and-what-your-touchpad-can.html
+
+ -- David Nusinow <dnusinow@debian.org>  Sat, 11 Apr 2009 16:23:11 -0400
