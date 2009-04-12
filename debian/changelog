@@ -1,6 +1,6 @@
 xserver-xorg-input-synaptics (1.1.0-2) unreleased; urgency=low
 
-  * Add NEWS.Debian entry about enabling tapping again
+  * Add NEWS.Debian entry about enabling tapping again (closes: #497523)
 
  -- David Nusinow <dnusinow@debian.org>  Sat, 11 Apr 2009 16:32:54 -0400
 
