@@ -1,8 +1,8 @@
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c
-+++ xserver-xorg-input-synaptics/src/synaptics.c
-@@ -691,6 +691,9 @@
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-05-10 16:21:45.205197265 +0900
++++ xserver-xorg-input-synaptics/src/synaptics.c	2009-05-10 16:22:29.281198113 +0900
+@@ -716,6 +716,9 @@
  
      DBG(3, ErrorF("Synaptics DeviceOn called\n"));
  
