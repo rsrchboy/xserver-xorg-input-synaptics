@@ -1,8 +1,18 @@
-xserver-xorg-input-synaptics (1.1.0-2) unreleased; urgency=low
+xserver-xorg-input-synaptics (1.1.1~git20090510-1) unreleased; urgency=low
 
+  [ David Nusinow ]
   * Add NEWS.Debian entry about enabling tapping again (closes: #497523)
 
- -- David Nusinow <dnusinow@debian.org>  Sat, 11 Apr 2009 16:32:54 -0400
+  [ Mattia Dongili ]
+  * Link to xserver-xorg reportbug script
+  * Merge current upstream fixes:
+    - Edge calculation fixes bring back vertical scrolling (closes: #523946)
+    - Fix float properties handling on 64bit arches (closes: #525473)
+
+  [ Alexandre Rossi ]
+  * Provide Hal configurations for re-enabling tapping and scrolling
+
+ -- Mattia Dongili <malattia@debian.org>  Sun, 10 May 2009 13:43:58 +0900
 
 xserver-xorg-input-synaptics (1.1.0-1) unstable; urgency=low
 

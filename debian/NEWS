@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.1.0-2) unstable; urgency=low
+xserver-xorg-input-synaptics (1.1.1~git20090510-1) unstable; urgency=low
 
  * Tapping has been disabled by default on many touchpads by upstream. If
    you want to re-enable it, you can do so explicitly by adding the
