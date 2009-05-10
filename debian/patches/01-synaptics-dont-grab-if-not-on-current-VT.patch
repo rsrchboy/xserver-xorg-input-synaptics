@@ -1,3 +1,7 @@
+Do not grab the synaptics device if not running on the current VT.
+This helps when switching user or more in general when running more than one
+instance of Xorg.
+
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
 --- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-05-10 16:21:45.205197265 +0900
