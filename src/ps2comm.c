@@ -40,6 +40,7 @@
 #include "ps2comm.h"
 #include "synproto.h"
 #include "synaptics.h"
+#include "synapticsstr.h"
 #include <xf86.h>
 
 #define MAX_UNSYNC_PACKETS 10				/* i.e. 10 to 60 bytes */
@@ -299,7 +300,7 @@ ps2_synaptics_model_id(int fd, struct SynapticsHwInfo *synhw)
 	ps2_getbyte(fd, &mi[1]) &&
 	ps2_getbyte(fd, &mi[2])) {
 	synhw->model_id = (mi[0] << 16) | (mi[1] << 8) | mi[2];
-	PS2DBG(ErrorF("mode-id %06X\n", synhw->model_id));
+	PS2DBG(ErrorF("model-id %06X\n", synhw->model_id));
 	PS2DBG(ErrorF("...done.\n"));
 	return TRUE;
     }
@@ -611,6 +612,8 @@ PS2ReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
     int newabs = SYN_MODEL_NEWABS(*synhw);
     unsigned char *buf = comm->protoBuf;
     struct SynapticsHwState *hw = &(comm->hwState);
+    SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
+    SynapticsSHM *para = priv->synpara;
     int w, i;
 
     if (!ps2_synaptics_get_packet(local, synhw, proto_ops, comm))
@@ -709,7 +712,7 @@ PS2ReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
 
     hw->y = YMAX_NOMINAL + YMIN_NOMINAL - hw->y;
 
-    if (hw->z > 0) {
+    if (hw->z >= para->finger_high) {
 	int w_ok = 0;
 	/*
 	 * Use capability bits to decide if the w value is valid.

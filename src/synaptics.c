@@ -318,7 +318,10 @@ static void set_default_parameters(LocalDevicePtr local)
     /* The synaptics specs specify typical edge widths of 4% on x, and 5.4% on
      * y (page 7) [Synaptics TouchPad Interfacing Guide, 510-000080 - A
      * Second Edition, http://www.synaptics.com/support/dev_support.cfm, 8 Sep
-     * 2008]
+     * 2008]. We use 7% for both instead for synaptics devices, and 15% for
+     * ALPS models.
+     * http://bugs.freedesktop.org/show_bug.cgi?id=21214
+     *
      * If the range was autodetected, apply these edge widths to all four
      * sides.
      */
@@ -330,8 +333,19 @@ static void set_default_parameters(LocalDevicePtr local)
         width = abs(priv->maxx - priv->minx);
         height = abs(priv->maxy - priv->miny);
         diag = sqrt(width * width + height * height);
-        ewidth = width * .04;
-        eheight = height * .055;
+        if (priv->model == MODEL_SYNAPTICS)
+        {
+            ewidth = width * .07;
+            eheight = height * .07;
+        } else if (priv->model == MODEL_ALPS)
+        {
+            ewidth = width * .15;
+            eheight = height * .15;
+        } else
+        {
+            ewidth = width * .04;
+            eheight = height * .04;
+        }
 
         l = priv->minx + ewidth;
         r = priv->maxx - ewidth;
@@ -511,9 +525,17 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     if (!priv)
 	return NULL;
 
+    /* allocate now so we don't allocate in the signal handler */
+    priv->timer = TimerSet(NULL, 0, 0, NULL, NULL);
+    if (!priv->timer) {
+	xfree(priv);
+	return NULL;
+    }
+
     /* Allocate a new InputInfoRec and add it to the head xf86InputDevs. */
     local = xf86AllocateInput(drv, 0);
     if (!local) {
+	xfree(priv->timer);
 	xfree(priv);
 	return NULL;
     }
@@ -614,6 +636,7 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     if (priv->comm.buffer)
 	XisbFree(priv->comm.buffer);
     free_param_data(priv);
+    xfree(priv->timer);
     xfree(priv);
     local->private = NULL;
     return local;
@@ -627,6 +650,9 @@ static void SynapticsUnInit(InputDriverPtr drv,
                             InputInfoPtr   local,
                             int            flags)
 {
+    SynapticsPrivate *priv = ((SynapticsPrivate *)local->private);
+    if (priv && priv->timer)
+        xfree(priv->timer);
     xfree(local->private);
     local->private = NULL;
     xf86DeleteInput(local, 0);
@@ -703,7 +729,15 @@ DeviceOn(DeviceIntPtr dev)
     xf86FlushInput(local->fd);
 
     /* reinit the pad */
-    QueryHardware(local);
+    if (!QueryHardware(local))
+    {
+        XisbFree(priv->comm.buffer);
+        priv->comm.buffer = NULL;
+        xf86CloseSerial(local->fd);
+        local->fd = -1;
+        return !Success;
+    }
+
     xf86AddEnabledDevice(local);
     dev->public.on = TRUE;
 
@@ -2178,6 +2212,7 @@ QueryHardware(LocalDevicePtr local)
     } else {
 	xf86Msg(X_PROBED, "%s: no supported touchpad found\n", local->name);
 	priv->proto_ops->DeviceOffHook(local);
+	return FALSE;
     }
 
     return TRUE;

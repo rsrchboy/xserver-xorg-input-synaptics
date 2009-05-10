@@ -45,11 +45,19 @@
 #include <X11/extensions/XInput.h>
 #include "synaptics.h"
 #include "synaptics-properties.h"
+#ifdef HAVE_PROPERTIES
 #include <xserver-properties.h>
 
 #ifndef XATOM_FLOAT
 #define XATOM_FLOAT "FLOAT"
 #endif
+#endif
+
+union flong { /* Xlibs 64-bit property handling madness */
+    long l;
+    float f;
+};
+
 
 enum ParaType {
     PT_INT,
@@ -397,6 +405,7 @@ shm_init()
 }
 
 
+#ifdef HAVE_PROPERTIES
 /** Init display connection or NULL on error */
 static Display*
 dp_init()
@@ -528,8 +537,8 @@ dp_set_variables(Display *dpy, XDevice* dev, int argc, char *argv[], int first_c
     unsigned char* data;
     unsigned long nitems, bytes_after;
 
-    float *f;
-    int *n;
+    union flong *f;
+    long *n;
     char *b;
 
     float_type = XInternAtom(dpy, XATOM_FLOAT, True);
@@ -570,7 +579,7 @@ dp_set_variables(Display *dpy, XDevice* dev, int argc, char *argv[], int first_c
 			    par->name, format);
 		    break;
 		}
-		n = (int*)data;
+		n = (long*)data;
 		n[par->prop_offset] = rint(val);
 		break;
 	    case 0: /* float */
@@ -581,8 +590,8 @@ dp_set_variables(Display *dpy, XDevice* dev, int argc, char *argv[], int first_c
 			    par->name, format);
 		    break;
 		}
-		f = (float*)data;
-		f[par->prop_offset] = val;
+		f = (union flong*)data;
+		f[par->prop_offset].f = val;
 		break;
 	}
 
@@ -603,8 +612,8 @@ dp_show_settings(Display *dpy, XDevice *dev)
     unsigned char* data;
     int len;
 
-    float *f;
-    int *i;
+    union flong *f;
+    long *i;
     char *b;
 
     float_type = XInternAtom(dpy, XATOM_FLOAT, True);
@@ -645,8 +654,8 @@ dp_show_settings(Display *dpy, XDevice *dev)
 		    break;
 		}
 
-		i = (int*)data;
-		printf("    %-23s = %d\n", par->name, i[par->prop_offset]);
+		i = (long*)data;
+		printf("    %-23s = %ld\n", par->name, i[par->prop_offset]);
 		break;
 	    case 0: /* Float */
 		if (!float_type)
@@ -657,20 +666,23 @@ dp_show_settings(Display *dpy, XDevice *dev)
 		    break;
 		}
 
-		f = (float*)data;
-		printf("    %-23s = %g\n", par->name, f[par->prop_offset]);
+		f = (union flong*)data;
+		printf("    %-23s = %g\n", par->name, f[par->prop_offset].f);
 		break;
 	}
 
 	XFree(data);
     }
 }
+#endif
 
 static void
 usage(void)
 {
     fprintf(stderr, "Usage: synclient [-s] [-m interval] [-h] [-l] [-V] [-?] [var1=value1 [var2=value2] ...]\n");
+#ifdef HAVE_PROPERTIES
     fprintf(stderr, "  -s Use SHM area instead of device properties.\n");
+#endif
     fprintf(stderr, "  -m monitor changes to the touchpad state (implies -s)\n"
 	    "     interval specifies how often (in ms) to poll the touchpad state\n");
     fprintf(stderr, "  -h Show detected hardware properties (implies -s)\n");
@@ -689,8 +701,12 @@ main(int argc, char *argv[])
     int do_monitor = 0;
     int dump_hw = 0;
     int dump_settings = 0;
-    int use_shm = 0;
+    int use_shm = 1;
     int first_cmd;
+
+#ifdef HAVE_PROPERTIES
+    use_shm = 0;
+#endif
 
     /* Parse command line parameters */
     while ((c = getopt(argc, argv, "sm:hlV")) != -1) {
@@ -718,6 +734,7 @@ main(int argc, char *argv[])
 	    usage();
 	}
     }
+
     first_cmd = optind;
     if (!do_monitor && !dump_hw && !dump_settings && first_cmd == argc)
 	usage();
@@ -741,7 +758,9 @@ main(int argc, char *argv[])
 	    shm_show_settings(synshm);
 	if (do_monitor)
 	    shm_monitor(synshm, delay);
-    } else /* Device properties */
+    }
+#ifdef HAVE_PROPERTIES
+    else /* Device properties */
     {
 	Display *dpy;
 	XDevice *dev;
@@ -757,6 +776,7 @@ main(int argc, char *argv[])
 	XCloseDevice(dpy, dev);
 	XCloseDisplay(dpy);
     }
+#endif
 
     return 0;
 }
