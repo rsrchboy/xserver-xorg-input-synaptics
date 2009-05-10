@@ -3,7 +3,7 @@ xserver-xorg-input-synaptics (1.1.0-2) unstable; urgency=low
  * Tapping has been disabled by default on many touchpads by upstream. If
    you want to re-enable it, you can do so explicitly by adding the
    following to your xorg.conf:
-   
+
         Section "InputDevice"
                 Identifier "synaptics"
                 Driver "synaptics"
@@ -15,5 +15,36 @@ xserver-xorg-input-synaptics (1.1.0-2) unstable; urgency=low
    You may only require one or two TapButton options for your own
    configuration. For more details see synaptics(4) and
    http://who-t.blogspot.com/2009/04/synaptics-11-and-what-your-touchpad-can.html
+
+   Another option is to configure it through hal. An exemple hal policy file is
+   available : /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
+   In order to re-enable tapping, you can put the following contents in
+   /etc/hal/fdi/policy/11-x11-synaptics.fdi :
+
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <deviceinfo version="0.2">
+          <device>
+            <match key="info.capabilities" contains="input.touchpad">
+              <match key="input.x11_driver" contains="synaptics">
+                <merge key="input.x11_options.TapButton1"
+                       type="string">1</merge>
+                <merge key="input.x11_options.TapButton2"
+                       type="string">2</merge>
+                <merge key="input.x11_options.TapButton3"
+                       type="string">3</merge>
+              </match>
+            </match>
+          </device>
+        </deviceinfo>
+
+    For the changes to be taken into account, restart hal :
+
+        # /etc/init.d/hal restart
+
+  * On a more general note, the defaults have changed in this version. To
+    restore the defaults to the old ones, just drop
+    /usr/share/doc/xserver-xorg-input-synaptics/examples/prehal-defaults.fdi
+    into
+    /etc/hal/fdi/policy/11-x11-synaptics.fdi
 
  -- David Nusinow <dnusinow@debian.org>  Sat, 11 Apr 2009 16:23:11 -0400
