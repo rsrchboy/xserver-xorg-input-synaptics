@@ -9,7 +9,8 @@ xserver-xorg-input-synaptics (1.1.1~git20090510-1) unreleased; urgency=low
     - Edge calculation fixes bring back vertical scrolling (closes: #523946)
     - Fix float properties handling on 64bit arches (closes: #525473)
   * Remove Suggests for [kq]synaptics which are not in the repository anymore
-    (closes: #498299)
+    (closes: #498299) and suggest gpointing-device-settings (replacement of
+    gsynaptics) and touchfreeze instead
   * Remove the upstream NEWS file which doesn't exist anymore
 
   [ Alexandre Rossi ]
