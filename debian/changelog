@@ -12,11 +12,10 @@ xserver-xorg-input-synaptics (1.1.1~git20090510-1) unreleased; urgency=low
     (closes: #498299) and suggest gpointing-device-settings (replacement of
     gsynaptics) and touchfreeze instead
   * Remove the upstream NEWS file which doesn't exist anymore
+  * Updates to the README.Debian to make sure we mention how to customize the
+    fdi configuration
 
-  [ Alexandre Rossi ]
-  * Provide Hal configurations for re-enabling tapping and scrolling
-
- -- Mattia Dongili <malattia@debian.org>  Sun, 10 May 2009 13:43:58 +0900
+ -- Mattia Dongili <malattia@debian.org>  Mon, 11 May 2009 23:08:15 +0900
 
 xserver-xorg-input-synaptics (1.1.0-1) unstable; urgency=low
 

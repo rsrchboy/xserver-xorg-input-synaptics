@@ -8,19 +8,26 @@ package (by Stefan Gmeiner <riddlebox@freesurf.ch>), but first of all a
 security notice about SHMConfig:
 
    If you want to be able to change driver parameters without
-   restarting the X server, enable the "SHMConfig" option in the X
-   configuration file. You can then use the "synclient" program to
+   restarting the X server, one option is to enable the "SHMConfig" option in
+   the X configuration file. You can then use the "synclient" program to
    query and modify driver parameters on the fly.
    SECURITY NOTE! This is not secure if you are in an untrusted 
    multiuser environment. All local users can change the parameters at any
    time.
+
+   Since version 1.1 the driver doesn't require doesn't require the
+   SHMConfig option anymore to allow runtime configuration changes,
+   synclient will only use the shared memory segment when invoked with
+   the -s option.
 
 Xorg auto-configuration
 -----------------------
 Recent X.Org has support for automatic configuration. The synaptics driver does
 not support automatic configuration yet but the information required is
 supplied by a third party fdi script through HAL.
-The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi
+The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi,
+if you need to customize it, you can first copy it to
+/etc/hal/fdi/policy and the edit it to match your requirements.
 
 
 Manual configuration
