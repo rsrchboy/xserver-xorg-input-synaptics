@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.1.1~git20090510-1) unreleased; urgency=low
+xserver-xorg-input-synaptics (1.1.1~git20090510-1) unstable; urgency=low
 
   [ David Nusinow ]
   * Add NEWS.Debian entry about enabling tapping again (closes: #497523)
