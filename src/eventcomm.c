@@ -78,9 +78,9 @@ static Bool
 event_query_is_touchpad(int fd)
 {
     int ret;
-    unsigned long evbits[NBITS(EV_MAX)];
-    unsigned long absbits[NBITS(ABS_MAX)];
-    unsigned long keybits[NBITS(KEY_MAX)];
+    unsigned long evbits[NBITS(EV_MAX)] = {0};
+    unsigned long absbits[NBITS(ABS_MAX)] = {0};
+    unsigned long keybits[NBITS(KEY_MAX)] = {0};
 
     /* Check for ABS_X, ABS_Y, ABS_PRESSURE and BTN_TOOL_FINGER */
 
@@ -115,22 +115,37 @@ event_query_is_touchpad(int fd)
     return TRUE;
 }
 
+typedef struct {
+	short vendor;
+	short product;
+	enum TouchpadModel model;
+} model_lookup_t;
+#define PRODUCT_ANY 0x0000
+
+static model_lookup_t model_lookup_table[] = {
+	{0x0002, 0x0007, MODEL_SYNAPTICS},
+	{0x0002, 0x0008, MODEL_ALPS},
+	{0x05ac, PRODUCT_ANY, MODEL_APPLETOUCH},
+	{0x0, 0x0, 0x0}
+};
+
 static void
 event_query_info(LocalDevicePtr local)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
     short id[4];
     int rc;
+    model_lookup_t *model_lookup;
 
     SYSCALL(rc = ioctl(local->fd, EVIOCGID, id));
     if (rc < 0)
         return;
 
-    if (id[ID_VENDOR] == 0x2 && id[ID_PRODUCT] == 0x7)
-        priv->model = MODEL_SYNAPTICS;
-    else if (id[ID_VENDOR] == 0x2 && id[ID_PRODUCT] == 0x8)
-        priv->model = MODEL_ALPS;
-
+    for(model_lookup = model_lookup_table; model_lookup->vendor; model_lookup++) {
+        if(model_lookup->vendor == id[ID_VENDOR] &&
+           (model_lookup->product == id[ID_PRODUCT] || model_lookup->product == PRODUCT_ANY))
+            priv->model = model_lookup->model;
+    }
 }
 
 /* Query device for axis ranges */
@@ -139,8 +154,8 @@ event_query_axis_ranges(LocalDevicePtr local)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)local->private;
     struct input_absinfo abs;
-    unsigned long absbits[NBITS(ABS_MAX)];
-    unsigned long keybits[NBITS(KEY_MAX)];
+    unsigned long absbits[NBITS(ABS_MAX)] = {0};
+    unsigned long keybits[NBITS(KEY_MAX)] = {0};
     char buf[256];
     int rc;
 
@@ -202,15 +217,15 @@ event_query_axis_ranges(LocalDevicePtr local)
     if (rc >= 0)
     {
 	buf[0] = 0;
-	if ((priv->has_left = TEST_BIT(BTN_LEFT, keybits)))
+	if ((priv->has_left = (TEST_BIT(BTN_LEFT, keybits) != 0)))
 	   strcat(buf, " left");
-	if ((priv->has_right = TEST_BIT(BTN_RIGHT, keybits)))
+	if ((priv->has_right = (TEST_BIT(BTN_RIGHT, keybits) != 0)))
 	   strcat(buf, " right");
-	if ((priv->has_middle = TEST_BIT(BTN_MIDDLE, keybits)))
+	if ((priv->has_middle = (TEST_BIT(BTN_MIDDLE, keybits) != 0)))
 	   strcat(buf, " middle");
-	if ((priv->has_double = TEST_BIT(BTN_TOOL_DOUBLETAP, keybits)))
+	if ((priv->has_double = (TEST_BIT(BTN_TOOL_DOUBLETAP, keybits) != 0)))
 	   strcat(buf, " double");
-	if ((priv->has_triple = TEST_BIT(BTN_TOOL_TRIPLETAP, keybits)))
+	if ((priv->has_triple = (TEST_BIT(BTN_TOOL_TRIPLETAP, keybits) != 0)))
 	   strcat(buf, " triple");
 	xf86Msg(X_INFO, "%s: buttons:%s\n", local->name, buf);
     }
