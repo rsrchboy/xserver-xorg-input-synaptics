@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.1.2-1) unstable; urgency=low
+
+  [ Mattia Dongili ]
+  * New upstream release.
+
+ -- Mattia Dongili <malattia@debian.org>  Wed, 03 Jun 2009 21:48:36 +0900
+
 xserver-xorg-input-synaptics (1.1.1~git20090510-1) unstable; urgency=low
 
   [ David Nusinow ]
