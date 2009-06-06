@@ -113,4 +113,4 @@ simply add the following line to your ~/.xinitrc file:
 Customize the daemon options to fit your needs, the only mandatory option is
 '-d' to run syndaemon in the background. See 'man 1 syndaemon' for more.
 
- -- Mattia Dongili <malattia@debian.org>, Tue,  2 Mar 2004 11:42:05 +0100
+ -- Mattia Dongili <malattia@debian.org>, Mon, 11 May 2009 23:04:40 +0900

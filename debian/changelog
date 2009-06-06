@@ -5,6 +5,8 @@ xserver-xorg-input-synaptics (1.1.2-1) unstable; urgency=low
   * Replace 02-mention-tapping-in-manpage-notes.patch with the patch accepted
     upstream (1f499d).
   * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
+  * Update README.Debian's date signature with the last modification time
+    (closes: #531999).
 
  -- Mattia Dongili <malattia@debian.org>  Sat, 06 Jun 2009 13:32:59 +0900
 
