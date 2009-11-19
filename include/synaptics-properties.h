@@ -142,4 +142,17 @@
 /* 8 bit (BOOL) */
 #define SYNAPTICS_PROP_GRAB "Synaptics Grab Event Device"
 
+/* 8 bit (BOOL), 1 value, tap-and-drag */
+#define SYNAPTICS_PROP_GESTURES "Synaptics Gestures"
+
+/* 8 bit (BOOL), 5 values (read-only), has_left, has_middle, has_right,
+ * has_double, has_triple */
+#define SYNAPTICS_PROP_CAPABILITIES "Synaptics Capabilities"
+
+/* 32 bit unsigned, 2 values, vertical, horizontal in units/millimeter */
+#define SYNAPTICS_PROP_RESOLUTION "Synaptics Pad Resolution"
+
+/* 32 bit, 4 values, left, right, top, bottom */
+#define SYNAPTICS_PROP_AREA "Synaptics Area"
+
 #endif /* _SYNAPTICS_PROPERTIES_H_ */

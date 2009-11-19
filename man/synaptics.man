@@ -16,7 +16,7 @@ synaptics \- Synaptics touchpad input driver
 .SH DESCRIPTION
 .B synaptics
 is an __xservername__ input driver for the touchpads from Synaptics
-Incorporated. Even tough these touchpads (by default, operating in a
+Incorporated. Even though these touchpads (by default, operating in a
 compatibility mode emulating a standard mouse) can be handled by the normal
 evdev or mouse drivers, this driver allows more advanced features of the
 touchpad to become available. Some benefits would be:
@@ -28,7 +28,7 @@ Button events through short touching of the touchpad.
 Double-Button events through double short touching of the touchpad.
 .IP \(bu 4
 Dragging through short touching and holding down the finger on the
-touchpad.
+touchpad (tap-and-drag gesture).
 .IP \(bu 4
 Middle and right button events on the upper and lower corner of the
 touchpad.
@@ -99,19 +99,13 @@ option is not needed with synaptics 1.0 or later. See section
 X coordinate for left edge. Property: "Synaptics Edges"
 .TP 7
 .BI "Option \*qRightEdge\*q \*q" integer \*q
-X coordinate for right edge. If this option is set,
-.BI SpecialScrollAreaRight
-is ignored. Property: "Synaptics Edges"
+X coordinate for right edge. Property: "Synaptics Edges"
 .TP 7
 .BI "Option \*qTopEdge\*q \*q" integer \*q
 Y coordinate for top edge. Property: "Synaptics Edges"
 .TP 7
 .BI "Option \*qBottomEdge\*q \*q" integer \*q
 Y coordinate for bottom edge. Property: "Synaptics Edges"
-.TP 7
-.BI "Option \*qSpecialScrollAreaRight\*q \*q" boolean \*q
-Some touchpads have a scroll region on the right edge. Disable this option if
-you have one but don't want use it as scroll wheel region.
 .TP 7
 .BI "Option \*qFingerLow\*q \*q" integer \*q
 When finger pressure drops below this value, the driver counts it as a
@@ -132,7 +126,7 @@ emulation mode. Property: "Synaptics Finger"
 Maximum time (in milliseconds) for detecting a tap. Property: "Synaptics Tap
 Durations"
 .TP 7
-.BI "Option \*qBMaxTapMove\*q \*q" integer \*q
+.BI "Option \*qMaxTapMove\*q \*q" integer \*q
 Maximum movement of the finger for detecting a tap. Property: "Synaptics Tap
 Move"
 .TP 7
@@ -284,7 +278,7 @@ Switch on/off guest mouse (often a stick). Property: "Synaptics Guestmouse
 Off"
 .TP
 .BI "Option \*qLockedDrags\*q \*q" boolean \*q
-If off, a tap and drag gesture ends when you release the finger.
+If off, a tap-and-drag gesture ends when you release the finger.
 .
 If on, the gesture is active until you tap a second time, or until
 LockedDragTimeout expires. Property: "Synaptics Locked Drags"
@@ -419,6 +413,35 @@ This can be achieved by switching to a text console and then switching
 back to X.
 .
 .
+.TP
+.BI "Option \*qTapAndDragGesture\*q \*q" boolean \*q
+Switch on/off the tap-and-drag gesture.
+.
+This gesture is an alternative way of dragging.
+.
+It is performed by tapping (touching and releasing the finger), then
+touching again and moving the finger on the touchpad.
+.
+The gesture is enabled by default and can be disabled by setting the
+TapAndDragGesture option to false. Property: "Synaptics Gestures"
+.
+.TP
+.BI "Option \*qVertResolution\*q \*q" integer \*q
+Resolution of X coordinates in units/millimeter. The value is used
+together with HorizResolution to compensate unequal vertical and
+horizontal sensitivity. Setting VertResolution and HorizResolution
+equal values means no compensation. Default value is read from
+the touchpad or set to 1 if value could not be read.
+Property: "Synaptics Pad Resolution"
+.
+.TP
+.BI "Option \*qHorizResolution\*q \*q" integer \*q
+Resolution of Y coordinates in units/millimeter. The value is used
+together with VertResolution to compensate unequal vertical and
+horizontal sensitivity. Setting VertResolution and HorizResolution
+equal values means no compensation. Default value is read from
+the touchpad or set to 1 if value could not be read.
+Property: "Synaptics Pad Resolution"
 .LP
 The LeftEdge, RightEdge, TopEdge and BottomEdge parameters are used to
 define the edge and corner areas of the touchpad.
@@ -457,6 +480,34 @@ Coordinates to the left of LeftEdge are part of the left edge (areas
 A good way to find appropriate edge parameters is to enable the
 SHMConfig option and run "synclient \-m 1" to see the x/y coordinates
 corresponding to different positions on the touchpad.
+.
+.TP
+.BI "Option \*qAreaLeftEdge\*q \*q" integer \*q
+Ignore movements, scrolling and tapping which take place left of this edge.
+.
+The option is disabled by default and can be enabled by setting the
+AreaLeftEdge option to any integer value other than zero. Property: "Synaptics Area"
+.
+.TP
+.BI "Option \*qAreaRightEdge\*q \*q" integer \*q
+Ignore movements, scrolling and tapping which take place right of this edge.
+.
+The option is disabled by default and can be enabled by setting the
+AreaRightEdge option to any integer value other than zero. Property: "Synaptics Area"
+.
+.TP
+.BI "Option \*qAreaTopEdge\*q \*q" integer \*q
+Ignore movements, scrolling and tapping which take place above this edge.
+.
+The option is disabled by default and can be enabled by setting the
+AreaTopEdge option to any integer value other than zero. Property: "Synaptics Area"
+.
+.TP
+.BI "Option \*qAreaBottomEdge\*q \*q" integer \*q
+Ignore movements, scrolling and tapping which take place below this edge.
+.
+The option is disabled by default and can be enabled by setting the
+AreaBottomEdge option to any integer value other than zero. Property: "Synaptics Area"
 .
 .LP
 A tap event happens when the finger is touched and released in a time
@@ -793,6 +844,32 @@ FLOAT, 2 values, min, max.
 .BI "Synaptics Grab Event Device"
 8 bit (BOOL).
 
+.TP 7
+.BI "Synaptics Gestures"
+8 bit (BOOL), 1 value, tap-and-drag.
+
+.TP 7
+.BI "Synaptics Area"
+The AreaLeftEdge, AreaRightEdge, AreaTopEdge and AreaBottomEdge parameters are used to
+define the edges of the active area of the touchpad. All movements, scrolling and tapping
+which take place outside of this area will be ignored. This property is disabled by
+default.
+
+32 bit, 4 values, left, right, top, bottom. 0 disables an element.
+
+.TP 7
+.BI "Synaptics Capabilities"
+This read-only property expresses the physical capability of the touchpad,
+most notably whether the touchpad hardware supports multi-finger tapping and
+scrolling.
+
+8 bit (BOOL), 5 values (read-only), has left button, has middle button, has
+right button, two-finger detection, three-finger detection.
+
+.TP 7
+.BI "Synaptics Pad Resolution"
+32 bit unsigned, 2 values (read-only), vertical, horizontal in units/millimeter.
+
 .SH "NOTES"
 There is an example hal policy file in
 .I ${sourcecode}/fdi/11-x11-synaptics.fdi
@@ -808,11 +885,14 @@ If either of
 (default) or
 .BI "Protocol \*q" event \*q
 is used, the driver initializes defaults based on the capabilities reported by
-the kernel driver. Acceleration and edges are based on the dimensions reported
-by the kernel. If the kernel reports multi-finger detection, two-finger
+the kernel driver. Acceleration, edges and resolution are based on the dimensions
+reported by the kernel. If the kernel reports multi-finger detection, two-finger
 vertical scrolling is enabled, horizontal two-finger scrolling is disabled and
 edge scrolling is disabled. If no multi-finger capabilities are reported,
 edge scrolling is enabled for both horizontal and vertical scrolling.
+Tapping is disabled by default for touchpads with one or more physical buttons.
+To enable it you need to map tap actions to buttons. See the "TapButton1",
+"TapButton2" and "TapButton3" options.
 .LP
 Button mapping for physical buttons is handled in the server.
 If the device is switched to left-handed (an in-server mapping of physical
@@ -826,6 +906,8 @@ The following options are no longer part of the driver configuration:
 .BI "Option \*qRepeater\*q \*q" string \*q
 .TP
 .BI "Option \*qHistorySize\*q \*q" integer \*q
+.TP
+.BI "Option \*qSpecialScrollAreaRight\*q \*q" boolean \*q
 
 .SH "AUTHORS"
 .LP

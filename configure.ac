@@ -22,7 +22,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([xf86-input-synaptics],
-        1.1.2,
+        1.2.0,
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
         xf86-input-synaptics)
 
@@ -35,12 +35,16 @@ AM_MAINTAINER_MODE
 DRIVER_NAME=synaptics
 AC_SUBST([DRIVER_NAME])
 
+# Require xorg-macros: XORG_DEFAULT_OPTIONS
+m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.3 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.3)
 AM_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AC_PROG_CC
+XORG_DEFAULT_OPTIONS
 
 AC_MSG_CHECKING([which optional backends will be build])
 case "${host}" in
@@ -96,9 +100,32 @@ CFLAGS="$CFLAGS $XORG_CFLAGS "' -I$(top_srcdir)/src'
 AC_SUBST([CFLAGS])
 
 # Checks for libraries.
-PKG_CHECK_MODULES(XLIB, x11) # needed for syndaemon
-PKG_CHECK_MODULES(XRECORD, xtst, AC_DEFINE([HAVE_XRECORD],[],[Use XRecord]), true)
-PKG_CHECK_MODULES(XI, xi);
+AC_ARG_ENABLE(tools,
+              AC_HELP_STRING([--enable-tools], [Build synclient and syndaemon [[default=auto]]]),
+              [build_tools="$enableval"],
+              [build_tools="auto"])
+
+if test "x$build_tools" != "xno"; then
+    # Record.h is either in recordproto up to 1.13.2 or in libXtst 1.1.
+    PKG_CHECK_MODULES(XTST_1_1, [xtst >= 1.0.99.1], HAVE_LIBXTST="yes", HAVE_LIBXTST="no")
+    PKG_CHECK_MODULES(RECORDPROTO_1_13, xtst [recordproto < 1.13.99.1], HAVE_RECORDPROTO="yes", HAVE_RECORDPROTO="no")
+
+    if test "x$HAVE_LIBXTST" = "xyes" || test "x$HAVE_RECORDPROTO" = "xyes" ; then
+        AC_DEFINE([HAVE_XRECORD],[],[Use XRecord])
+    fi
+
+    PKG_CHECK_MODULES(XI, x11 [xi >= 1.2] [xorg-server >= 1.6],
+                      BUILD_TOOLS="yes"; AC_DEFINE(BUILD_TOOLS, 1, "Build synclient and syndaemon"),
+                      BUILD_TOOLS="no"; 
+                      if test "x$build_tools" = "xyes"; then
+                          AC_MSG_ERROR([Dependencies failed for synclient and syndaemon.])
+                      else
+                          AC_MSG_WARN([Not building synclient and syndaemon.])
+                      fi
+                      )
+fi
+AM_CONDITIONAL(BUILD_TOOLS, [ test "$BUILD_TOOLS" = "yes" ])
+AC_SUBST(BUILD_TOOLS)
 
 # Checks for header files.
 AC_HEADER_STDC

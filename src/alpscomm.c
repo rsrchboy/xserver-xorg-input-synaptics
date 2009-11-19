@@ -36,6 +36,7 @@
 #include "alpscomm.h"
 #include "synproto.h"
 #include "synaptics.h"
+#include "synapticsstr.h"
 #include <xf86.h>
 
 
@@ -85,18 +86,8 @@ ALPS_initialize(int fd)
     ALPS_sync(fd);
 }
 
-static void
-ALPSDeviceOnHook(LocalDevicePtr local, SynapticsSHM *para)
-{
-}
-
-static void
-ALPSDeviceOffHook(LocalDevicePtr local)
-{
-}
-
 static Bool
-ALPSQueryHardware(LocalDevicePtr local, struct SynapticsHwInfo *synhw)
+ALPSQueryHardware(LocalDevicePtr local)
 {
     ALPS_initialize(local->fd);
     return TRUE;
@@ -236,7 +227,7 @@ ALPS_process_packet(unsigned char *packet, struct SynapticsHwState *hw)
 }
 
 static Bool
-ALPSReadHwState(LocalDevicePtr local, struct SynapticsHwInfo *synhw,
+ALPSReadHwState(LocalDevicePtr local,
 		struct SynapticsProtocolOperations *proto_ops,
 		struct CommData *comm, struct SynapticsHwState *hwRet)
 {
@@ -259,8 +250,8 @@ ALPSAutoDevProbe(LocalDevicePtr local)
 }
 
 struct SynapticsProtocolOperations alps_proto_operations = {
-    ALPSDeviceOnHook,
-    ALPSDeviceOffHook,
+    NULL,
+    NULL,
     ALPSQueryHardware,
     ALPSReadHwState,
     ALPSAutoDevProbe,
