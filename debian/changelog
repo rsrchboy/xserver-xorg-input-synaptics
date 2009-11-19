@@ -7,6 +7,7 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
     (closes: 523652 and closes: 534333).
   * Do not use the synaptics driver for devices advertising keyboard
     capabilities (closes: 524130).
+  * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
 
  -- Mattia Dongili <malattia@debian.org>  Thu, 19 Nov 2009 21:24:49 +0900
 
