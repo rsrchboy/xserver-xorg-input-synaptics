@@ -10,6 +10,9 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
     capabilities (closes: 524130).
   * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
   * Add versioned Build-Depends on libxi-dev (closes: #538299).
+  * The driver now handles duplicate configuration in both an fdi file and
+    xorg.conf, see http://bugs.freedesktop.org/show_bug.cgi?id=24814
+    (closes: #532995).
 
  -- Mattia Dongili <malattia@debian.org>  Thu, 19 Nov 2009 21:24:49 +0900
 
