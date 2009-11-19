@@ -1,3 +1,14 @@
+xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
+
+  * All the shared memory code has been removed from synclient and syndaemon.
+    The SHMConfig option is still available but the only use is for monitoring
+    the hardware state data.
+    If you have any script that changes the synaptics driver configuration
+    make sure that you don't use the -s option to synclient. Or even better,
+    configure the driver via hal.
+
+ -- Mattia Dongili <malattia@debian.org>  Fri, 20 Nov 2009 00:32:58 +0900
+
 xserver-xorg-input-synaptics (1.1.1~git20090510-1) unstable; urgency=low
 
   * Tapping has been disabled by default on many touchpads by upstream, see

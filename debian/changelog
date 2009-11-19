@@ -4,7 +4,8 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
   * Finally package the new upstream release.
   * Remove 02-mention-tapping-in-manpage-notes.patch now included upstream.
   * All the SHM code has been removed from synclient and syndaemon
-    (closes: 523652 and closes: 534333).
+    (closes: 523652 and closes: 534333 and also closes: #548357). Also add a
+    note in the NEWS file.
   * Do not use the synaptics driver for devices advertising keyboard
     capabilities (closes: 524130).
   * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
