@@ -8,6 +8,7 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
   * Do not use the synaptics driver for devices advertising keyboard
     capabilities (closes: 524130).
   * Refresh patch 01-synaptics-dont-grab-if-not-on-current-VT.patch.
+  * Add versioned Build-Depends on libxi-dev (closes: #538299).
 
  -- Mattia Dongili <malattia@debian.org>  Thu, 19 Nov 2009 21:24:49 +0900
 
