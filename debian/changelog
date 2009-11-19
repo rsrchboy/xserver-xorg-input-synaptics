@@ -2,6 +2,7 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
 
   [ Mattia Dongili ]
   * Finally package the new upstream release.
+  * Remove 02-mention-tapping-in-manpage-notes.patch now included upstream.
 
  -- Mattia Dongili <malattia@debian.org>  Thu, 19 Nov 2009 21:24:49 +0900
 
