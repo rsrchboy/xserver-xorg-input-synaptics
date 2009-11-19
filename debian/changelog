@@ -13,6 +13,7 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
   * The driver now handles duplicate configuration in both an fdi file and
     xorg.conf, see http://bugs.freedesktop.org/show_bug.cgi?id=24814
     (closes: #532995).
+  * Make lintian happier: update Standard-Version and debhelper dependency.
 
  -- Mattia Dongili <malattia@debian.org>  Thu, 19 Nov 2009 21:24:49 +0900
 

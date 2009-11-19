@@ -1,3 +1,6 @@
+do not use the synaptics driver for devices advertising themselves as keyboards
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=524130
+
 Index: xserver-xorg-input-synaptics/fdi/11-x11-synaptics.fdi
 ===================================================================
 --- xserver-xorg-input-synaptics.orig/fdi/11-x11-synaptics.fdi	2009-11-19 21:59:45.252235528 +0900
