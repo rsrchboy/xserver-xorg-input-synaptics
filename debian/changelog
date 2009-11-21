@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.2.0-2) unstable; urgency=low
+
+  [ Mattia Dongili ]
+  * Negate the match on keyboard capabilities in the default fdi file
+    (closes: #557252).
+
+ -- Mattia Dongili <malattia@debian.org>  Sat, 21 Nov 2009 13:00:37 +0900
+
 xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
 
   [ Mattia Dongili ]
