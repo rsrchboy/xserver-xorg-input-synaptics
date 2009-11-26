@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.2.0-3) UNRELEASED; urgency=low
+
+  * Install an udev rule instead of an fdi file on linux.
+
+ -- Julien Cristau <jcristau@debian.org>  Thu, 26 Nov 2009 18:55:04 +0100
+
 xserver-xorg-input-synaptics (1.2.0-2) unstable; urgency=low
 
   [ Mattia Dongili ]
