@@ -2,6 +2,8 @@ xserver-xorg-input-synaptics (1.2.0-3) UNRELEASED; urgency=low
 
   * Install an udev rule instead of an fdi file on linux.
   * Build against xserver 1.7.
+  * Add sh4 and kfreebsd-{amd64,i386} to the arch list (closes: #557881,
+    #559401).
 
  -- Julien Cristau <jcristau@debian.org>  Thu, 26 Nov 2009 18:55:04 +0100
 

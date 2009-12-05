@@ -20,7 +20,7 @@ Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
 Package: xserver-xorg-input-synaptics
-Architecture: alpha amd64 arm armeb armel hppa i386 ia64 m68k mips mipsel powerpc sparc
+Architecture: alpha amd64 arm armeb armel hppa i386 ia64 kfreebsd-amd64 kfreebsd-i386 m68k mips mipsel powerpc sh4 sparc
 Depends: ${shlibs:Depends}, ${xserver:Depends}, libxi6
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
