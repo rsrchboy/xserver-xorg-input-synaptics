@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.2.0-3ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.0-3ubuntu1) lucid; urgency=low
 
   * Merge from Debian experimental, remaining changes:
     - 103_enable_cornertapping.patch: Enable right/middle clicks by
@@ -12,7 +12,7 @@ xserver-xorg-input-synaptics (1.2.0-3ubuntu1) UNRELEASED; urgency=low
   * Dropped, using udev now:
     - 115_jumpy_cursor_second_part.patch
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 07 Dec 2009 16:47:56 +0200
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 07 Dec 2009 22:58:38 +0200
 
 xserver-xorg-input-synaptics (1.2.0-3) experimental; urgency=low
 
