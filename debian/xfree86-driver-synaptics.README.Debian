@@ -1,7 +1,0 @@
-xfree86-driver-synaptics for Debian
------------------------------------
-
-This package is superseeded by xserver-xorg-driver-synaptics and 
-can be safely removed.
-
- -- Mattia Dongili <malattia@debian.org>, Sun, 05 Mar 2006 21:19:06 +0100

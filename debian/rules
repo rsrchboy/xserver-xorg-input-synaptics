@@ -26,6 +26,7 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
 DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
@@ -76,9 +77,6 @@ install: build
 	dh_installdirs
 
 	cd obj-$(DEB_BUILD_GNU_TYPE) && $(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
-	install -d $(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
-	install -m 0644 fdi/11-x11-synaptics.fdi \
-		$(CURDIR)/debian/tmp/usr/share/hal/fdi/policy/20thirdparty
 
 # Build architecture-dependent files here.
 binary-arch: build install serverabi
@@ -88,6 +86,14 @@ binary-arch: build install serverabi
 	dh_installdocs
 	dh_installchangelogs ChangeLog
 	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la --exclude=usr/share/man
+ifeq ($(DEB_HOST_ARCH_OS), linux)
+	install -d debian/xserver-xorg-input-synaptics/lib/udev/rules.d
+	install -m 644 debian/66-xorg-synaptics.rules debian/xserver-xorg-input-synaptics/lib/udev/rules.d
+else ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
+	install -d debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
+	install -m 0644 fdi/11-x11-synaptics.fdi \
+		debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
+endif
 	dh_installman
 	dh_link
 	dh_strip

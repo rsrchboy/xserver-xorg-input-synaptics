@@ -57,6 +57,9 @@
 /* 32 bit */
 #define SYNAPTICS_PROP_TWOFINGER_PRESSURE "Synaptics Two-Finger Pressure"
 
+/* 32 bit */
+#define SYNAPTICS_PROP_TWOFINGER_WIDTH "Synaptics Two-Finger Width"
+
 /* 32 bit, 2 values, vert, horiz */
 #define SYNAPTICS_PROP_SCROLL_DISTANCE "Synaptics Scrolling Distance"
 
@@ -66,7 +69,7 @@
 /* 8 bit (BOOL), 2 values, vertical, horizontal */
 #define SYNAPTICS_PROP_SCROLL_TWOFINGER "Synaptics Two-Finger Scrolling"
 
-/* XXX 32 bit, 4 values, min, max, accel, trackstick */
+/* FLOAT, 4 values, min, max, accel, trackstick */
 #define SYNAPTICS_PROP_SPEED "Synaptics Move Speed"
 
 /* 32 bit, 2 values, min, max */
@@ -110,7 +113,7 @@
 /* 8 bit (BOOL) */
 #define SYNAPTICS_PROP_CIRCULAR_SCROLLING "Synaptics Circular Scrolling"
 
-/* XXX: 32 bit */
+/* FLOAT */
 #define SYNAPTICS_PROP_CIRCULAR_SCROLLING_DIST "Synaptics Circular Scrolling Distance"
 
 /* 8 bit, valid values 0..8 (inclusive)
@@ -127,16 +130,29 @@
 /* 32 bit, 2 values, width, z */
 #define SYNAPTICS_PROP_PALM_DIMENSIONS "Synaptics Palm Dimensions"
 
-/* XXX: 32 bit */
+/* FLOAT */
 #define SYNAPTICS_PROP_COASTING_SPEED "Synaptics Coasting Speed"
 
 /* 32 bit, 2 values, min, max */
 #define SYNAPTICS_PROP_PRESSURE_MOTION "Synaptics Pressure Motion"
 
-/* XXX: 32 bit, 2 values, min, max */
+/* FLOAT, 2 values, min, max */
 #define SYNAPTICS_PROP_PRESSURE_MOTION_FACTOR "Synaptics Pressure Motion Factor"
 
 /* 8 bit (BOOL) */
 #define SYNAPTICS_PROP_GRAB "Synaptics Grab Event Device"
+
+/* 8 bit (BOOL), 1 value, tap-and-drag */
+#define SYNAPTICS_PROP_GESTURES "Synaptics Gestures"
+
+/* 8 bit (BOOL), 5 values (read-only), has_left, has_middle, has_right,
+ * has_double, has_triple */
+#define SYNAPTICS_PROP_CAPABILITIES "Synaptics Capabilities"
+
+/* 32 bit unsigned, 2 values, vertical, horizontal in units/millimeter */
+#define SYNAPTICS_PROP_RESOLUTION "Synaptics Pad Resolution"
+
+/* 32 bit, 4 values, left, right, top, bottom */
+#define SYNAPTICS_PROP_AREA "Synaptics Area"
 
 #endif /* _SYNAPTICS_PROPERTIES_H_ */

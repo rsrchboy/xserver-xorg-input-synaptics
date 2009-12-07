@@ -1,26 +1,40 @@
-xfree86-driver-synaptics for Debian
+xserver-xorg-input-synaptics for Debian
 -----------------------------------
 
-This package contains the Synaptics TouchPad driver for X.Org and XFree86 X
-server.
+This package contains the Synaptics TouchPad driver for X.Org X server.
 See also the README file for details on configuration options.
 The following notes are reported from the INSTALL instructions of upstream 
 package (by Stefan Gmeiner <riddlebox@freesurf.ch>), but first of all a
 security notice about SHMConfig:
 
    If you want to be able to change driver parameters without
-   restarting the X server, enable the "SHMConfig" option in the X
-   configuration file. You can then use the "synclient" program to
+   restarting the X server, one option is to enable the "SHMConfig" option in
+   the X configuration file. You can then use the "synclient" program to
    query and modify driver parameters on the fly.
    SECURITY NOTE! This is not secure if you are in an untrusted 
    multiuser environment. All local users can change the parameters at any
    time.
 
-Configuration
--------------
+   Since version 1.1 the driver doesn't require doesn't require the
+   SHMConfig option anymore to allow runtime configuration changes,
+   synclient will only use the shared memory segment when invoked with
+   the -s option.
 
-1. Load the driver by changing the X.Org/XFree86 configuration file
-(/etc/X11/xorg.conf or /etc/X11/XF86Config-4) through adding the line 'Load
+Xorg auto-configuration
+-----------------------
+Recent X.Org has support for automatic configuration. The synaptics driver does
+not support automatic configuration yet but the information required is
+supplied by a third party fdi script through HAL.
+The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi,
+if you need to customize it, you can first copy it to
+/etc/hal/fdi/policy and the edit it to match your requirements.
+
+
+Manual configuration
+--------------------
+
+1. Load the driver by changing the X.Org configuration file
+(/etc/X11/xorg.conf) through adding the line 'Load
 "synaptics"' in the module section.
 
 2. Add/Replace in the InputDevice section for the touchpad the
@@ -28,7 +42,7 @@ following lines:
 
 Section "InputDevice"
   Driver  	"synaptics"
-  Identifier  	"Mouse[1]"
+  Identifier  	"touchpad"
   Option 	"Device"  	"/dev/psaux"
   Option	"Protocol"	"auto-dev"
 #
@@ -59,7 +73,8 @@ The Option "Repeater" is at the moment for testing.
 
 Section "ServerLayout"
 ...
-  InputDevice "Mouse[1]"  "CorePointer"
+  InputDevice    "touchpad"  "CorePointer"
+  InputDevice    "USB Mouse" "SendCoreEvents"
 ...
 
    Note! You can not have more than one core pointer, so if you want
@@ -67,7 +82,7 @@ Section "ServerLayout"
    devices except one to "AlwaysCore" instead of "CorePointer".
 
 4. Start/Restart the X Server. If the touchpad doesn't work:
-   a) Check the XFree Logfiles
+   a) Check the X.Org Logfiles
    b) Try to start the XServer with 'startx -- -logverbose 8' for more
       Output
 
@@ -98,4 +113,4 @@ simply add the following line to your ~/.xinitrc file:
 Customize the daemon options to fit your needs, the only mandatory option is
 '-d' to run syndaemon in the background. See 'man 1 syndaemon' for more.
 
- -- Mattia Dongili <malattia@debian.org>, Tue,  2 Mar 2004 11:42:05 +0100
+ -- Mattia Dongili <malattia@debian.org>, Mon, 11 May 2009 23:04:40 +0900
