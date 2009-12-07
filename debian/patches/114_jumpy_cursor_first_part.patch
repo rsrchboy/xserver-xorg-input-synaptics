@@ -1,0 +1,218 @@
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics.h xserver-xorg-input-synaptics-1.1.2/include/synaptics.h
+--- xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics.h	2009-09-29 18:05:07.019829000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/include/synaptics.h	2009-09-29 18:06:43.334839549 +0200
+@@ -135,6 +135,7 @@ typedef struct _SynapticsSHM
+     double press_motion_max_factor; 	    /* factor applied on speed when finger pressure is at minimum */
+     Bool grab_event_device;		    /* grab event device for exclusive use? */
+     int area_left_edge, area_right_edge, area_top_edge, area_bottom_edge; /* area coordinates absolute */
++    int jumpycursor_threshold;      /* jumpy cursor threshold */
+ } SynapticsSHM;
+ 
+ /*
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics-properties.h xserver-xorg-input-synaptics-1.1.2/include/synaptics-properties.h
+--- xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics-properties.h	2009-09-29 18:05:14.659579000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/include/synaptics-properties.h	2009-09-29 18:06:43.334839549 +0200
+@@ -149,4 +149,7 @@
+  * has_double, has_triple */
+ #define SYNAPTICS_PROP_CAPABILITIES "Synaptics Capabilities"
+ 
++/* 32 bit */
++#define SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD "Synaptics Jumpy Cursor Threshold"
++
+ #endif /* _SYNAPTICS_PROPERTIES_H_ */
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man xserver-xorg-input-synaptics-1.1.2/man/synaptics.man
+--- xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man	2009-09-29 18:05:14.659579000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/man/synaptics.man	2009-09-29 18:06:43.334839549 +0200
+@@ -486,6 +486,14 @@ Ignore movements, scrolling and tapping 
+ The option is disabled by default and can be enabled by setting the
+ AreaBottomEdge option to any integer value other than zero. Property: "Synaptics Area"
+ .
++.TP
++.BI "Option \*qJumpyCursorThreshold\*q \*q" integer \*q
++Set the threshold above which movement events are ignored on single-touch touchpads.
++.
++The option is disabled by default and can be enabled by setting the
++JumpyCursorThreshold option to any integer value other than zero. Property: "Synaptics 
++Jumpy Cursor Threshold"
++.
+ .LP
+ A tap event happens when the finger is touched and released in a time
+ interval shorter than MaxTapTime, and the touch and release
+@@ -839,6 +847,14 @@ scrolling.
+ 8 bit (BOOL), 5 values (read-only), has left button, has middle button, has
+ right button, two-finger detection, three-finger detection.
+ 
++.TP 7
++.BI "Synaptics Jumpy Cursor Threshold"
++The Synaptics Jumpy Cursor Threshold parameter is used to suppress movements (which
++take place in 20 milliseconds or less) whose covered distance is greater than or
++equal to the threshold on single-touch touchpads. This property is disabled by default.
++
++32 bit, 1 value. 0 disables the property.
++
+ .SH "NOTES"
+ There is an example hal policy file in
+ .I ${sourcecode}/fdi/11-x11-synaptics.fdi
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/properties.c xserver-xorg-input-synaptics-1.1.2/src/properties.c
+--- xserver-xorg-input-synaptics-1.1.2.orig/src/properties.c	2009-09-29 18:05:14.659579000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/src/properties.c	2009-09-29 18:06:43.334839549 +0200
+@@ -82,6 +82,7 @@ Atom prop_pressuremotion_factor = 0;
+ Atom prop_grab                  = 0;
+ Atom prop_area                  = 0;
+ Atom prop_capabilities          = 0;
++Atom prop_jumpycursor_threshold = 0;
+ 
+ static Atom
+ InitAtom(DeviceIntPtr dev, char *name, int format, int nvalues, int *values)
+@@ -265,6 +266,8 @@ InitDeviceProperties(LocalDevicePtr loca
+     values[3] = priv->has_double;
+     values[4] = priv->has_triple;
+     prop_capabilities = InitAtom(local->dev, SYNAPTICS_PROP_CAPABILITIES, 8, 5, values);
++
++    prop_jumpycursor_threshold = InitAtom(local->dev, SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD, 32, 1, &para->jumpycursor_threshold);
+ }
+ 
+ int
+@@ -616,6 +619,12 @@ SetProperty(DeviceIntPtr dev, Atom prope
+         para->area_right_edge  = area[1];
+         para->area_top_edge    = area[2];
+         para->area_bottom_edge = area[3];
++    } else if (property == prop_jumpycursor_threshold)
++    {
++        if (prop->size != 1 || prop->format != 32 || prop->type != XA_INTEGER)
++            return BadMatch;
++
++        para->jumpycursor_threshold = *(INT32*)prop->data;
+     } else if (property == prop_capabilities)
+     {
+         /* read-only */
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c xserver-xorg-input-synaptics-1.1.2/src/synaptics.c
+--- xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c	2009-09-29 18:05:07.019829000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/src/synaptics.c	2009-09-29 18:06:43.334839549 +0200
+@@ -125,6 +125,9 @@ static Bool DeviceClose(DeviceIntPtr);
+ static Bool QueryHardware(LocalDevicePtr);
+ static void ReadDevDimensions(LocalDevicePtr);
+ 
++int old_time_millis = 0;
++Bool was_time_skipped = FALSE;
++
+ #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
+ void InitDeviceProperties(LocalDevicePtr local);
+ int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
+@@ -509,6 +512,7 @@ static void set_default_parameters(Local
+     pars->press_motion_min_factor = xf86SetRealOption(opts, "PressureMotionMinFactor", 1.0);
+     pars->press_motion_max_factor = xf86SetRealOption(opts, "PressureMotionMaxFactor", 1.0);
+     pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
++    pars->jumpycursor_threshold = xf86SetIntOption(opts, "JumpyCursorThreshold", 0);
+ 
+     /* Warn about (and fix) incorrectly configured TopEdge/BottomEdge parameters */
+     if (pars->top_edge > pars->bottom_edge) {
+@@ -1448,11 +1452,12 @@ HandleTapProcessing(SynapticsPrivate *pr
+ #define HIST(a) (priv->move_hist[((priv->hist_index - (a) + SYNAPTICS_MOVE_HISTORY) % SYNAPTICS_MOVE_HISTORY)])
+ 
+ static void
+-store_history(SynapticsPrivate *priv, int x, int y, unsigned int millis)
++store_history(SynapticsPrivate *priv, int x, int y, int num_fingers, unsigned int millis)
+ {
+     int idx = (priv->hist_index + 1) % SYNAPTICS_MOVE_HISTORY;
+     priv->move_hist[idx].x = x;
+     priv->move_hist[idx].y = y;
++    priv->move_hist[idx].num_fingers = num_fingers;
+     priv->move_hist[idx].millis = millis;
+     priv->hist_index = idx;
+ }
+@@ -1601,11 +1606,70 @@ ComputeDeltas(SynapticsPrivate *priv, st
+ 	dy += hw->guest_dy;
+     }
+ 
++    /* Handle quirks here */
++    if (dx || dy) {
++        /* Work around issues caused by two fingers on multi-touch
++         * models
++         */
++        if (priv->has_double) {
++            if ((hw->numFingers < 2) &&
++                ((HIST(0).num_fingers >= 2) || (HIST(1).num_fingers >= 2) ||
++                 (HIST(2).num_fingers >= 2) || (HIST(3).num_fingers >= 2) )) {
++                dx = dy = 0;
++            }
++            old_time_millis = hw->millis;
++        }
++        /* Work around issues caused by two fingers on single-touch
++         * models
++         */
++        else {
++            /* If para->jumpycursor_threshold <= 0, quirks are not
++             * available
++             */
++            if (para->jumpycursor_threshold <= 0)
++                goto post_quirks;
++
++            int elapsed_time = hw->millis - HIST(0).millis;
++
++            /* Ignore deltas as they couldn't possibly happen in so little time */
++            if (elapsed_time <= 20 && (abs(dx) >= para->jumpycursor_threshold || abs(dy) >= para->jumpycursor_threshold)) {
++                dx = dy = 0.0;
++                was_time_skipped = FALSE;
++            }
++            /* A comparison between the timestamp in priv->move_hist and hw->millis shows
++             * that something went wrong and that an event was skipped, hence the deltas
++             * are wrong.
++             * Let's ignore the deltas and append the skipped event to priv->move_hist
++             * otherwise the next deltas will be wrong too.
++             */
++            else if (old_time_millis > 0 && (HIST(0).millis != old_time_millis)) {
++                dx = dy = 0.0;
++                was_time_skipped = TRUE;
++            }
++            /* Something went wrong and an event was previously skipped, hence these deltas
++             * are wrong.
++             * Let's ignore the deltas and set was_time_skipped to FALSE as the next deltas
++             * should be good.
++             */
++            else {
++                if (was_time_skipped) {
++                    dx = 0.0;
++                    dy = 0.0;
++                }
++                was_time_skipped = FALSE;
++            }
++
++            old_time_millis = hw->millis;
++        }
++
++    }
++post_quirks:
++
+     *dxP = dx;
+     *dyP = dy;
+ 
+     /* generate a history of the absolute positions */
+-    store_history(priv, hw->x, hw->y, hw->millis);
++    store_history(priv, hw->x, hw->y, hw->numFingers, hw->millis);
+ 
+     return delay;
+ }
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synapticsstr.h xserver-xorg-input-synaptics-1.1.2/src/synapticsstr.h
+--- xserver-xorg-input-synaptics-1.1.2.orig/src/synapticsstr.h	2009-06-06 07:05:48.000000000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/src/synapticsstr.h	2009-09-29 18:06:43.334839549 +0200
+@@ -33,6 +33,7 @@
+ typedef struct _SynapticsMoveHist
+ {
+     int x, y;
++    int num_fingers;
+     int millis;
+ } SynapticsMoveHistRec;
+ 
+diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/tools/synclient.c xserver-xorg-input-synaptics-1.1.2/tools/synclient.c
+--- xserver-xorg-input-synaptics-1.1.2.orig/tools/synclient.c	2009-09-29 18:05:07.019829000 +0200
++++ xserver-xorg-input-synaptics-1.1.2/tools/synclient.c	2009-09-29 18:06:43.339642879 +0200
+@@ -217,6 +217,8 @@ static struct Parameter params[] = {
+ 		SYNAPTICS_PROP_AREA,		32,	2),
+     DEFINE_PAR("AreaBottomEdge",       area_bottom_edge,             PT_INT,    0, 10000,
+ 		SYNAPTICS_PROP_AREA,		32,	3),
++    DEFINE_PAR("JumpyCursorThreshold", jumpycursor_threshold,        PT_INT,    0, 1000,
++		SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD,	32,	0),
+     { NULL, 0, 0, 0, 0 }
+ };
+ 
