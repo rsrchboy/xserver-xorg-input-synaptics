@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.2.0-4) UNRELEASED; urgency=low
+
+  * Add xserver-xorg-input-evdev-dev for the header and .pc files.
+    (LP: #340340)
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 08 Dec 2009 16:02:11 +0200
+
 xserver-xorg-input-synaptics (1.2.0-3) experimental; urgency=low
 
   [ Julien Cristau ]

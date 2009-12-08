@@ -51,3 +51,12 @@ Description: Synaptics TouchPad driver for X.Org server
   * It also provides a daemon to disable touchpad while typing at the keyboard 
     and thus avoid unwanted mouse movements (see syndaemon(1)).
  .
+
+Package: xserver-xorg-input-synaptics-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Synaptics TouchPad driver for X.Org server (development headers)
+ This package contains the development headers for the Synaptics input
+ driver found in xserver-xorg-input-synaptics. Non-developers likely have
+ little use for this package.
