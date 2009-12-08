@@ -1,6 +1,6 @@
 xserver-xorg-input-synaptics (1.2.0-4) UNRELEASED; urgency=low
 
-  * Add xserver-xorg-input-evdev-dev for the header and .pc files.
+  * Add xserver-xorg-input-synaptics-dev for the header and .pc files.
     (LP: #340340)
   * Run udevadm trigger on postinst, and depend on udev [linux-any].
 
