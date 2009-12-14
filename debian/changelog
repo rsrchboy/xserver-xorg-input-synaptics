@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.2.0-3ubuntu2) UNRELEASED; urgency=low
+
+  * Update patch 114 and enable it.
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 14 Dec 2009 12:41:34 +0200
+
 xserver-xorg-input-synaptics (1.2.0-3ubuntu1) lucid; urgency=low
 
   * Merge from Debian experimental, remaining changes:

@@ -1,29 +1,18 @@
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics.h xserver-xorg-input-synaptics-1.1.2/include/synaptics.h
---- xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics.h	2009-09-29 18:05:07.019829000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/include/synaptics.h	2009-09-29 18:06:43.334839549 +0200
-@@ -135,6 +135,7 @@ typedef struct _SynapticsSHM
-     double press_motion_max_factor; 	    /* factor applied on speed when finger pressure is at minimum */
-     Bool grab_event_device;		    /* grab event device for exclusive use? */
-     int area_left_edge, area_right_edge, area_top_edge, area_bottom_edge; /* area coordinates absolute */
-+    int jumpycursor_threshold;      /* jumpy cursor threshold */
- } SynapticsSHM;
- 
- /*
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics-properties.h xserver-xorg-input-synaptics-1.1.2/include/synaptics-properties.h
---- xserver-xorg-input-synaptics-1.1.2.orig/include/synaptics-properties.h	2009-09-29 18:05:14.659579000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/include/synaptics-properties.h	2009-09-29 18:06:43.334839549 +0200
-@@ -149,4 +149,7 @@
-  * has_double, has_triple */
- #define SYNAPTICS_PROP_CAPABILITIES "Synaptics Capabilities"
+diff -Nurp xserver-xorg-input-synaptics.orig/include/synaptics-properties.h xserver-xorg-input-synaptics/include/synaptics-properties.h
+--- xserver-xorg-input-synaptics.orig/include/synaptics-properties.h	2009-12-08 11:16:01.123175000 +0100
++++ xserver-xorg-input-synaptics/include/synaptics-properties.h	2009-12-08 11:20:59.551925185 +0100
+@@ -155,4 +155,7 @@
+ /* 32 bit, 4 values, left, right, top, bottom */
+ #define SYNAPTICS_PROP_AREA "Synaptics Area"
  
 +/* 32 bit */
 +#define SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD "Synaptics Jumpy Cursor Threshold"
 +
  #endif /* _SYNAPTICS_PROPERTIES_H_ */
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man xserver-xorg-input-synaptics-1.1.2/man/synaptics.man
---- xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man	2009-09-29 18:05:14.659579000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/man/synaptics.man	2009-09-29 18:06:43.334839549 +0200
-@@ -486,6 +486,14 @@ Ignore movements, scrolling and tapping 
+diff -Nurp xserver-xorg-input-synaptics.orig/man/synaptics.man xserver-xorg-input-synaptics/man/synaptics.man
+--- xserver-xorg-input-synaptics.orig/man/synaptics.man	2009-12-08 11:16:01.127175000 +0100
++++ xserver-xorg-input-synaptics/man/synaptics.man	2009-12-08 11:20:59.551925185 +0100
+@@ -509,6 +509,14 @@ Ignore movements, scrolling and tapping 
  The option is disabled by default and can be enabled by setting the
  AreaBottomEdge option to any integer value other than zero. Property: "Synaptics Area"
  .
@@ -38,9 +27,9 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man xserver-xor
  .LP
  A tap event happens when the finger is touched and released in a time
  interval shorter than MaxTapTime, and the touch and release
-@@ -839,6 +847,14 @@ scrolling.
- 8 bit (BOOL), 5 values (read-only), has left button, has middle button, has
- right button, two-finger detection, three-finger detection.
+@@ -870,6 +878,14 @@ right button, two-finger detection, thre
+ .BI "Synaptics Pad Resolution"
+ 32 bit unsigned, 2 values (read-only), vertical, horizontal in units/millimeter.
  
 +.TP 7
 +.BI "Synaptics Jumpy Cursor Threshold"
@@ -53,27 +42,27 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/man/synaptics.man xserver-xor
  .SH "NOTES"
  There is an example hal policy file in
  .I ${sourcecode}/fdi/11-x11-synaptics.fdi
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/properties.c xserver-xorg-input-synaptics-1.1.2/src/properties.c
---- xserver-xorg-input-synaptics-1.1.2.orig/src/properties.c	2009-09-29 18:05:14.659579000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/src/properties.c	2009-09-29 18:06:43.334839549 +0200
-@@ -82,6 +82,7 @@ Atom prop_pressuremotion_factor = 0;
- Atom prop_grab                  = 0;
- Atom prop_area                  = 0;
+diff -Nurp xserver-xorg-input-synaptics.orig/src/properties.c xserver-xorg-input-synaptics/src/properties.c
+--- xserver-xorg-input-synaptics.orig/src/properties.c	2009-12-08 11:16:01.127175000 +0100
++++ xserver-xorg-input-synaptics/src/properties.c	2009-12-08 11:32:28.907425148 +0100
+@@ -84,6 +84,7 @@ Atom prop_gestures              = 0;
  Atom prop_capabilities          = 0;
+ Atom prop_resolution            = 0;
+ Atom prop_area                  = 0;
 +Atom prop_jumpycursor_threshold = 0;
  
  static Atom
  InitAtom(DeviceIntPtr dev, char *name, int format, int nvalues, int *values)
-@@ -265,6 +266,8 @@ InitDeviceProperties(LocalDevicePtr loca
-     values[3] = priv->has_double;
-     values[4] = priv->has_triple;
-     prop_capabilities = InitAtom(local->dev, SYNAPTICS_PROP_CAPABILITIES, 8, 5, values);
+@@ -274,6 +275,8 @@ InitDeviceProperties(LocalDevicePtr loca
+     values[2] = para->area_top_edge;
+     values[3] = para->area_bottom_edge;
+     prop_area = InitAtom(local->dev, SYNAPTICS_PROP_AREA, 32, 4, values);
 +
 +    prop_jumpycursor_threshold = InitAtom(local->dev, SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD, 32, 1, &para->jumpycursor_threshold);
  }
  
  int
-@@ -616,6 +619,12 @@ SetProperty(DeviceIntPtr dev, Atom prope
+@@ -642,6 +645,12 @@ SetProperty(DeviceIntPtr dev, Atom prope
          para->area_right_edge  = area[1];
          para->area_top_edge    = area[2];
          para->area_bottom_edge = area[3];
@@ -83,15 +72,15 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/properties.c xserver-xorg
 +            return BadMatch;
 +
 +        para->jumpycursor_threshold = *(INT32*)prop->data;
-     } else if (property == prop_capabilities)
-     {
-         /* read-only */
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c xserver-xorg-input-synaptics-1.1.2/src/synaptics.c
---- xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c	2009-09-29 18:05:07.019829000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/src/synaptics.c	2009-09-29 18:06:43.334839549 +0200
-@@ -125,6 +125,9 @@ static Bool DeviceClose(DeviceIntPtr);
- static Bool QueryHardware(LocalDevicePtr);
- static void ReadDevDimensions(LocalDevicePtr);
+     }
+ 
+     return Success;
+diff -Nurp xserver-xorg-input-synaptics.orig/src/synaptics.c xserver-xorg-input-synaptics/src/synaptics.c
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-12-08 11:20:15.851926000 +0100
++++ xserver-xorg-input-synaptics/src/synaptics.c	2009-12-08 11:38:38.156675531 +0100
+@@ -132,6 +132,9 @@ static void ReadDevDimensions(LocalDevic
+ static void ScaleCoordinates(SynapticsPrivate *priv, struct SynapticsHwState *hw);
+ static void CalculateScalingCoeffs(SynapticsPrivate *priv);
  
 +int old_time_millis = 0;
 +Bool was_time_skipped = FALSE;
@@ -99,15 +88,15 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c xserver-xorg-
  #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 3
  void InitDeviceProperties(LocalDevicePtr local);
  int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
-@@ -509,6 +512,7 @@ static void set_default_parameters(Local
-     pars->press_motion_min_factor = xf86SetRealOption(opts, "PressureMotionMinFactor", 1.0);
-     pars->press_motion_max_factor = xf86SetRealOption(opts, "PressureMotionMaxFactor", 1.0);
-     pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
+@@ -534,6 +537,7 @@ static void set_default_parameters(Local
+     pars->tap_and_drag_gesture = xf86SetBoolOption(opts, "TapAndDragGesture", TRUE);
+     pars->resolution_horiz = xf86SetIntOption(opts, "HorizResolution", horizResolution);
+     pars->resolution_vert = xf86SetIntOption(opts, "VertResolution", vertResolution);
 +    pars->jumpycursor_threshold = xf86SetIntOption(opts, "JumpyCursorThreshold", 0);
  
      /* Warn about (and fix) incorrectly configured TopEdge/BottomEdge parameters */
      if (pars->top_edge > pars->bottom_edge) {
-@@ -1448,11 +1452,12 @@ HandleTapProcessing(SynapticsPrivate *pr
+@@ -1573,11 +1577,12 @@ HandleTapProcessing(SynapticsPrivate *pr
  #define HIST(a) (priv->move_hist[((priv->hist_index - (a) + SYNAPTICS_MOVE_HISTORY) % SYNAPTICS_MOVE_HISTORY)])
  
  static void
@@ -121,7 +110,7 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c xserver-xorg-
      priv->move_hist[idx].millis = millis;
      priv->hist_index = idx;
  }
-@@ -1601,11 +1606,70 @@ ComputeDeltas(SynapticsPrivate *priv, st
+@@ -1726,11 +1731,70 @@ ComputeDeltas(SynapticsPrivate *priv, st
  	dy += hw->guest_dy;
      }
  
@@ -193,9 +182,9 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synaptics.c xserver-xorg-
  
      return delay;
  }
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synapticsstr.h xserver-xorg-input-synaptics-1.1.2/src/synapticsstr.h
---- xserver-xorg-input-synaptics-1.1.2.orig/src/synapticsstr.h	2009-06-06 07:05:48.000000000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/src/synapticsstr.h	2009-09-29 18:06:43.334839549 +0200
+diff -Nurp xserver-xorg-input-synaptics.orig/src/synapticsstr.h xserver-xorg-input-synaptics/src/synapticsstr.h
+--- xserver-xorg-input-synaptics.orig/src/synapticsstr.h	2009-12-08 11:16:01.127175000 +0100
++++ xserver-xorg-input-synaptics/src/synapticsstr.h	2009-12-08 11:29:47.238925256 +0100
 @@ -33,6 +33,7 @@
  typedef struct _SynapticsMoveHist
  {
@@ -204,15 +193,22 @@ diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/src/synapticsstr.h xserver-xo
      int millis;
  } SynapticsMoveHistRec;
  
-diff -Nurp xserver-xorg-input-synaptics-1.1.2.orig/tools/synclient.c xserver-xorg-input-synaptics-1.1.2/tools/synclient.c
---- xserver-xorg-input-synaptics-1.1.2.orig/tools/synclient.c	2009-09-29 18:05:07.019829000 +0200
-+++ xserver-xorg-input-synaptics-1.1.2/tools/synclient.c	2009-09-29 18:06:43.339642879 +0200
-@@ -217,6 +217,8 @@ static struct Parameter params[] = {
- 		SYNAPTICS_PROP_AREA,		32,	2),
-     DEFINE_PAR("AreaBottomEdge",       area_bottom_edge,             PT_INT,    0, 10000,
- 		SYNAPTICS_PROP_AREA,		32,	3),
-+    DEFINE_PAR("JumpyCursorThreshold", jumpycursor_threshold,        PT_INT,    0, 1000,
-+		SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD,	32,	0),
+@@ -149,6 +150,7 @@ typedef struct _SynapticsParameters
+     unsigned int resolution_horiz;          /* horizontal resolution of touchpad in units/mm */
+     unsigned int resolution_vert;           /* vertical resolution of touchpad in units/mm */
+     int area_left_edge, area_right_edge, area_top_edge, area_bottom_edge; /* area coordinates absolute */
++    int jumpycursor_threshold;      /* jumpy cursor threshold */
+ } SynapticsParameters;
+ 
+ 
+diff -Nurp xserver-xorg-input-synaptics.orig/tools/synclient.c xserver-xorg-input-synaptics/tools/synclient.c
+--- xserver-xorg-input-synaptics.orig/tools/synclient.c	2009-12-08 11:16:01.127175000 +0100
++++ xserver-xorg-input-synaptics/tools/synclient.c	2009-12-08 11:40:34.679925145 +0100
+@@ -143,6 +143,7 @@ static struct Parameter params[] = {
+     {"AreaRightEdge",         PT_INT,    0, 10000, SYNAPTICS_PROP_AREA,	32,	1},
+     {"AreaTopEdge",           PT_INT,    0, 10000, SYNAPTICS_PROP_AREA,	32,	2},
+     {"AreaBottomEdge",        PT_INT,    0, 10000, SYNAPTICS_PROP_AREA,	32,	3},
++    {"JumpyCursorThreshold",  PT_INT,    0, 1000,  SYNAPTICS_PROP_JUMPYCURSOR_THRESHOLD,	32,	0},
      { NULL, 0, 0, 0, 0 }
  };
  
