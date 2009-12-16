@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.2.0-3ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.0-3ubuntu2) lucid; urgency=low
 
   * Update patch 114 and enable it.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 14 Dec 2009 12:41:34 +0200
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 16 Dec 2009 12:07:59 +0200
 
 xserver-xorg-input-synaptics (1.2.0-3ubuntu1) lucid; urgency=low
 
