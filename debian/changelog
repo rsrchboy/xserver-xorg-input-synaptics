@@ -9,6 +9,9 @@ xserver-xorg-input-synaptics (1.2.1-1) UNRELEASED; urgency=low
   [ Timo Aaltonen ]
   * New upstream release.
 
+  [ Cyril Brulebois ]
+  * Add ${misc:Depends} to Depends.
+
  -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 16 Dec 2009 12:19:39 +0200
 
 xserver-xorg-input-synaptics (1.2.0-2) unstable; urgency=low
