@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.2.1-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.1-1) unstable; urgency=low
 
   [ Julien Cristau ]
   * Install an udev rule instead of an fdi file on linux.
@@ -12,8 +12,9 @@ xserver-xorg-input-synaptics (1.2.1-1) UNRELEASED; urgency=low
   [ Cyril Brulebois ]
   * Add ${misc:Depends} to Depends.
   * Remove hardcoded libxi6 from Depends, and wrap them.
+  * Upload to unstable.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 16 Dec 2009 12:19:39 +0200
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 08 Jan 2010 00:55:04 +0100
 
 xserver-xorg-input-synaptics (1.2.0-2) unstable; urgency=low
 
