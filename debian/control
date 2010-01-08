@@ -59,7 +59,9 @@ Description: Synaptics TouchPad driver for X.Org server
 Package: xserver-xorg-input-synaptics-dev
 Section: libdevel
 Architecture: all
-Depends: ${misc:Depends}
+Depends:
+ x11proto-core-dev,
+ ${misc:Depends},
 Description: Synaptics TouchPad driver for X.Org server (development headers)
  This package contains the development headers for the Synaptics input
  driver found in xserver-xorg-input-synaptics. Non-developers likely have
