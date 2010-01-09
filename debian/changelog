@@ -7,6 +7,7 @@ xserver-xorg-input-synaptics (1.2.1-2) UNRELEASED; urgency=low
 
   [ Julien Cristau ]
   * Add hurd-i386 to the Architecture field.  Requested by Samuel Thibault.
+  * Drop references to hal from debian/NEWS.
 
  -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 08 Dec 2009 16:15:58 +0200
 

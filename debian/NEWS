@@ -4,8 +4,7 @@ xserver-xorg-input-synaptics (1.2.0-1) unstable; urgency=low
     The SHMConfig option is still available but the only use is for monitoring
     the hardware state data.
     If you have any script that changes the synaptics driver configuration
-    make sure that you don't use the -s option to synclient. Or even better,
-    configure the driver via hal.
+    make sure that you don't use the -s option to synclient.
 
  -- Mattia Dongili <malattia@debian.org>  Fri, 20 Nov 2009 00:32:58 +0900
 
@@ -22,10 +21,9 @@ xserver-xorg-input-synaptics (1.1.1~git20090510-1) unstable; urgency=low
         $ synclient TapButton3=3
 
     Note that the configuration will not be permanently modified, to do
-    so assign the above option values in your xorg.conf or custom fdi file
-    (see the synaptics(4) manpage or the documents in
-    /usr/share/doc/xserver-xorg-input-synaptics for additional details).
-    Another alternative is to use desktop environment specific tools
-    like gpointing-device-settings or touchfreeze.
+    so assign the above option values in your xorg.conf (see the synaptics(4)
+    manpage or the documents in /usr/share/doc/xserver-xorg-input-synaptics
+    for additional details).  Another alternative is to use desktop
+    environment specific tools like gpointing-device-settings or touchfreeze.
 
  -- David Nusinow <dnusinow@debian.org>  Sat, 11 Apr 2009 16:23:11 -0400
