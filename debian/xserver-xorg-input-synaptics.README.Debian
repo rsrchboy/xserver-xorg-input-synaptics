@@ -30,7 +30,7 @@ Section "InputDevice"
   Option	"Protocol"	"auto-dev"
 #
 # Following lines are optional thus commented in this example.
-# Please read the synaptics(5) manpage for a detailed explanation
+# Please read the synaptics(4) manpage for a detailed explanation
 # of the various options' meaning as well as a full list of options
 #
 #  Option	"LeftEdge"      "1700"
