@@ -1,8 +1,26 @@
-xserver-xorg-input-synaptics (1.2.0-3ubuntu2) lucid; urgency=low
+xserver-xorg-input-synaptics (1.2.1-1ubuntu1) UNRELEASED; urgency=low
 
-  * Update patch 114 and enable it.
+  * Merge from Debian unstable.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 16 Dec 2009 12:07:59 +0200
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 03 Mar 2010 16:24:04 +0200
+
+xserver-xorg-input-synaptics (1.2.1-1) unstable; urgency=low
+
+  [ Julien Cristau ]
+  * Install an udev rule instead of an fdi file on linux.
+  * Build against xserver 1.7 (closes: #549109).
+  * Add sh4 and kfreebsd-{amd64,i386} to the arch list (closes: #557881,
+    #559401).
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+
+  [ Cyril Brulebois ]
+  * Add ${misc:Depends} to Depends.
+  * Remove hardcoded libxi6 from Depends, and wrap them.
+  * Upload to unstable.
+
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 08 Jan 2010 00:55:04 +0100
 
 xserver-xorg-input-synaptics (1.2.0-3ubuntu1) lucid; urgency=low
 
@@ -19,19 +37,6 @@ xserver-xorg-input-synaptics (1.2.0-3ubuntu1) lucid; urgency=low
     - 115_jumpy_cursor_second_part.patch
 
  -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 07 Dec 2009 22:58:38 +0200
-
-xserver-xorg-input-synaptics (1.2.0-3) experimental; urgency=low
-
-  [ Julien Cristau ]
-  * Install an udev rule instead of an fdi file on linux.
-  * Build against xserver 1.7 (closes: #549109).
-  * Add sh4 and kfreebsd-{amd64,i386} to the arch list (closes: #557881,
-    #559401).
-
-  [ Cyril Brulebois ]
-  * Upload to experimental.
-
- -- Cyril Brulebois <kibi@debian.org>  Sat, 05 Dec 2009 21:27:48 +0100
 
 xserver-xorg-input-synaptics (1.2.0-2) unstable; urgency=low
 
