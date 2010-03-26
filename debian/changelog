@@ -1,6 +1,7 @@
-xserver-xorg-input-synaptics (1.2.1-2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-1) UNRELEASED; urgency=low
 
   [ Timo Aaltonen ]
+  * New upstream release.
   * Add xserver-xorg-input-synaptics-dev for the header and .pc files.
     (LP: #340340)
   * Run udevadm trigger on postinst, and depend on udev [linux-any].

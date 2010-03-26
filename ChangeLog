@@ -1,3 +1,37 @@
+commit a0d6e90b26044258473d8dae8a53c5adbe2681f1
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 26 15:13:40 2010 +1000
+
+    synaptics 1.2.2
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ba0d227a6da35dd21ba48ded65cabff16ef423ce
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 17 13:52:43 2010 +1000
+
+    After closing the fd, reset it to -1.
+    
+    A DeviceOff() followed by DeviceClose() (which calls DeviceOff()) would try
+    to close the fd twice, in addition to calling various hooks.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+    (cherry picked from commit a07fe65031ffa7e8d88898d763bdbc88899fb1e4)
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5c811a864e8927a8dfcf9bc25ffe0265b5ed8025
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Fri Mar 12 08:32:22 2010 +1000
+
+    Don't clobber the timer we just created.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@redhat.com>
+    (cherry picked from commit 0fb151b2388ca665b9454b7b284181b4fa180194)
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit faf250d013b1850d3dbe08b050c71dfeb20a6490
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Dec 11 13:46:50 2009 +1000
