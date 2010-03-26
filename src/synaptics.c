@@ -615,7 +615,6 @@ SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
     xf86ErrorFVerb(6, "port opened successfully\n");
 
     /* initialize variables */
-    priv->timer = NULL;
     priv->repeatButtons = 0;
     priv->nextRepeat = 0;
     priv->count_packet_finger = 0;
@@ -802,6 +801,7 @@ DeviceOff(DeviceIntPtr dev)
 	    priv->comm.buffer = NULL;
 	}
 	xf86CloseSerial(local->fd);
+	local->fd = -1;
     }
     dev->public.on = FALSE;
     return Success;
