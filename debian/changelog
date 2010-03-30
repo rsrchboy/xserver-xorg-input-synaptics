@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.2.2-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-1) unstable; urgency=low
 
   [ Timo Aaltonen ]
   * New upstream release.
@@ -19,7 +19,7 @@ xserver-xorg-input-synaptics (1.2.2-1) UNRELEASED; urgency=low
   * Fix reference to the synaptics manpage in README.Debian,
     closes: #568628.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 08 Dec 2009 16:15:58 +0200
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 30 Mar 2010 21:51:15 +0300
 
 xserver-xorg-input-synaptics (1.2.1-1) unstable; urgency=low
 
