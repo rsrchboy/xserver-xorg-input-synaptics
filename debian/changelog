@@ -1,9 +1,9 @@
-xserver-xorg-input-synaptics (1.2.2-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-1ubuntu1) lucid; urgency=low
 
   * Merge from Debian unstable. (LP: #546933)
   * Rewrite old quirks to use ID_INPUT.tags.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 30 Mar 2010 19:21:34 +0300
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 31 Mar 2010 00:27:07 +0300
 
 xserver-xorg-input-synaptics (1.2.2-1) unstable; urgency=low
 
