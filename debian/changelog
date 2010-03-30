@@ -5,6 +5,7 @@ xserver-xorg-input-synaptics (1.2.2-1) UNRELEASED; urgency=low
   * Add xserver-xorg-input-synaptics-dev for the header and .pc files.
     (LP: #340340)
   * Run udevadm trigger on postinst, and depend on udev [linux-any].
+  * Add 10-synaptics.conf.
 
   [ Julien Cristau ]
   * Add hurd-i386 to the Architecture field.  Requested by Samuel Thibault.
