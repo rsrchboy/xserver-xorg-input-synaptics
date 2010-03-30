@@ -21,8 +21,9 @@ Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
 Package: xserver-xorg-input-synaptics
-Architecture: alpha amd64 arm armeb armel hppa i386 ia64 kfreebsd-amd64 kfreebsd-i386 m68k mips mipsel powerpc sh4 sparc
+Architecture: alpha amd64 arm armeb armel hppa hurd-i386 i386 ia64 kfreebsd-amd64 kfreebsd-i386 m68k mips mipsel powerpc sh4 sparc
 Depends:
+ udev [linux-any],
  ${shlibs:Depends},
  ${xserver:Depends},
  ${misc:Depends}
@@ -55,3 +56,14 @@ Description: Synaptics TouchPad driver for X.Org server
   * It also provides a daemon to disable touchpad while typing at the keyboard 
     and thus avoid unwanted mouse movements (see syndaemon(1)).
  .
+
+Package: xserver-xorg-input-synaptics-dev
+Section: libdevel
+Architecture: all
+Depends:
+ x11proto-core-dev,
+ ${misc:Depends},
+Description: Synaptics TouchPad driver for X.Org server (development headers)
+ This package contains the development headers for the Synaptics input
+ driver found in xserver-xorg-input-synaptics. Non-developers likely have
+ little use for this package.

@@ -1,33 +1,16 @@
 xserver-xorg-input-synaptics for Debian
------------------------------------
+---------------------------------------
 
 This package contains the Synaptics TouchPad driver for X.Org X server.
 See also the README file for details on configuration options.
-The following notes are reported from the INSTALL instructions of upstream 
-package (by Stefan Gmeiner <riddlebox@freesurf.ch>), but first of all a
-security notice about SHMConfig:
 
-   If you want to be able to change driver parameters without
-   restarting the X server, one option is to enable the "SHMConfig" option in
-   the X configuration file. You can then use the "synclient" program to
-   query and modify driver parameters on the fly.
-   SECURITY NOTE! This is not secure if you are in an untrusted 
-   multiuser environment. All local users can change the parameters at any
-   time.
 
-   Since version 1.1 the driver doesn't require doesn't require the
-   SHMConfig option anymore to allow runtime configuration changes,
-   synclient will only use the shared memory segment when invoked with
-   the -s option.
+Runtime configuration
+---------------------
 
-Xorg auto-configuration
------------------------
-Recent X.Org has support for automatic configuration. The synaptics driver does
-not support automatic configuration yet but the information required is
-supplied by a third party fdi script through HAL.
-The file is /usr/share/hal/fdi/policy/20thirdparty/11-x11-synaptics.fdi,
-if you need to customize it, you can first copy it to
-/etc/hal/fdi/policy and the edit it to match your requirements.
+The synclient and xinput tools allow configuring various aspects of the
+driver's behaviour.  See the synaptics(4) man page for details of the
+configurable options.
 
 
 Manual configuration
@@ -47,7 +30,7 @@ Section "InputDevice"
   Option	"Protocol"	"auto-dev"
 #
 # Following lines are optional thus commented in this example.
-# Please read the synaptics(5) manpage for a detailed explanation
+# Please read the synaptics(4) manpage for a detailed explanation
 # of the various options' meaning as well as a full list of options
 #
 #  Option	"LeftEdge"      "1700"
@@ -62,7 +45,6 @@ Section "InputDevice"
 #  Option	"MinSpeed"	"0.06"
 #  Option	"MaxSpeed"	"0.12"
 #  Option	"AccelFactor" "0.0010"
-#  Option	"SHMConfig"	"on"
 #  Option	"Repeater"	"/dev/ps2mouse"
 EndSection
 
