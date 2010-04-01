@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.2.2-1ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-1ubuntu2) lucid; urgency=low
 
   * 10-synaptics.conf: Use 'MatchDevicePath "/dev/input/event*"'.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 01 Apr 2010 14:30:29 +0300
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 01 Apr 2010 14:34:20 +0300
 
 xserver-xorg-input-synaptics (1.2.2-1ubuntu1) lucid; urgency=low
 
