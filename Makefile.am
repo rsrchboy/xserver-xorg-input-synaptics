@@ -19,7 +19,7 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = include src man tools fdi
+SUBDIRS = include src man tools conf
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-synaptics.pc
