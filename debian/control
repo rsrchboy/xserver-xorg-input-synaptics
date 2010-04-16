@@ -24,7 +24,7 @@ Architecture: alpha amd64 arm armeb armel hppa hurd-i386 i386 ia64 kfreebsd-amd6
 Depends:
  udev [linux-any],
  ${shlibs:Depends},
- ${xserver:Depends},
+ ${xinpdriver:Depends},
  ${misc:Depends}
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
