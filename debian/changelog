@@ -7,6 +7,7 @@ xserver-xorg-input-synaptics (1.2.2-2) UNRELEASED; urgency=low
   * Drop postinst, we don't need to trigger udev anymore.
   * Sanitize installation of manpage into the package.
   * Update to new xsfbs, use ${xinpdriver:Depends} in debian/control.
+  * Drop dependency on udev, since we have no udev rules or trigger.
 
  -- Julien Cristau <jcristau@debian.org>  Thu, 01 Apr 2010 14:40:18 +0300
 
