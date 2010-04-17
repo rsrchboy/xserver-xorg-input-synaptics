@@ -9,6 +9,9 @@ xserver-xorg-input-synaptics (1.2.2-2) UNRELEASED; urgency=low
   * Update to new xsfbs, use ${xinpdriver:Depends} in debian/control.
   * Drop dependency on udev, since we have no udev rules or trigger.
 
+  [ Cyril Brulebois ]
+  * Add myself to Uploaders.
+
  -- Julien Cristau <jcristau@debian.org>  Thu, 01 Apr 2010 14:40:18 +0300
 
 xserver-xorg-input-synaptics (1.2.2-1) unstable; urgency=low

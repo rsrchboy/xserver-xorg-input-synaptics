@@ -2,7 +2,7 @@ Source: xserver-xorg-input-synaptics
 Section: x11
 Priority: optional
 Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
-Uploaders: Mattia Dongili <malattia@debian.org>
+Uploaders: Mattia Dongili <malattia@debian.org>, Cyril Brulebois <kibi@debian.org>
 Build-Depends:
  debhelper (>= 5.0.0),
  libx11-dev,
