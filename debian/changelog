@@ -1,3 +1,20 @@
+xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
+
+  * Cherry-pick patch from upstream git to add the xorg.conf.d snippet.
+  * Replace our local copy with that one.
+  * Build-Depend on new xserver-xorg-dev, which lets us install the snippet to
+    /usr/share/X11/xorg.conf.d.
+  * Drop postinst, we don't need to trigger udev anymore.
+  * Sanitize installation of manpage into the package.
+  * Update to new xsfbs, use ${xinpdriver:Depends} in debian/control.
+  * Drop dependency on udev, since we have no udev rules or trigger.
+
+  [ Cyril Brulebois ]
+  * Add myself to Uploaders.
+  * Bump Standards-Version from 3.8.3 to 3.8.4 (no changes needed).
+
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 17 Apr 2010 17:48:26 +0200
+
 xserver-xorg-input-synaptics (1.2.2-1ubuntu2) lucid; urgency=low
 
   * 10-synaptics.conf: Use 'MatchDevicePath "/dev/input/event*"'.

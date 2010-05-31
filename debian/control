@@ -3,29 +3,28 @@ Section: x11
 Priority: optional
 Maintainer: Ubuntu Core Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 XSBC-Original-Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
-Uploaders: Mattia Dongili <malattia@debian.org>
+Uploaders: Mattia Dongili <malattia@debian.org>, Cyril Brulebois <kibi@debian.org>
 Build-Depends:
  debhelper (>= 5.0.0),
  libx11-dev,
  libxext-dev,
  libxi-dev (>= 2:1.2.0),
  x11proto-core-dev,
- xserver-xorg-dev (>= 2:1.7),
+ xserver-xorg-dev (>= 2:1.7.6.901),
  pkg-config,
  quilt,
  automake,
  libtool,
  xutils-dev,
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
 Package: xserver-xorg-input-synaptics
 Architecture: alpha amd64 arm armeb armel hppa hurd-i386 i386 ia64 kfreebsd-amd64 kfreebsd-i386 m68k mips mipsel powerpc sh4 sparc
 Depends:
- udev [linux-any],
  ${shlibs:Depends},
- ${xserver:Depends},
+ ${xinpdriver:Depends},
  ${misc:Depends}
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics

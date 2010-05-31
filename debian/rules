@@ -86,16 +86,12 @@ binary-arch: build install serverabi
 
 	dh_installdocs
 	dh_installchangelogs ChangeLog
-	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la --exclude=usr/share/man
+	dh_install --sourcedir=debian/tmp --list-missing --exclude=synaptics_drv.la
 ifeq ($(DEB_HOST_ARCH_OS), linux)
 	install -d debian/xserver-xorg-input-synaptics/lib/udev/rules.d
 	install -m 644 debian/local/66-xorg-synaptics.rules debian/xserver-xorg-input-synaptics/lib/udev/rules.d
-	install -d debian/xserver-xorg-input-synaptics/usr/lib/X11/xorg.conf.d
-	install -m 644 debian/local/10-synaptics.conf debian/xserver-xorg-input-synaptics/usr/lib/X11/xorg.conf.d
-else ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
-	install -d debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
-	install -m 0644 fdi/11-x11-synaptics.fdi \
-		debian/xserver-xorg-input-synaptics/usr/share/hal/fdi/policy/20thirdparty
+	install -d debian/xserver-xorg-input-synaptics/usr/share/X11/xorg.conf.d
+	install -m 644 debian/local/51-synaptics-quirks.conf debian/xserver-xorg-input-synaptics/usr/share/X11/xorg.conf.d
 endif
 	dh_installman
 	dh_link
