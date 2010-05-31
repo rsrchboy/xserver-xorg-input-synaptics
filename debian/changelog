@@ -1,3 +1,19 @@
+xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
+
+  * Merge from debian unstable, remaining changes:
+    - Split out our synaptics quirks into 51-synaptics-quirks.conf
+    - Add the udev rule back for tagging specific machines to be quirked
+    - 103_enable_cornertapping.patch: Enable right/middle clicks by
+      tapping in the bottom- and top-right corners.
+    - 104_always_enable_tapping.patch: Enable tapping regardless of the
+      presence of physical buttons.
+    - 106_always_enable_vert_edge_scroll.patch: Enable vertical edge
+      tapping by default even if we enable two-finger scrolling as well.
+    - 114_jumpy_cursor_first_part.patch: Adds a property to enable filtering
+      jumpy cursor problems on some machines.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Mon, 31 May 2010 07:50:04 -0400
+
 xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
 
   * Cherry-pick patch from upstream git to add the xorg.conf.d snippet.
