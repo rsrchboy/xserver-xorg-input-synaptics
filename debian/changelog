@@ -1,5 +1,6 @@
 xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
 
+  [ Robert Hooker ]
   * Merge from debian unstable, remaining changes:
     - Split out our synaptics quirks into 51-synaptics-quirks.conf
     - Add the udev rule back for tagging specific machines to be quirked
@@ -12,7 +13,12 @@ xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
     - 114_jumpy_cursor_first_part.patch: Adds a property to enable filtering
       jumpy cursor problems on some machines.
 
- -- Robert Hooker <sarvatt@ubuntu.com>  Mon, 31 May 2010 07:50:04 -0400
+  [ Christopher James Halse Rogers ]
+  * debian/gbp.conf:
+    - Make git-buildpackage less annoying by specifying “ubuntu” as our debian
+      branch.
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Thu, 03 Jun 2010 09:44:22 +1000
 
 xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
 
