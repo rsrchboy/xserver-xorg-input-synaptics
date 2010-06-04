@@ -12,13 +12,14 @@ xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
       tapping by default even if we enable two-finger scrolling as well.
     - 114_jumpy_cursor_first_part.patch: Adds a property to enable filtering
       jumpy cursor problems on some machines.
+  * Add a dependency on udev.
 
   [ Christopher James Halse Rogers ]
   * debian/gbp.conf:
     - Make git-buildpackage less annoying by specifying “ubuntu” as our debian
       branch.
 
- -- Christopher James Halse Rogers <raof@ubuntu.com>  Thu, 03 Jun 2010 09:44:22 +1000
+ -- Robert Hooker <sarvatt@ubuntu.com>  Fri, 04 Jun 2010 05:13:44 -0400
 
 xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
 
