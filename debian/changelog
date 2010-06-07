@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-2ubuntu1) maverick; urgency=low
 
   [ Robert Hooker ]
   * Merge from debian unstable, remaining changes:
@@ -19,7 +19,7 @@ xserver-xorg-input-synaptics (1.2.2-2ubuntu1) UNRELEASED; urgency=low
     - Make git-buildpackage less annoying by specifying “ubuntu” as our debian
       branch.
 
- -- Robert Hooker <sarvatt@ubuntu.com>  Fri, 04 Jun 2010 05:13:44 -0400
+ -- Robert Hooker <sarvatt@ubuntu.com>  Mon, 07 Jun 2010 19:07:59 -0400
 
 xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
 
