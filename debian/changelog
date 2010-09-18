@@ -1,11 +1,12 @@
 xserver-xorg-input-synaptics (1.2.2-2ubuntu4) maverick; urgency=low
-   
-  * Prevent non-evdev devices from firing the eventcomm AutoDevProbe callback
-    (LP: #624985)
-    - Add 115_evdev_only.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 01 Sep 2010 15:01:28 -0400
-  
+  [Chase Douglas]
+  * 115_evdev_only.patch:
+    - Prevent non-evdev devices from firing the eventcomm AutoDevProbe callback
+      (LP: #624985)
+
+ -- Bryce Harrington <bryce@ubuntu.com>  Wed, 15 Sep 2010 16:27:29 -0700
+
 xserver-xorg-input-synaptics (1.2.2-2ubuntu3) maverick; urgency=low
 
   * Rebuild against new Xserver 1.9 ABI
