@@ -8,6 +8,7 @@ Build-Depends:
  libx11-dev,
  libxext-dev,
  libxi-dev (>= 2:1.2.0),
+ libxtst-dev,
  x11proto-core-dev,
  xserver-xorg-dev (>= 2:1.7.6.901),
  pkg-config,
