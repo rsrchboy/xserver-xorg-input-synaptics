@@ -10,7 +10,7 @@ Build-Depends:
  libxi-dev (>= 2:1.2.0),
  libxtst-dev,
  x11proto-core-dev,
- xserver-xorg-dev (>= 2:1.7.6.901),
+ xserver-xorg-dev (>= 2:1.9.0.901),
  pkg-config,
  quilt,
  automake,
