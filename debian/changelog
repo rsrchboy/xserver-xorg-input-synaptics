@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.2.2-3) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-3) experimental; urgency=low
 
   [ Mattia Dongili ]
   * add dependency to libxtst-dev to enable XRecord support in
@@ -7,7 +7,7 @@ xserver-xorg-input-synaptics (1.2.2-3) UNRELEASED; urgency=low
   [ Cyril Brulebois ]
   * Build against Xserver 1.9.1 rc1.
 
- -- Mattia Dongili <malattia@debian.org>  Sun, 03 Oct 2010 21:49:45 +0900
+ -- Cyril Brulebois <kibi@debian.org>  Wed, 13 Oct 2010 00:26:45 +0200
 
 xserver-xorg-input-synaptics (1.2.2-2) unstable; urgency=low
 
