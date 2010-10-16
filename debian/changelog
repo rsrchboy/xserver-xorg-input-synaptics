@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.2.2-4) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.2.2-4) experimental; urgency=low
 
   * Merge xsfbs to get unversioned Provides.
 
- -- Cyril Brulebois <kibi@debian.org>  Sat, 16 Oct 2010 14:24:04 +0200
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 16 Oct 2010 14:40:22 +0200
 
 xserver-xorg-input-synaptics (1.2.2-3) experimental; urgency=low
 
