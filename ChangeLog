@@ -1,12 +1,1020 @@
-commit a0d6e90b26044258473d8dae8a53c5adbe2681f1
+commit 1a9495a74c41d956751177807602383ce4549c37
 Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Fri Mar 26 15:13:40 2010 +1000
+Date:   Wed Sep 1 09:04:11 2010 +1000
 
-    synaptics 1.2.2
+    synaptics 1.3.0
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit ba0d227a6da35dd21ba48ded65cabff16ef423ce
+commit 33632e447b311950729350e5802b5b1ee9616677
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Aug 23 15:12:05 2010 +1000
+
+    man: use seconds² instead of seconds per second
+    
+    Makes it hopefully slightly less confusing. Should have been amended before
+    the push but ENOTENOUGHCOFFEE.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7a741ddedab477baea21f3d8ce6390b7bf72399f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Aug 23 11:55:45 2010 +1000
+
+    synaptics 1.2.99.901
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 59151a548dcbac6f68e4f921b5c47aea4e5bc2a3
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Aug 20 11:09:04 2010 +1000
+
+    Enable coasting by default with a value of 20.
+    
+    The default value for friction coasting makes coasting much more useful now
+    since it stops coasting after a while. Enable it by default, the man page
+    already claims a default of 20 anyway.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 56655fd15f676fea143f3963e23b464b275b2e77
+Author: Patrick Curran <pjcurran@wisc.edu>
+Date:   Fri Jul 23 17:28:01 2010 -0500
+
+    Added "friction physics" so coasting can stop on its own.
+    
+    When you are coasting (but not corner coasting) you might want the
+    scrolling to slow down and stop on its own.  This also lets you
+    start coasting while using a two finger scroll.
+    
+    Signed-off-by: Patrick Curran <pjcurran@wisc.edu>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Tested-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a6ca4d2523904b7ce49edc29ba408979bdf0d45e
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Wed Aug 18 22:09:45 2010 -0500
+
+    Reset X/Y hist on multi finger transition to fix jumps
+    
+    Most modern touchpads track 1st finger during multi-touch.  If first finger
+    is lifted then a jump will occur as X/Y transition to next finger location.
+    Resetting X/Y history as each finger is lifted will hide this transition.
+    
+    Synaptics hw specs claim older hardware report X/Y values that are average
+    point between multi-fingers which can cause unwanted jump.  Reset X/Y
+    history during transition to new fingers to hide this as well.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Tested-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b774a1dba2f1f45c94fe898fe8b5ce258cbcddfc
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Aug 19 14:25:29 2010 +1000
+
+    Increase the default acceleration factor.
+    
+    With 4e0e53fcba6fd99d458df1905d055d63360155c0 the driver got it's own
+    acceleration mechanism. This slowed down the pointer movement a lot,
+    especially on ALPS touchpads. Increase the default acceleration factor to
+    accommodate for this.
+    
+    The number itself is chosen through guesswork and informal tests.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Tested-by: Magnus Kessler <Magnus.Kessler@gmx.net>
+    Reviewed-by: Magnus Kessler <Magnus.Kessler@gmx.net>
+
+commit 4b0003c3d4cee1f5c6675bde5701e2169959932a
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Aug 19 14:22:03 2010 +1000
+
+    Up the precision of MaxSpeed and AccelFactor log output.
+    
+    MaxSpeed usually has two decimals that matter, AccelFactor doesn't get
+    intersting until the second decimal, so print 3.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7acdbb7cf95299fda29d6bea691af925f5182749
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Aug 17 11:34:32 2010 +1000
+
+    synclient: don't print "missing" if a property doesn't exist.
+    
+    Virtually all touchpads still in use have one or more properties missing
+    anyway. If it's not in the list, then it's missing.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit abb448a253cb0b3003038fbaa1daa9494c396e8f
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Wed Jul 7 21:35:22 2010 -0500
+
+    Align EmulateTwoFinger* docs to current behavior.
+    
+    This corrects man page to mention EmulateTwoFingerMinW
+    and EmulateTwoFingerMinZ are considered together.  Old
+    man page read like driver would emulate two-finger even
+    if only pressure OR width (but not both) were supported.
+    
+    Next, add note to align man page with patch that defaults
+    to enabling two-finger emulation on hardware that does not
+    support two-finger detection but does support pressure and
+    width detection.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ffa6dc2809734a6aaa690e9133d6761480603a68
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Thu Jul 1 20:09:43 2010 -0500
+
+    Default to 2-finger emulation when HW supports it
+    
+    Ideally, emulating 2-fingers should just work on hardware
+    were it can be supported. This patch is to do that.
+    
+    Currently, emulateTwoFingerMinW defaults to 7. Most kernel
+    drivers do not support reporting finger width and so can't get above
+    MinW of 7. Synaptics devices hardcode width value to 5 when
+    hardware doesn't support width and 7 is a good threshold to detect
+    2 fingers on hardware that does. bcm7954 are only other devices
+    that report width and they support reporting DOUBLETAP and wouldn't
+    need emulation anyways.
+    
+    emulateTwoFingerMinZ defaulted to a really high value so never
+    let Synaptics devices to emulate 2-fingers by default.
+    Changed default to a low value (same as FingerHigh) when hardware
+    doesn't support DOUBLETAP and supports width so emulations
+    will now work by default in all the right cases.
+    
+    I'm working to get kernel to stop reporting ABS_TOOL_WIDTH unless
+    hardware really supports it.  If that would have been behavior
+    in first place then we could also default to 2-finger scrolling as
+    well.  Since its not reliable, we should continue defaulting to
+    side scrolling.
+    
+    Config GUI's will want to now allow switching between 2-finger and edge
+    scrolling when new property indicates width is supported.  GUI's should
+    also update the above MinZ and MinW's to values similar to our defaults.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e2a247a76e21d9c0be7d537dbfc18df9f3b812fa
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Wed Jul 7 21:00:19 2010 -0500
+
+    Document Capabilities property additions in man
+    
+    Documents has_pressure and has_width additions.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 75459b1c0bb85ce0bbeb4270114edddb30ff3b1b
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Mon Jul 19 19:30:14 2010 -0500
+
+    Expose width support in capabilites properity.
+    
+    Some properties are only valid with hardware supports
+    width.  Namely, *MinW properties.  Config GUI's may
+    wish to disable/grey out options related to width support.
+    
+    This combined with pressure property is good indication when
+    2 finger scrolling can be supported using emulation.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 51e9bb815812469f39ad47f723d842bf1893a109
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Wed Jul 7 20:40:52 2010 -0500
+
+    Expose pressure support in capabilities property.
+    
+    Some properties are only valid when hardware supports
+    pressure.  For example, the *MinZ and *MaxZ options.
+    Config GUI's may wish to disable/grey out config
+    options related to pressure since not all hardware supports
+    it.  This will allow for that.
+    
+    Also, change setting of priv->has_pressure to boolean
+    value so its value will always fit in 8-bit that
+    properities report.
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit cc9d34155297a85fb214d76d4fc45f26cf41f5f3
+Author: Chris Bagwell <chris@cnpbagwell.com>
+Date:   Thu Jul 15 21:44:03 2010 -0500
+
+    Make default checks for x, y, w, and p separate.
+    
+    Some input devices will not return any ranges and
+    current code seems geared towards those.  It assumed
+    if invalid X/Y ranges then that was only case for invalid
+    W and Pressure.
+    
+    Synaptics kernel drivers have been returning valid
+    X/Y/Z values but invalid 0/0 values for P.
+    
+    Split up checks to allow setting defaults for any combination
+    of unspecified or invalid values.
+    
+    I also think there was a bug in older code.  It seemed odd
+    it was checking minx > maxx but miny < maxy.  I changed both
+    to ">=" so that it also catches kernel reports of 0/0 and
+    logically invalid ranges (i.e. 6/6 or 9/1).
+    
+    Signed-off-by: Chris Bagwell <chris@cnpbagwell.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit df9b639cef416ce694aa0be1592f99a41a0ea554
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jun 23 09:53:02 2010 +1000
+
+    Remove one leftover xcalloc.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3e9753f09699a40b33dadb1739949d2cd6c48611
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Jun 17 11:17:41 2010 +1000
+
+    Bump to 1.2.99.1.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b19e3782a77c171ca20fc962f95923495fdb7978
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Jun 17 11:23:15 2010 +1000
+
+    Purge GuestMouse support.
+    
+    Guest mouse dates back to quite a while ago, hasn't been tested for ages and
+    the current synaptics interface guide claims the bit that we used to check
+    if guestmouse is available is "reserved for future use. The host should
+    ignore the values of reserved bits when reading the capability bits."
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 2c8ba519471cf1a4d0ab0f2cac61359426eaa0c7
+Merge: bef44f0 22a2c7f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Jun 17 11:15:44 2010 +1000
+
+    Merge branch 'master' of git+ssh://git.freedesktop.org/git/xorg/driver/xf86-input-synaptics
+
+commit bef44f01603e1a337b9dc08b5dd37664f9237bab
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jun 16 10:35:20 2010 +1000
+
+    synclient: allow Min|MaxSpeed values of > 1.0.
+    
+    With the new accel mechanisms, the old ranges don't apply anymore.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a3c38206ed242040c4cbb79377490d8dfa48d5ac
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 16:03:41 2010 +1000
+
+    Require server 1.6 or later.
+    
+    Remove ifdef's for server ABIs up to including server 1.5. Driver still
+    supports 1.6, 1.7, 1.8 and the upcoming 1.9.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit fe15f60ef2742f9fb9dffe2bc1f4bcd2f296b37b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 15:09:53 2010 +1000
+
+    Re-use width/height variables.
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 832dfd03bb3eb6b8291aba2b70fd0faf2e1976a5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 15:06:34 2010 +1000
+
+    Reshuffle default value initialization.
+    
+    No functional changes, just code structure. The eventcomm backened is the
+    only one with a real probe function right now. So provide a default query
+    proc that reads the touchpad coordinates in. The values provided are the
+    ones that then will give us the right edge settings in concordance with the
+    default we had before.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 22a2c7feb18a18a700a736c3f4a65951dbebe990
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 11 14:22:06 2010 -0400
+
+    config: add comment regarding MAN_SUBSTS variable usage
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 078bad1582d7fc9a77e00d131bb32bf9d69d2a42
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 15:01:16 2010 +1000
+
+    Move some defines to where they belong.
+    
+    These defines aren't used by anything but the ps2comm interface.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 7b97f9869983a47678188d0df1a209ffc35150db
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 14:24:05 2010 +1000
+
+    Support percent values for area.
+    
+    AreaTopEdge and the other three can be specified as either an absolute
+    value, or as a percent of the matching dimension.
+    
+    Option "AreaBottomEdge" "80%" will thus set the bottom edge of the input
+    area to 80% of the height of the touchpad, with the lower 20% being the dead
+    area.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 8b3717055ab5c8d52bf5aae13e996ab4e86c2794
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 13:57:11 2010 +1000
+
+    man: don't call it "synaptics" touchpad driver.
+    
+    Under Linux the kernel handles everything, so these days synaptics is the
+    generic touchpad driver for anything that the kernel can handle. There
+    aren't many synaptics-specific bits in the driver anymore.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 857d579de808a95e3c8541847ec8a8845ca57c73
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 13:54:16 2010 +1000
+
+    man: note where the Area options fit in.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit f42fa446c4c0a2de92c1b5320dc8dcd0c18907e5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 13:48:46 2010 +1000
+
+    man: move area description down to CONFIGURATION DETAILS section.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 78df6c5da2792a333a7aac899329517032f2f2f8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 13:46:54 2010 +1000
+
+    man: divide up man page with a few subheaders.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 1f2b54cd57e88b706b6b2874547eabd1a8ab0963
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 10:16:38 2010 +1000
+
+    man: update SHMConfig documentation, it's only useful for debugging now.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit 69097acf352464a04ca315c80f7cf855f8656ede
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 15 10:49:17 2010 +1000
+
+    Don't allow anything but relative mode.
+    
+    We did this before already anyway, make it official and return an error to
+    the client as appropriate. Touchpads in absolute mode are somewhat useless.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+
+commit f07e1e1cbe199721f99c027843facf4e55172fa2
+Author: Simon Thum <simon.thum@gmx.de>
+Date:   Tue Feb 16 09:57:03 2010 +0100
+
+    Mulitply dix acceleration into synaptics maximum.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 6e346388f822e90f61b92a2344e821880876a2ea
+Author: Simon Thum <simon.thum@gmx.de>
+Date:   Mon Feb 15 13:28:17 2010 +0100
+
+    Accel: retain para->accel scale.
+    
+    In case people have modified their synaptic accel settings, it's
+    preferable to retain the settings scale.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4e0e53fcba6fd99d458df1905d055d63360155c0
+Author: Simon Thum <simon.thum@gmx.de>
+Date:   Wed Sep 9 14:41:08 2009 +0200
+
+    Setup pointer acceleration for synaptics
+    
+    Setup dix pointer accel from the synaptics driver so synaptics devices
+    behave like before while benefiting from dix velocity approximation.
+    
+    This fixes the longstanding issue with synaptics being
+    accelerated twice, in different layers and different algorithms.
+    The pressure-dependent synaptics acceleration is now performed in
+    the device-specific profile.
+    
+    Signed-off-by: Simon Thum <simon.thum@gmx.de>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3c26383af55b6b3599666cfa9693ec04aaecef02
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Jun 7 11:28:42 2010 +1000
+
+    Revert "Setup pointer acceleration for synaptics"
+    
+    Merged the wrong patch, right patch is the follow-up commit.
+    
+    This reverts commit a489ec15eb489a3528f6fee99716f7f4ae35f9ee.
+
+commit 144210ab4962c5b00fea4fdc4f01050841a8d67c
+Merge: a489ec1 dead313
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jun 2 12:57:38 2010 +1000
+
+    Merge branch 'master' of git://people.freedesktop.org/~gnadon/xf86-input-synaptics
+
+commit dead313d15a7c9ccf59009eef4202503741a1b5f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Jun 1 20:55:15 2010 -0400
+
+    config: fdi file must be installed in $(datadir)/hal/fdi/policy/20thirdparty
+    
+    Applies to server with no sysconfigdir
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a489ec15eb489a3528f6fee99716f7f4ae35f9ee
+Author: Simon Thum <simon.thum@gmx.de>
+Date:   Wed Sep 9 14:41:08 2009 +0200
+
+    Setup pointer acceleration for synaptics
+    
+    Setup dix pointer accel from the synaptics driver so synaptics devices
+    behave like before while benefiting from dix velocity approximation.
+    
+    This fixes the longstanding issue with synaptics being
+    accelerated twice with different algorithms. The pressure-dependent
+    synaptics acceleration is now performed in a device-specific profile.
+    
+    Signed-off-by: Simon Thum <simon.thum@gmx.de>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3dd5486bc8ddd96f43e92386537ae9adabc1714e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon May 31 15:39:18 2010 -0400
+
+    config: synaptics depends on RANDR through xf86.h
+    
+    The xf86.h file contains external declarations specific to RANDR
+    If this extension is defined (installed) synaptics will not compile
+    if randrproto is not installed.
+    Because this is an optional extension, XORG_DRIVER_CHECK_EXT
+    must be used.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 92789dfb8a0443d9f1dd8df4ba43c69885136574
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 20:16:54 2010 -0400
+
+    config: add AC_CHECK_LIB for math library functions
+    
+    It ensures library is installed and sets LIBS = -lm
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c1df54855a7eee4d904746ad7b6edc7553bda0af
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 13:38:35 2010 -0400
+
+    README: add standard reference links section
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 3b78018e9a0df9f0c38b63d7f4efc7dadb9ebb3e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 13:32:55 2010 -0400
+
+    COPYING: add three missing authors listed in synaptics.c
+    
+    Copyright (c) 2008 Fedor P. Goncharov
+    Copyright (c) 2002 S. Lehner
+    Copyright (c) 2008-2009 Red Hat, Inc.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c4ca660b4773c6feb04a5cf64da44da1f0b2de49
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 13:19:11 2010 -0400
+
+    Remove unused TODO file
+    
+    It has been updated just once in 4 years (300 commits)
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9924329002276ff60c033c66dd7e39a70050c3cc
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 13:09:00 2010 -0400
+
+    config: use AC_PROG_INSTALL now supplied by XORG_DEFAULT_OPTIONS
+    
+    It depends on util-macros 1.8
+    The existing statement can now be removed from the configuration file.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 100d3d60cd798ea1978adf1c7e388ee6dc5984e4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri May 28 13:07:42 2010 -0400
+
+    config: upgrade to util-macros 1.8 for additional man page support
+    
+    Use MAN_SUBST now supplied in XORG_MANPAGE_SECTIONS
+    The value of MAN_SUBST is the same for all X.Org packages.
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    The existing statement can now be removed from the configuration file.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 14fc097bc481e8dda84c4d90f8c3c97df15c6746
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue May 25 13:29:46 2010 -0400
+
+    config: replace Automake deprecated INCLUDES var with AM_CPPFLAGS
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2554d5b615101011c09c4786b8a18216ec0909e2
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue May 25 13:00:04 2010 -0400
+
+    config: unconditionaly build synclient and syndaemon apps
+    
+    The current conditional building of the apps was introduced by
+    commit 	080caee95c46bb471d1442dcab246460cad8c7be due to optional
+    support properties. This is no longer an issue.
+    
+    There are no longer any reason not to build these bona fide apps.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a101621bf624466f66da41a8fa6b5ba796cd10fd
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun May 30 21:40:01 2010 -0400
+
+    man: Use Autoconf provided $(AM_V_GEN)$(SED)
+    
+    Enables silent rule and use platform appropriate version of sed.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 82c2e2d93413ec81e84cb33338e677e01aa382a9
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon May 24 15:53:06 2010 -0400
+
+    config: 50-synaptics.conf must be unconditionally distributed
+    
+    A file may or may not be installed based on a particular system
+    configuration, but it must always be distributed in the tarball
+    so the package contains the complete source code.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit e517ccca6e7f1bd9160f2d82c10ddb618771d192
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon May 24 15:50:18 2010 -0400
+
+    config: use automake "dir" pattern for simplification
+    
+    configdir is where the config file is installed
+    config_DATA is the filename
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit e4d280dfbdb2d1a916e6ad9a4cdc3f22f2c37d57
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon May 24 15:27:56 2010 -0400
+
+    config: close a loophole where user input means x server has a feature
+    
+    If a user provides a path in --with-xorg-conf-dir,
+    the configuartion assumes the server does have a config path which may
+    not be the case.
+    
+    Resolve this by testing the value of the server returned sysconfigdir
+    rather than the user provided value.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f3e4c586037a5785f786ff74c89c87de7d4ac344
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:48:29 2010 -0400
+
+    config: fix warnings, m4 quoting and layout
+    
+    Fix some m4 quoting
+    Fix some autoconf warnings
+    Regroup statements per section
+    Add comments
+    Regroup xtst and recordproto (a prereq) flags together
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 5d64210dc613278d0b8914393cbbc3baeb4e1b76
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:29:27 2010 -0400
+
+    config: Upgrade X.Org macros to 1.4 for INSTALL file copying
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 20fd08780dcf5cdc8b3d85284fe357a3c2917aed
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:28:51 2010 -0400
+
+    config: remove AC_PROG_CC as it overrides AC_PROG_C_C99
+    
+    XORG_STRICT_OPTION from XORG_DEFAULT_OPTIONS calls
+    AC_PROG_C_C99. This sets gcc with -std=gnu99.
+    If AC_PROG_CC macro is called afterwards, it resets CC to gcc.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2538a6b87aad3526f85028689adc3eac21a91997
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:27:10 2010 -0400
+
+    config: remove unrequired AC_HEADER_STDC
+    
+    Autoconf says:
+    "This macro is obsolescent, as current systems have conforming
+    header files. New programs need not use this macro".
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2aae5d03e336c6b1e06745410268a0c26b4a366b
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:26:36 2010 -0400
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Regroup AC statements at the top.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2f81c85866448c4a07064bc6e999854f5fbcf044
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 20:24:57 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit bc3c09674911b9870a3c224b0c261132d1b13cfa
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat May 22 17:52:43 2010 -0400
+
+    config: regroup macros and variables in the backend checking
+    
+    It saves a few lines.
+    No functional changes.
+    
+    The same cannot be done for AM_CONDITIONAL:
+    "If AM_CONDITIONAL is run conditionally (e.g., in a shell if statement),
+    then the result will confuse automake".
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8843aaf4806344a8bda0f2e981a77f61c18f8037
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun May 30 21:19:29 2010 -0400
+
+    config: rework the synclient and syndaemon dependencies
+    
+    The driver does not require inputproto package
+    The hunting for record.h is done only if libXtst is installed
+    AC_CHECK_HEADERS is used rather than checking for package versions
+    HAVE_PROPERTIES is no longer required
+    
+    Normal config output:
+    checking for XI... yes
+    checking for XTST... yes
+    checking for X11/extensions/record.h... yes
+    
+    Permutations of --enable-tools and dependencies:
+    
+    build_tools	libXi installed Result
+    -----------	---------------	---------
+    yes		yes		build tools
+    auto            yes             build tools
+    no		yes		skip build
+    yes		no		abort configuration
+    auto		no		warn and skip build
+    no		no		warn and skip build
+    
+    Permutations of libXtst, record.h and recordproto
+    
+    libXtst		record.h	recordproto	syndaemon
+    installed	installed	installed	using XRecord?
+    
+    yes		yes		yes		yes
+    yes		no		yes		no
+    no		no		yes		no
+    no		yes		yes		no
+    no		no		no		no
+    
+    Other scenarios are possible where you have 2 different versions of
+    record.h installed in different $prefix locations. The order
+    of *_CFLAGS will determine which one gets picked first.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 76dd6ffee7257f9ff0aec5a9655de67f6e7973c9
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue May 25 07:36:43 2010 +1000
+
+    Bump to 1.2.99
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a8ed3f90bf64b77ff9787c2e1c31441d254797b5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 20 12:50:40 2010 +1000
+
+    Don't use libcwrappers for calloc and free.
+    
+    The server has deprecated them now, so we get a lot of warnings for little
+    benefit.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Matt Turner <mattst88@gmail.com>
+
+commit 345e61fe9290d37b6309f920884a955fb62fa071
+Author: Gabor Z. Papp <gzp@papp.hu>
+Date:   Thu May 20 12:45:54 2010 +1000
+
+    Building syndaemon and synclient needs $(XI_CFLAGS) and $(AM_CFLAGS)
+    
+    Reported-by: Gabor Z. Papp <gzp@papp.hu>
+    Signed-off-by: Gabor Z. Papp <gzp@papp.hu>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit f539d676607d3a7566093e2bd54edc740db20426
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue May 11 13:46:31 2010 +1000
+
+    Remove psmcomm.h header - superfluous.
+    
+    Don't need a full header file for 3 include directives of system headers.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c52e4a8ecd6bb535850ec6ff032f69a225734f8f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon May 10 11:17:49 2010 +1000
+
+    Reshuffle to handle dead area better.
+    
+    This patch makes input in the dead area essentially disappear to the client.
+    If a finger is detected outside the active area, it's coordinates and other
+    data is reset to zero. Edge detection and scrolling is skipped and the event
+    is not recorded in the movement history.
+    
+    On touchpads that require this area, it is now possible to click the button
+    while leaving another finger on the touchpad.
+    
+    Regression: moving into the dead area during a drag releases the drag button.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d79732c1ffcfa6fd1a9a39e5a1c464bba8e2afc8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri May 7 13:46:49 2010 +1000
+
+    Make scrollbuttons processing and property conditional on their existence.
+    
+    There are not a lot of touchpads that have extra physical scroll buttons
+    anymore. For those that don't have them, don't initalize the properties and
+    conditionalize some of the code (moved into its own functions).
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b8776ff0b478a1645f1536872d001e9605d86f71
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 17:27:14 2010 +1000
+
+    move history storage from ComputeDeltas into HandleState.
+    
+    It's well hidden in there, but not useful.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Simon Thum <simon.thum@gmx.de>
+
+commit 69a8de8fd9f1731c83e003b6ff6495cfdc96d4e1
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 16:36:52 2010 +1000
+
+    Add NO_EDGE to the edge enum instead of using hardcoded 0.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 33b01280d8ffe6e35f6ca8497ed82bcfe2044594
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 15:22:33 2010 +1000
+
+    Rename HandleClickWithFingers to handle_clickfinger.
+    
+    The option is called ClickFinger, the man page talks this way about it, sync up
+    the code with it.
+    No functional change.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Jamey Sharp <jamey@minilop.net>
+
+commit 1b612c0bbcd8b287ac4f7cb8ba3354b0e0a63949
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 15:21:39 2010 +1000
+
+    Factor out updating the hardware state.
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Jamey Sharp <jamey@minilop.net>
+
+commit 9076f06b1b70a92ab582ce68a73fdaa169dfe69f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 15:10:40 2010 +1000
+
+    Use post_button_click to post doubleclicks.
+    
+    Function introduced with the factoring out of post_scroll_events.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7fd741f76a94feb21c4c8227105d174be630da11
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 15:09:33 2010 +1000
+
+    Move scroll button handling out of HandleState.
+    
+    Again, just to make the code easier to read, no functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Jamey Sharp <jamey@minilop.net>
+
+commit 39aed3b773c077a55f54a7c143102ab09dae8237
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 15:05:35 2010 +1000
+
+    When scrolling, hardcode the button/press release cycle.
+    
+    Not sure why the values for !hw->up and hw->up were used here instead, but this
+    could potentially lead to unreleased buttons. Also, it's harder to read and
+    generally confusing, since the same wasn't used for left/right scrolling.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3782060b41ede96d87dcbc508b2235c6723f0a78
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 14:54:35 2010 +1000
+
+    Factor out up/down and left/right button scrolling from HandleState.
+    
+    There are not a lot of touchpads that even have these buttons anyway, move the
+    code out of the way for clarity.
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Jamey Sharp <jamey@minilop.net>
+
+commit e72c29939fa0620e831ebc99bbc69a5cadca1247
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 14:21:42 2010 +1000
+
+    Move SHM hardware state update into a separate function.
+    
+    No functional changes, this is just to move a slab of code out of mind when
+    reading.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e579bab2f71569ab07d6b6fd36360a81fac48ad8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 16:58:46 2010 +1000
+
+    Change condition the finger requirement obvious.
+    
+    The need for a finger down is for all conditions, move it to the front of
+    the condition to make it more obvious.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a1aa196a53a9061131bcdaeac3743c1f8149ed5d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 6 16:10:34 2010 +1000
+
+    Add FIXME: where does the 13 come from?
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 776ec0ed42616769ed834b5822df3b2b0d5c0e85
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 29 15:03:55 2010 +1000
+
+    Disable ClickFinger for touchpads with more than one physical button (#26079)
+    
+    If a touchpad has more than just one (or no) button, don't enable any
+    ClickFinger settings other than button 1.
+    
+    The old default of enabling those clickfingers can be confusing on devices
+    that have left and right buttons but no middle. In that case, leaving three
+    fingers on the touchpad and clicking will result in a button 2 press
+    (usually paste). But leaving one or two fingers on the touchpad while
+    clicking will simply send button 1 events.
+    
+    This can appear like spurious button 2 events to the user.
+    
+    X.Org Bug 26079 <http://bugs.freedesktop.org/show_bug.cgi?id=26079>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 87b29e6004a9a7f744eb6e9c2bf9539579ecefbf
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 8 14:47:08 2010 +1000
+
+    Add 50-synaptics.conf snippet.
+    
+    If the server exports the sysconfigdir variable, install the
+    50-synaptics.conf snippet in the directory provided.
+    
+    This patch also moves the fdi file from fdi/ into the new conf/ subdir to
+    have a single location for all config files.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+
+commit e22a850e69d670152371644fc4e63976f484d7b5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Apr 14 08:41:06 2010 +1000
+
+    eventcomm: use X_PROBED for kernel-probed values.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4e221c1647b066b65c317fcf4cb4f71cc5874386
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Apr 5 20:57:06 2010 -0400
+
+    config: include files redundant in EXTRA_DIST
+    
+    The HEADERS Automake primary variable always gets it's files
+    distributed and installed.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a07fe65031ffa7e8d88898d763bdbc88899fb1e4
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Wed Mar 17 13:52:43 2010 +1000
 
@@ -17,30 +1025,108 @@ Date:   Wed Mar 17 13:52:43 2010 +1000
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
     Reviewed-by: Julien Cristau <jcristau@debian.org>
-    (cherry picked from commit a07fe65031ffa7e8d88898d763bdbc88899fb1e4)
-    
-    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit 5c811a864e8927a8dfcf9bc25ffe0265b5ed8025
+commit 0fb151b2388ca665b9454b7b284181b4fa180194
 Author: Adam Jackson <ajax@redhat.com>
 Date:   Fri Mar 12 08:32:22 2010 +1000
 
     Don't clobber the timer we just created.
     
     Signed-off-by: Peter Hutterer <peter.hutterer@redhat.com>
-    (cherry picked from commit 0fb151b2388ca665b9454b7b284181b4fa180194)
+
+commit 8d0e7686d899f31a2efc62526f50796b4c484442
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 10 20:22:37 2010 -0500
+
+    tools: use more appropriate CFLAGS
     
+    -I$(top_srcdir)/include: required for synaptics.h and
+    synaptics-properties.h. The module has not yet been installed
+    so there is no copy in server sdkdir (unless old copy)
+    
+    $(XTST_1_1_CFLAGS): required if record.h is provided by
+    libXtst in $(includedir)/X11/extensions.
+    
+    $(RECORDPROTO_1_13_CFLAGS): required if record.h is provided by
+    recordproto  in $(includedir)/X11/extensions.
+    
+    -I$(sdkdir): required for xserver-properties.h
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+    Acked-by: Julien Cristau <jcristau@debian.org>
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit faf250d013b1850d3dbe08b050c71dfeb20a6490
-Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Fri Dec 11 13:46:50 2009 +1000
+commit ddfadc2e824ac17c0360720a2121639573587231
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 10 12:50:50 2010 -0500
 
-    synaptics 1.2.1
+    tools: add the main include directory
     
+    Header record.h is not found in X11/extensions because -I leading
+    to that directory is missing. I think it was accidently removed
+    when fixing the CFLAGS misuse in an earlier commit.
+    
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f7559a5ea578b9889ec233b374bf270f1e7b6a64
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Jan 15 15:08:42 2010 -0800
+
+    Update Sun license notices to current X.Org standard form
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 7a43ba2b9d35bc89b94964ce7f95c9299b978b7d
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Fri Jan 8 16:22:51 2010 +0000
+
+    configure: don't clobber CFLAGS
+    
+    CFLAGS is a user variable.
+    
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit 537e5206fd270420dd6b5de0bc7fdc5b45ef55f9
+commit a1776829076a6774571fa82ea4adde03c3c6c5b4
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Fri Jan 8 16:22:50 2010 +0000
+
+    synaptics: don't link the tools against `pkg-config --libs xorg-server`
+    
+    Separate the checks for xserver 1.6 and for libXi in configure, so we
+    can link the tools against libXi but not pixman and pciaccess.
+    
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 94aaded93d035b0a65b4f7a80f9bdf6cf1ae2d66
+Author: Hiroyuki Ikezoe <poincare@ikezoe.net>
+Date:   Thu Jan 7 11:28:27 2010 +0900
+
+    Restore user's setting when enabling touchpad.
+    
+    And do not disable if the property is already disabled.
+    
+    Signed-off-by: Hiroyuki Ikezoe <poincare@ikezoe.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit fb058a463e3b36edc735b517a41feb4ee75d88cd
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Dec 15 21:37:43 2009 -0500
+
+    configure.ac: use backticks rather than $() for cmd subs
+    
+    Use "$PKG_CONFIG" rather than hard coded "pkg-config"
+    
+    Acked-by: Dan Nicholson <dbn.lists@gmail.com>
+    Acked-by: Daniel Stone <daniel@fooishbar.org>
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit babe5288271f3c088d9aac3ffd9f036c87b0018e
 Author: Adam Jackson <ajax@redhat.com>
 Date:   Thu Dec 10 13:33:37 2009 -0500
 
@@ -55,9 +1141,83 @@ Date:   Thu Dec 10 13:33:37 2009 -0500
     Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
     Reviewed-by: Keith Packard <keithp@keithp.com>
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit babe5288271f3c088d9aac3ffd9f036c87b0018e)
 
-commit 8069245fd531b1302e8aa0de82b4c6f66028715f
+commit 8748a83dc507af211692124ce93dabfeb43da7aa
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Nov 23 09:25:05 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit a1ee64384f67c9d51dd3ac69cec1e756ba611145
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 10 21:34:53 2009 -0500
+
+    INSTALL files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+
+commit 0a9d91701d04be8c7a1ff16d1f8d048089834219
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 10 21:33:33 2009 -0500
+
+    Several driver modules do not have a ChangeLog target in Makefile.am #23814
+    
+    The git generated ChangeLog replaces the hand written one.
+
+commit 66cdb27572f8ff72fdf0e9e141bccb5aa177f9d5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 10 21:20:52 2009 -0500
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit e6b1a4ef1208fa7ba1e3be3fa01b943ca6f83cd4
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Nov 3 13:40:21 2009 +1000
+
+    Reduce SynapticsCtrl to a stub.
+    
+    It hasn't done anything useful since at least 2003 and the debug message
+    just spams the log.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+
+commit 33413529dc35f0afc585d4297f86199393d19684
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Nov 2 10:42:44 2009 +1000
+
+    eventcomm: don't use the Xisb buffers for reading.
+    
+    The kernel promises to give us 32 bytes for each event, so we don't have to
+    juggle the Xisb buffers around for the eventcomm devices.
+    
+    This leaves the Xisb buffers hanging around but useless (they are
+    initialized regardless). Task for a later cleanup.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+
+commit d3c1b80692013abb2f2dea6ec7acf1d8a89a18d2
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Nov 2 10:06:01 2009 +1000
+
+    Clean up debugging system, allow for --enable-debug
+    
+    Add --enable-debug to list of configure options.
+    Clean up the DBG macro to use xf86MsgVerb and supply the verbosity.
+    Don't use ErrorF from the driver, use xf86Msg instead.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+
+commit 0198c02774a5063c5cf45b6eddef4a33d9f494d7
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Mon Nov 2 09:48:38 2009 +1000
 
@@ -68,18 +1228,25 @@ Date:   Mon Nov 2 09:48:38 2009 +1000
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
     Acked-by: Adam Jackson <ajax@redhat.com>
-    (cherry picked from commit 0198c02774a5063c5cf45b6eddef4a33d9f494d7)
 
-commit e52e4d58aea5248a8f763f82523a0bc36b4f84f2
+commit 8b1446f798478a9d8483cdaae8d7ff1bae5c045b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Oct 22 08:20:55 2009 +1000
+
+    synclient: if no option is specified, assume -l
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+
+commit 6622911370197d69737be02dd9f83e4406a991ca
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Thu Oct 22 08:19:35 2009 +1000
 
     synclient: fix man page typo
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit 6622911370197d69737be02dd9f83e4406a991ca)
 
-commit 4754626b7901a4362efacf93ed926112315095d2
+commit cf2ccaaeb7fdd1ffc4c9171134f7cbd44f141f28
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Tue Oct 20 08:16:48 2009 +1000
 
@@ -88,7 +1255,6 @@ Date:   Tue Oct 20 08:16:48 2009 +1000
     Tapping has changed from 1,2,3 to 1,3,2. Document this in the man page.
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit cf2ccaaeb7fdd1ffc4c9171134f7cbd44f141f28)
 
 commit d109ebbd5ee8f895e29c5fc780dce3cdb7c2f7d3
 Author: Peter Hutterer <peter.hutterer@who-t.net>
