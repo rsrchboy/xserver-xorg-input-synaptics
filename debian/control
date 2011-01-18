@@ -21,7 +21,7 @@ Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
 Package: xserver-xorg-input-synaptics
-Architecture: alpha amd64 arm armeb armel hppa hurd-i386 i386 ia64 kfreebsd-amd64 kfreebsd-i386 m68k mips mipsel powerpc sh4 sparc
+Architecture: any
 Depends:
  ${shlibs:Depends},
  ${xinpdriver:Depends},
