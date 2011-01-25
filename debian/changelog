@@ -1,3 +1,56 @@
+xserver-xorg-input-synaptics (1.3.0-1ubuntu1) UNRELEASED; urgency=low
+
+  [ Cyril Brulebois ]
+  * Switch to Architecture: any, adding armhf support (Closes: #604672).
+
+  [ Christopher James Halse Rogers ]
+  * Merge from (unreleased) Debian experimental.  Remaining Ubuntu changes:
+    - Split out our synaptics quirks into 51-synaptics-quirks.conf
+    - Add the udev rule back for tagging specific machines to be quirked
+    - Trigger udev in postinst to pick up udev rules
+    - add Depend: on udev
+    - 103_enable_cornertapping.patch: Enable right/middle clicks by
+      tapping in the bottom- and top-right corners.
+    - 104_always_enable_tapping.patch: Enable tapping regardless of the
+      presence of physical buttons.
+    - 106_always_enable_vert_edge_scroll.patch: Enable vertical edge
+      tapping by default even if we enable two-finger scrolling as well.
+    - 114_jumpy_cursor_first_part.patch: Adds a property to enable filtering
+      jumpy cursor problems on some machines.
+    - Specify ‘ubuntu’ branch in gbp.conf
+    - 115_evdev_only.patch: Only bind to /dev/input/event* evdev devices
+      (LP 624985)
+    
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Tue, 25 Jan 2011 20:01:58 +1100
+
+xserver-xorg-input-synaptics (1.3.0-1) experimental; urgency=low
+
+  [ Robert Hooker ]
+  * New upstream release.
+  * Bump xutils-dev requirement for new util-macros.
+
+  [ Cyril Brulebois ]
+  * Remove TODO from xserver-xorg-input-synaptics.docs, dropped upstream.
+
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 19 Nov 2010 23:49:14 +0100
+
+xserver-xorg-input-synaptics (1.2.2-4) experimental; urgency=low
+
+  * Merge xsfbs to get unversioned Provides.
+
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 16 Oct 2010 14:40:22 +0200
+
+xserver-xorg-input-synaptics (1.2.2-3) experimental; urgency=low
+
+  [ Mattia Dongili ]
+  * add dependency to libxtst-dev to enable XRecord support in
+    syndaemon (closes: #598834).
+
+  [ Cyril Brulebois ]
+  * Build against Xserver 1.9.1 rc1.
+
+ -- Cyril Brulebois <kibi@debian.org>  Wed, 13 Oct 2010 00:26:45 +0200
+
 xserver-xorg-input-synaptics (1.2.2-2ubuntu5) maverick; urgency=low
 
   * 115_evdev_only.patch was added but never applied. (LP: #624985)
