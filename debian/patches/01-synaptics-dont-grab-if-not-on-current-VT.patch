@@ -4,15 +4,15 @@ instance of Xorg.
 
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-11-19 21:14:09.183725703 +0900
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2009-11-19 22:00:51.296245013 +0900
-@@ -747,6 +747,9 @@
- 
-     DBG(3, ErrorF("Synaptics DeviceOn called\n"));
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-01-25 21:55:50.000000000 +1100
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-01-25 22:06:10.496826002 +1100
+@@ -703,6 +703,9 @@
+ 	return BadAlloc;
+     }
  
 +    if (xf86Screens[0]->vtSema == FALSE)
-+	    return !Success;
++	return !Success;
 +
-     SetDeviceAndProtocol(local);
-     local->fd = xf86OpenSerial(local->options);
-     if (local->fd == -1) {
+     /* may change pInfo->options */
+     SetDeviceAndProtocol(pInfo);
+ 
