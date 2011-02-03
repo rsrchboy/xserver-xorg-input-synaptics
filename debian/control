@@ -25,9 +25,9 @@ Depends:
  ${shlibs:Depends},
  ${xinpdriver:Depends},
  ${misc:Depends}
-Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
-Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
-Provides: ${xinpdriver:Provides}, xfree86-driver-synaptics, xorg-driver-synaptics
+Conflicts: xorg-driver-synaptics
+Replaces: xorg-driver-synaptics
+Provides: ${xinpdriver:Provides}, xorg-driver-synaptics
 Suggests: gpointing-device-settings, touchfreeze
 Description: Synaptics TouchPad driver for X.Org server
  This package provides an input driver for the X.Org X server to enable
