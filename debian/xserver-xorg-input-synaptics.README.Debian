@@ -87,7 +87,7 @@ Other relevant information to use this driver
 
 Running 'syndaemon' automatically
 ---------------------------------
-The easiest way to run the syndaemon binary each time you startup X you can 
+The easiest way to run the syndaemon binary each time you startup X you can
 simply add the following line to your ~/.xinitrc file:
 
 /usr/bin/syndaemon -i 1 -d
