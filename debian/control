@@ -4,17 +4,16 @@ Priority: optional
 Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
 Uploaders: Mattia Dongili <malattia@debian.org>, Cyril Brulebois <kibi@debian.org>
 Build-Depends:
- debhelper (>= 5.0.0),
+ debhelper (>= 8),
+ dh-autoreconf,
  libx11-dev,
  libxext-dev,
  libxi-dev (>= 2:1.2.0),
  libxtst-dev,
  x11proto-core-dev,
- xserver-xorg-dev (>= 2:1.9.0.901),
+ xserver-xorg-dev (>= 2:1.9.4),
  pkg-config,
  quilt,
- automake,
- libtool,
  xutils-dev (>= 1:7.5+4)
 Standards-Version: 3.8.4
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
