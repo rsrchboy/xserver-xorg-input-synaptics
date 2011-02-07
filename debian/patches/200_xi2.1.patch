@@ -1,0 +1,562 @@
+diff --git a/configure.ac b/configure.ac
+index 155c6dc..537b4c0 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -101,6 +101,9 @@ case "${host}" in
+ 	AC_MSG_RESULT([eventcomm])
+ 	BUILD_EVENTCOMM="yes"
+ 	AC_DEFINE(BUILD_EVENTCOMM, 1, [Optional backend eventcomm enabled])
++
++	# Obtain compiler/linker options for mtdev
++	PKG_CHECK_MODULES(MTDEV, mtdev)
+ 	;;
+ *freebsd* | *openbsd* | *netbsd* | *dragonfly*)
+ 	AC_MSG_RESULT([psmcomm])
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 980ab5e..2150292 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -40,6 +40,7 @@ AM_CFLAGS = $(XORG_CFLAGS)
+ if BUILD_EVENTCOMM
+ @DRIVER_NAME@_drv_la_SOURCES += \
+ 	eventcomm.c eventcomm.h
++@DRIVER_NAME@_drv_la_LIBADD = $(MTDEV_LIBS)
+ endif
+ 
+ if BUILD_PSMCOMM
+diff --git a/src/alpscomm.c b/src/alpscomm.c
+index 84d2136..94cdc58 100644
+--- a/src/alpscomm.c
++++ b/src/alpscomm.c
+@@ -230,6 +230,9 @@ ALPSAutoDevProbe(InputInfoPtr pInfo)
+ struct SynapticsProtocolOperations alps_proto_operations = {
+     NULL,
+     NULL,
++    NULL,
++    NULL,
++    NULL,
+     ALPSQueryHardware,
+     ALPSReadHwState,
+     ALPSAutoDevProbe,
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index 4593bba..86e8192 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -41,6 +41,8 @@
+ #include "synaptics.h"
+ #include "synapticsstr.h"
+ #include <xf86.h>
++#include <xorg/xserver-properties.h>
++#include <mtdev.h>
+ 
+ 
+ #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
+@@ -55,16 +57,115 @@
+  *	Function Definitions
+  ****************************************************************************/
+ 
+-static void
+-EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
++static int
++EventDevicePreInitHook(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
+ {
+     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+-    BOOL *need_grab;
++    EventcommPrivate *ecpriv;
++    struct input_absinfo abs;
++    int rc;
+ 
++    priv->proto_data = calloc(1, sizeof(EventcommPrivate));
+     if (!priv->proto_data)
+-        priv->proto_data = calloc(1, sizeof(BOOL));
++        return !Success;
++
++    ecpriv = priv->proto_data;
++    ecpriv->need_grab = TRUE;
++    ecpriv->num_touches = 10;
++
++    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_SLOT), &abs));
++    if (rc >= 0 && abs.maximum > 0)
++        ecpriv->num_touches = abs.maximum + 1;
++    else {
++        SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_TRACKING_ID), &abs));
++        if (rc >= 0 && abs.maximum > 0)
++            ecpriv->num_touches = abs.maximum + 1;
++    }
++        
++    return Success;
++}
++
++static Bool
++EventDeviceInitHook(DeviceIntPtr dev)
++{
++    InputInfoPtr pInfo = dev->public.devicePrivate;
++    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
++    int i;
++
++    if (!priv->has_touch)
++        return Success;
++
++    ecpriv->mt_slot_map = malloc(ecpriv->num_touches * sizeof(int));
++    if (!ecpriv->mt_slot_map)
++        goto err;
++
++    for (i = 0; i < ecpriv->num_touches; i++)
++        ecpriv->mt_slot_map[i] = -1;
++
++    ecpriv->touch_mask = valuator_mask_new(ecpriv->num_mt_axes);
++    ecpriv->cur_vals = valuator_mask_new(ecpriv->num_mt_axes);
++    if (!ecpriv->touch_mask || !ecpriv->cur_vals)
++        goto err;
++
++    if (!InitTouchClassDeviceStruct(pInfo->dev, ecpriv->num_touches,
++                                    XIDependentTouch, ecpriv->num_mt_axes))
++        goto err;
++
++    for (i = ABS_MT_TOUCH_MAJOR; i <= ABS_MT_DISTANCE; i++) {
++        int axnum, resolution = 10000;
++        char *name;
++        Atom atom;
++        static char * const names[] = {
++            AXIS_LABEL_PROP_ABS_MT_TOUCH_MAJOR,
++            AXIS_LABEL_PROP_ABS_MT_TOUCH_MINOR,
++            AXIS_LABEL_PROP_ABS_MT_WIDTH_MAJOR,
++            AXIS_LABEL_PROP_ABS_MT_WIDTH_MINOR,
++            AXIS_LABEL_PROP_ABS_MT_ORIENTATION,
++            AXIS_LABEL_PROP_ABS_MT_POSITION_X,
++            AXIS_LABEL_PROP_ABS_MT_POSITION_Y,
++            AXIS_LABEL_PROP_ABS_MT_TOOL_TYPE,
++            AXIS_LABEL_PROP_ABS_MT_BLOB_ID,
++            AXIS_LABEL_PROP_ABS_MT_TRACKING_ID,
++            AXIS_LABEL_PROP_ABS_MT_PRESSURE,
++        };
++
++        if (!BitIsOn(ecpriv->absbits, i))
++            continue;
++
++        axnum = ecpriv->mt_axis_map[i - ABS_MT_TOUCH_MAJOR];
++        name = names[i - ABS_MT_TOUCH_MAJOR];
++
++        if (ecpriv->absinfo[i].resolution)
++            resolution = ecpriv->absinfo[i].resolution * 1000;
++
++        atom = MakeAtom(name, strlen(name), TRUE);
++
++        xf86InitTouchValuatorAxisStruct(pInfo->dev, axnum, atom,
++                                        ecpriv->absinfo[i].minimum,
++                                        ecpriv->absinfo[i].maximum,
++                                        ecpriv->absinfo[i].resolution);
++    }
++
++    return Success;
++
++err:
++    free(ecpriv->mt_slot_map);
++    ecpriv->mt_slot_map = NULL;
++    free(ecpriv->cur_vals);
++    ecpriv->cur_vals = NULL;
++    free(ecpriv->touch_mask);
++    ecpriv->touch_mask = NULL;
++    return !Success;
++}
+ 
+-    need_grab = (BOOL*)priv->proto_data;
++static void
++EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
++{
++    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
++    struct input_absinfo abs;
++    int rc;
+ 
+     if (para->grab_event_device) {
+ 	/* Try to grab the event device so that data don't leak to /dev/input/mice */
+@@ -76,7 +177,48 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
+ 	}
+     }
+ 
+-    *need_grab = FALSE;
++    ecpriv->need_grab = FALSE;
++
++    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_SLOT), &abs));
++    if (rc >= 0)
++        ecpriv->cur_slot = abs.value;
++
++    ecpriv->mtdev = malloc(sizeof(struct mtdev));
++    if (!ecpriv->mtdev)
++        return;
++
++    if (mtdev_open(ecpriv->mtdev, pInfo->fd)) {
++        free(ecpriv->mtdev);
++        ecpriv->mtdev = NULL;
++        return;
++    }
++}
++
++static void
++EventDeviceOffHook(InputInfoPtr pInfo)
++{
++    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
++
++    if (ecpriv->mtdev) {
++        mtdev_close(ecpriv->mtdev);
++        free(ecpriv->mtdev);
++        ecpriv->mtdev = NULL;
++    }
++}
++
++static void
++EventDeviceCloseHook(DeviceIntPtr dev)
++{
++    InputInfoPtr pInfo = dev->public.devicePrivate;
++    SynapticsPrivate *priv = (SynapticsPrivate *) pInfo->private;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
++
++    free(ecpriv->mt_slot_map);
++    free(ecpriv->cur_vals);
++    free(ecpriv->touch_mask);
++    free(ecpriv);
++    priv->proto_data = NULL;
+ }
+ 
+ static Bool
+@@ -171,11 +313,13 @@ static void
+ event_query_axis_ranges(InputInfoPtr pInfo)
+ {
+     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
+     struct input_absinfo abs = {0};
+-    unsigned long absbits[NBITS(ABS_MAX)] = {0};
+     unsigned long keybits[NBITS(KEY_MAX)] = {0};
+     char buf[256];
+-    int rc;
++    int i, rc;
++
++    memset(ecpriv->absbits, 0, sizeof(ecpriv->absbits));
+ 
+     SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_X), &abs));
+     if (rc >= 0)
+@@ -207,11 +351,12 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+ 
+     priv->has_pressure = FALSE;
+     priv->has_width = FALSE;
+-    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGBIT(EV_ABS, sizeof(absbits)), absbits));
++    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGBIT(EV_ABS, sizeof(ecpriv->absbits)),
++                       ecpriv->absbits));
+     if (rc >= 0)
+     {
+-	priv->has_pressure = (TEST_BIT(ABS_PRESSURE, absbits) != 0);
+-	priv->has_width = (TEST_BIT(ABS_TOOL_WIDTH, absbits) != 0);
++	priv->has_pressure = (TEST_BIT(ABS_PRESSURE, ecpriv->absbits) != 0);
++	priv->has_width = (TEST_BIT(ABS_TOOL_WIDTH, ecpriv->absbits) != 0);
+     }
+     else
+ 	xf86Msg(X_ERROR, "%s: failed to query ABS bits (%s)\n", pInfo->name,
+@@ -270,15 +415,29 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+ 
+ 	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
+     }
++
++    for (i = ABS_MT_TOUCH_MAJOR; i <= ABS_MT_PRESSURE; i++) {
++	if (!BitIsOn(ecpriv->absbits, i))
++            continue;
++
++        SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(i), &ecpriv->absinfo[i]));
++        if (rc < 0) {
++            ClearBit(ecpriv->absbits, i);
++            continue;
++        }
++
++        ecpriv->mt_axis_map[i - ABS_MT_TOUCH_MAJOR] = ecpriv->num_mt_axes++;
++        priv->has_touch = TRUE;
++    }
+ }
+ 
+ static Bool
+ EventQueryHardware(InputInfoPtr pInfo)
+ {
+     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+-    BOOL *need_grab = (BOOL*)priv->proto_data;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
+ 
+-    if (!event_query_is_touchpad(pInfo->fd, (need_grab) ? *need_grab : TRUE))
++    if (!event_query_is_touchpad(pInfo->fd, ecpriv->need_grab))
+ 	return FALSE;
+ 
+     xf86Msg(X_PROBED, "%s: touchpad found\n", pInfo->name);
+@@ -286,13 +445,49 @@ EventQueryHardware(InputInfoPtr pInfo)
+     return TRUE;
+ }
+ 
++static void
++ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
++{
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
++
++    if (!priv->has_touch || ecpriv->cur_slot < 0 ||
++        ecpriv->mt_slot_map[ecpriv->cur_slot] == (uint32_t)-1)
++        return;
++
++    if (ecpriv->close_slot)
++    {  
++        xf86PostTouchEvent(pInfo->dev,
++                           ecpriv->mt_slot_map[ecpriv->cur_slot],
++                           XI_TouchEnd, 0, ecpriv->touch_mask);
++        ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
++        ecpriv->close_slot = FALSE;
++    }
++    else
++    {
++        uint16_t type = ecpriv->new_touch ? XI_TouchBegin : XI_TouchUpdate;
++
++        xf86PostTouchEvent(pInfo->dev, ecpriv->mt_slot_map[ecpriv->cur_slot],
++                           type, 0, ecpriv->touch_mask);
++        ecpriv->new_touch = FALSE;
++    }
++
++    valuator_mask_zero(ecpriv->touch_mask);
++}
++
+ static Bool
+ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
+ {
++    SynapticsPrivate *priv = (SynapticsPrivate *) (pInfo->private);
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
+     int rc = TRUE;
+     ssize_t len;
+ 
+-    len = read(pInfo->fd, ev, sizeof(*ev));
++    if (ecpriv->mtdev)
++        len = mtdev_get(ecpriv->mtdev, pInfo->fd, ev, 1) *
++            sizeof(struct input_event);
++    else
++        len = read(pInfo->fd, ev, sizeof(*ev));
++
+     if (len <= 0)
+     {
+         /* We use X_NONE here because it doesn't alloc */
+@@ -316,6 +511,7 @@ EventReadHwState(InputInfoPtr pInfo,
+     struct SynapticsHwState *hw = &(comm->hwState);
+     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+     SynapticsParameters *para = &priv->synpara;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
+ 
+     while (SynapticsReadEvent(pInfo, &ev)) {
+ 	switch (ev.type) {
+@@ -331,6 +527,7 @@ EventReadHwState(InputInfoPtr pInfo,
+ 		else
+ 		    hw->numFingers = 0;
+ 		*hwRet = *hw;
++                ProcessTouch(pInfo, priv);
+ 		return TRUE;
+ 	    }
+ 	case EV_KEY:
+@@ -404,6 +601,52 @@ EventReadHwState(InputInfoPtr pInfo,
+ 	    case ABS_TOOL_WIDTH:
+ 		hw->fingerWidth = ev.value;
+ 		break;
++            case ABS_MT_SLOT:
++                ProcessTouch(pInfo, priv);
++                ecpriv->cur_slot = ev.value;
++                break;
++            case ABS_MT_TRACKING_ID:
++                if (ecpriv->cur_slot < 0)
++                    break;
++                if (ev.value >= 0)
++                {
++                    if (ecpriv->mt_slot_map[ecpriv->cur_slot] != (uint32_t)-1)
++                    {
++                        xf86Msg(X_WARNING, "%s: Ignoring new tracking ID for "
++                                "existing touch.\n", pInfo->dev->name);
++                    }
++                    else
++                    {
++                        ecpriv->mt_slot_map[ecpriv->cur_slot] =
++                            ecpriv->next_touch_id++;
++                        ecpriv->new_touch = TRUE;
++                        valuator_mask_copy(ecpriv->touch_mask,
++                                           ecpriv->cur_vals);
++                    }
++                }
++                else
++                    ecpriv->close_slot = TRUE;
++                break;
++            case ABS_MT_TOUCH_MAJOR:
++            case ABS_MT_TOUCH_MINOR:
++            case ABS_MT_WIDTH_MAJOR:
++            case ABS_MT_WIDTH_MINOR:
++            case ABS_MT_ORIENTATION:
++            case ABS_MT_POSITION_X:
++            case ABS_MT_POSITION_Y:
++            case ABS_MT_TOOL_TYPE:
++            case ABS_MT_BLOB_ID:
++            case ABS_MT_PRESSURE:
++                if (ecpriv->cur_slot >= 0)
++                {
++                    valuator_mask_set(ecpriv->touch_mask,
++                                      ecpriv->mt_axis_map[ev.code - ABS_MT_TOUCH_MAJOR],
++                                      ev.value);
++                    valuator_mask_set(ecpriv->cur_vals,
++                                      ecpriv->mt_axis_map[ev.code - ABS_MT_TOUCH_MAJOR],
++                                      ev.value);
++                }
++                break;
+ 	    }
+ 	    break;
+ 	}
+@@ -423,9 +666,9 @@ static void
+ EventReadDevDimensions(InputInfoPtr pInfo)
+ {
+     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+-    BOOL *need_grab = (BOOL*)priv->proto_data;
++    EventcommPrivate *ecpriv = (EventcommPrivate *)priv->proto_data;
+ 
+-    if (event_query_is_touchpad(pInfo->fd, (need_grab) ? *need_grab : TRUE))
++    if (event_query_is_touchpad(pInfo->fd, ecpriv->need_grab))
+ 	event_query_axis_ranges(pInfo);
+     event_query_info(pInfo);
+ }
+@@ -482,8 +725,11 @@ EventAutoDevProbe(InputInfoPtr pInfo)
+ }
+ 
+ struct SynapticsProtocolOperations event_proto_operations = {
++    EventDevicePreInitHook,
++    EventDeviceInitHook,
+     EventDeviceOnHook,
+-    NULL,
++    EventDeviceOffHook,
++    EventDeviceCloseHook,
+     EventQueryHardware,
+     EventReadHwState,
+     EventAutoDevProbe,
+diff --git a/src/eventcomm.h b/src/eventcomm.h
+index 8fd7bcb..f3d94ba 100644
+--- a/src/eventcomm.h
++++ b/src/eventcomm.h
+@@ -29,9 +29,31 @@
+ 
+ #include <linux/input.h>
+ #include <linux/version.h>
++#include <X11/Xdefs.h>
++#include <xorg/input.h>
++#include <stdint.h>
+ 
+ /* for auto-dev: */
+ #define DEV_INPUT_EVENT "/dev/input"
+ #define EVENT_DEV_NAME "event"
+ 
++struct mtdev;
++
++typedef struct {
++    BOOL need_grab;
++    unsigned long absbits[ABS_CNT];
++    struct input_absinfo absinfo[ABS_CNT];
++    int mt_axis_map[ABS_MT_DISTANCE - ABS_MT_TOUCH_MAJOR];
++    int cur_slot;
++    uint32_t *mt_slot_map;
++    Bool close_slot;
++    uint32_t next_touch_id;
++    ValuatorMask *touch_mask;
++    ValuatorMask *cur_vals;
++    Bool new_touch;
++    int num_mt_axes;
++    int num_touches;
++    struct mtdev *mtdev;
++} EventcommPrivate;
++
+ #endif /* _EVENTCOMM_H_ */
+diff --git a/src/ps2comm.c b/src/ps2comm.c
+index 4e372b3..0878f7c 100644
+--- a/src/ps2comm.c
++++ b/src/ps2comm.c
+@@ -668,7 +668,10 @@ PS2AutoDevProbe(InputInfoPtr pInfo)
+ 
+ struct SynapticsProtocolOperations psaux_proto_operations = {
+     NULL,
++    NULL,
++    NULL,
+     PS2DeviceOffHook,
++    NULL,
+     PS2QueryHardware,
+     PS2ReadHwState,
+     PS2AutoDevProbe,
+diff --git a/src/synaptics.c b/src/synaptics.c
+index 88bd024..b6e3c47 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -723,6 +723,10 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
+     priv->tap_button_state = TBS_BUTTON_UP;
+     priv->touch_on.millis = 0;
+ 
++    if (priv->proto_ops->DevicePreInitHook)
++        if (priv->proto_ops->DevicePreInitHook(drv, pInfo, flags) != Success)
++            goto SetupProc_fail;
++
+     /* read hardware dimensions */
+     ReadDevDimensions(pInfo);
+ 
+@@ -899,6 +903,9 @@ DeviceClose(DeviceIntPtr dev)
+     InputInfoPtr pInfo = dev->public.devicePrivate;
+     SynapticsPrivate *priv = (SynapticsPrivate *) pInfo->private;
+ 
++    if (priv->proto_ops->DeviceCloseHook)
++        priv->proto_ops->DeviceCloseHook(dev);
++
+     RetValue = DeviceOff(dev);
+     TimerFree(priv->timer);
+     priv->timer = NULL;
+@@ -1077,6 +1084,9 @@ DeviceInit(DeviceIntPtr dev)
+     InitDeviceProperties(pInfo);
+     XIRegisterPropertyHandler(pInfo->dev, SetProperty, NULL, NULL);
+ 
++    if (priv->proto_ops->DeviceInitHook)
++        return priv->proto_ops->DeviceInitHook(dev);
++
+     return Success;
+ }
+ 
+diff --git a/src/synapticsstr.h b/src/synapticsstr.h
+index 9ad8638..e8113ac 100644
+--- a/src/synapticsstr.h
++++ b/src/synapticsstr.h
+@@ -22,6 +22,8 @@
+ #ifndef	_SYNAPTICSSTR_H_
+ #define _SYNAPTICSSTR_H_
+ 
++#include <linux/input.h>
++
+ #include "synproto.h"
+ 
+ #ifdef DBG
+@@ -236,6 +238,7 @@ typedef struct _SynapticsPrivateRec
+     Bool has_pressure;			/* device reports pressure */
+     Bool has_width;			/* device reports finger width */
+     Bool has_scrollbuttons;		/* device has physical scrollbuttons */
++    Bool has_touch;                     /* device has multitouch */
+ 
+     enum TouchpadModel model;          /* The detected model */
+ } SynapticsPrivate;
+diff --git a/src/synproto.h b/src/synproto.h
+index 96ddf3e..4d5f510 100644
+--- a/src/synproto.h
++++ b/src/synproto.h
+@@ -83,8 +83,11 @@ struct SynapticsHwInfo;
+ struct CommData;
+ 
+ struct SynapticsProtocolOperations {
++    int (*DevicePreInitHook)(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
++    Bool (*DeviceInitHook)(DeviceIntPtr dev);
+     void (*DeviceOnHook)(InputInfoPtr pInfo, struct _SynapticsParameters *para);
+     void (*DeviceOffHook)(InputInfoPtr pInfo);
++    void (*DeviceCloseHook)(DeviceIntPtr dev);
+     Bool (*QueryHardware)(InputInfoPtr pInfo);
+     Bool (*ReadHwState)(InputInfoPtr pInfo,
+ 			struct SynapticsProtocolOperations *proto_ops,
+@@ -102,5 +105,4 @@ extern struct SynapticsProtocolOperations psm_proto_operations;
+ #endif /* BUILD_PSMCOMM */
+ extern struct SynapticsProtocolOperations alps_proto_operations;
+ 
+-
+ #endif /* _SYNPROTO_H_ */

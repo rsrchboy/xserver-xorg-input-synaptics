@@ -11,12 +11,15 @@ Build-Depends:
  libxi-dev (>= 2:1.2.0),
  libxtst-dev,
  x11proto-core-dev,
- xserver-xorg-dev (>= 2:1.9.99.901+git20110131),
+ xserver-xorg-dev (>= 2:1.9.99.902-2ubuntu1),
  pkg-config,
  quilt,
  automake,
  libtool,
- xutils-dev (>= 1:7.5+4)
+ xutils-dev (>= 1:7.5+4),
+ x11proto-input-dev (>= 2.0.1-1ubuntu1),
+ libmtdev-dev,
+ libutouch-grail-dev
 Standards-Version: 3.8.4
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
@@ -27,7 +30,9 @@ Depends:
  udev [linux-any],
  ${shlibs:Depends},
  ${xinpdriver:Depends},
- ${misc:Depends}
+ ${misc:Depends},
+ libutouch-grail1 (>= 1.0.19),
+ xserver-xorg-core (>= 2:1.9.99.902-2ubuntu1)
 Conflicts: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Replaces: xfree86-driver-synaptics (<< 0.14.4-2), xorg-driver-synaptics
 Provides: ${xinpdriver:Provides}, xfree86-driver-synaptics, xorg-driver-synaptics
