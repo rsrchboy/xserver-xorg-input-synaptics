@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.3.99.901-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Cyril Brulebois <kibi@debian.org>  Mon, 21 Feb 2011 04:19:57 +0100
+
 xserver-xorg-input-synaptics (1.3.0-2) unstable; urgency=low
 
   * Switch to Architecture: any, adding armhf support (Closes: #604672).
