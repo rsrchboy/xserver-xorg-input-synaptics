@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu6) natty; urgency=low
+
+  * Fix silly typo in patch name
+
+ -- Bryce Harrington <bryce@ubuntu.com>  Wed, 02 Mar 2011 13:06:17 -0800
+
 xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu5) natty; urgency=low
 
   * Add 118_quell_error_msg.patch:  Don't print error "Unable to find a
