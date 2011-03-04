@@ -1,5 +1,3 @@
-diff --git a/configure.ac b/configure.ac
-index 537b4c0..33a8668 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -104,6 +104,10 @@ case "${host}" in
@@ -13,8 +11,6 @@ index 537b4c0..33a8668 100644
  	;;
  *freebsd* | *openbsd* | *netbsd* | *dragonfly*)
  	AC_MSG_RESULT([psmcomm])
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 2150292..8def136 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -39,8 +39,8 @@ AM_CFLAGS = $(XORG_CFLAGS)
@@ -28,8 +24,6 @@ index 2150292..8def136 100644
  endif
  
  if BUILD_PSMCOMM
-diff --git a/src/eventcomm.c b/src/eventcomm.c
-index 86e8192..1fe02f4 100644
 --- a/src/eventcomm.c
 +++ b/src/eventcomm.c
 @@ -43,6 +43,7 @@
@@ -40,7 +34,7 @@ index 86e8192..1fe02f4 100644
  
  
  #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
-@@ -183,28 +184,13 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
+@@ -183,28 +184,13 @@ EventDeviceOnHook(InputInfoPtr pInfo, Sy
      if (rc >= 0)
          ecpriv->cur_slot = abs.value;
  
@@ -71,7 +65,7 @@ index 86e8192..1fe02f4 100644
  }
  
  static void
-@@ -482,9 +468,8 @@ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
+@@ -482,9 +468,8 @@ SynapticsReadEvent(InputInfoPtr pInfo, s
      int rc = TRUE;
      ssize_t len;
  
@@ -83,7 +77,7 @@ index 86e8192..1fe02f4 100644
      else
          len = read(pInfo->fd, ev, sizeof(*ev));
  
-@@ -494,163 +479,179 @@ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
+@@ -494,163 +479,179 @@ SynapticsReadEvent(InputInfoPtr pInfo, s
          if (errno != EAGAIN)
              xf86MsgVerb(X_NONE, 0, "%s: Read error %s\n", pInfo->name, strerror(errno));
          rc = FALSE;
@@ -403,8 +397,6 @@ index 86e8192..1fe02f4 100644
      return FALSE;
  }
  
-diff --git a/src/eventcomm.h b/src/eventcomm.h
-index f3d94ba..c6ef87c 100644
 --- a/src/eventcomm.h
 +++ b/src/eventcomm.h
 @@ -32,12 +32,15 @@
@@ -437,9 +429,6 @@ index f3d94ba..c6ef87c 100644
 +extern void GrailClose(InputInfoPtr pInfo);
 +
  #endif /* _EVENTCOMM_H_ */
-diff --git a/src/grail.c b/src/grail.c
-new file mode 100644
-index 0000000..bc74096
 --- /dev/null
 +++ b/src/grail.c
 @@ -0,0 +1,376 @@
@@ -620,7 +609,7 @@ index 0000000..bc74096
 +                                clients[0].id.client = CLIENT_ID(client->resource);
 +                                clients[0].id.root = root_window->drawable.id;
 +                                clients[0].id.child = child_window->drawable.id;
-+                                clients[0].id.event = root_window->drawable.id;
++                                clients[0].id.event = window->drawable.id;
 +                                grail_mask_clear(clients[0].mask,
 +                                                 DIM_GRAIL_TYPE_BYTES);
 +                                first = 0;
@@ -819,11 +808,9 @@ index 0000000..bc74096
 +        ecpriv->grail = NULL;
 +    }
 +}
-diff --git a/src/synaptics.c b/src/synaptics.c
-index b6e3c47..ce06216 100644
 --- a/src/synaptics.c
 +++ b/src/synaptics.c
-@@ -119,7 +119,6 @@ static InputInfoPtr SynapticsPreInit(InputDriverPtr drv, IDevPtr dev, int flags)
+@@ -119,7 +119,6 @@ static InputInfoPtr SynapticsPreInit(Inp
  static void SynapticsUnInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
  static Bool DeviceControl(DeviceIntPtr, int);
  static void ReadInput(InputInfoPtr);
@@ -831,7 +818,7 @@ index b6e3c47..ce06216 100644
  static int ControlProc(InputInfoPtr, xDeviceCtl*);
  static int SwitchMode(ClientPtr, DeviceIntPtr, int);
  static Bool DeviceInit(DeviceIntPtr);
-@@ -1207,7 +1206,7 @@ is_inside_active_area(SynapticsPrivate *priv, int x, int y)
+@@ -1214,7 +1213,7 @@ is_inside_active_area(SynapticsPrivate *
      return inside_area;
  }
  
@@ -840,7 +827,7 @@ index b6e3c47..ce06216 100644
  timerFunc(OsTimerPtr timer, CARD32 now, pointer arg)
  {
      InputInfoPtr pInfo = arg;
-@@ -2353,7 +2352,7 @@ repeat_scrollbuttons(const InputInfoPtr pInfo,
+@@ -2410,7 +2409,7 @@ repeat_scrollbuttons(const InputInfoPtr
   * milliseconds to wait before calling the function again if no state change
   * occurs.
   */
@@ -849,11 +836,9 @@ index b6e3c47..ce06216 100644
  HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw)
  {
      SynapticsPrivate *priv = (SynapticsPrivate *) (pInfo->private);
-diff --git a/src/synproto.h b/src/synproto.h
-index 4d5f510..4f93d61 100644
 --- a/src/synproto.h
 +++ b/src/synproto.h
-@@ -105,4 +105,7 @@ extern struct SynapticsProtocolOperations psm_proto_operations;
+@@ -105,4 +105,7 @@ extern struct SynapticsProtocolOperation
  #endif /* BUILD_PSMCOMM */
  extern struct SynapticsProtocolOperations alps_proto_operations;
  
