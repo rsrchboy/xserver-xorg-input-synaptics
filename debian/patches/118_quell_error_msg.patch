@@ -1,0 +1,28 @@
+diff -Nurp patched//tools/synclient.c working//tools/synclient.c
+--- patched//tools/synclient.c	2011-03-02 11:52:26.000000000 -0800
++++ working//tools/synclient.c	2011-03-02 11:54:13.000000000 -0800
+@@ -390,9 +390,7 @@ dp_get_device(Display *dpy)
+ unwind:
+     XFree(properties);
+     XFreeDeviceList(info);
+-    if (!dev)
+-        fprintf(stderr, "Unable to find a synaptics device.\n");
+-    else if (error && dev)
++    if (error && dev)
+     {
+ 	XCloseDevice(dpy, dev);
+ 	dev = NULL;
+diff -Nurp patched//tools/syndaemon.c working//tools/syndaemon.c
+--- patched//tools/syndaemon.c	2011-03-02 11:52:14.000000000 -0800
++++ working//tools/syndaemon.c	2011-03-02 11:54:37.000000000 -0800
+@@ -500,9 +500,7 @@ dp_get_device(Display *dpy)
+ unwind:
+     XFree(properties);
+     XFreeDeviceList(info);
+-    if (!dev)
+-	fprintf(stderr, "Unable to find a synaptics device.\n");
+-    else if (error && dev)
++    if (error && dev)
+     {
+ 	XCloseDevice(dpy, dev);
+ 	dev = NULL;
