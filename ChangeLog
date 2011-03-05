@@ -1,3 +1,23 @@
+commit de0dfb76444ad4160468d00515876c91a9fa20bf
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 4 12:36:24 2011 +1000
+
+    synaptics 1.4.0
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit fefb3b63c589b0758c02777e652f05e537ba663f
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Fri Feb 25 20:41:12 2011 +0100
+
+    Fix build on BSD
+    
+    local was renamed to pInfo in 81ad2e389d11691d5c2687d83150e8e9033cfe76,
+    but a couple places were missed.
+    
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit 8ec84d1850fe801fa9a123ae70e09821a4358389
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Mon Feb 21 12:57:21 2011 +1000
