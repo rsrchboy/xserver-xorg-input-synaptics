@@ -1,5 +1,3 @@
-diff --git a/configure.ac b/configure.ac
-index 155c6dc..537b4c0 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -101,6 +101,9 @@ case "${host}" in
@@ -12,8 +10,6 @@ index 155c6dc..537b4c0 100644
  	;;
  *freebsd* | *openbsd* | *netbsd* | *dragonfly*)
  	AC_MSG_RESULT([psmcomm])
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 980ab5e..2150292 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -40,6 +40,7 @@ AM_CFLAGS = $(XORG_CFLAGS)
@@ -24,8 +20,6 @@ index 980ab5e..2150292 100644
  endif
  
  if BUILD_PSMCOMM
-diff --git a/src/alpscomm.c b/src/alpscomm.c
-index 84d2136..94cdc58 100644
 --- a/src/alpscomm.c
 +++ b/src/alpscomm.c
 @@ -230,6 +230,9 @@ ALPSAutoDevProbe(InputInfoPtr pInfo)
@@ -38,8 +32,6 @@ index 84d2136..94cdc58 100644
      ALPSQueryHardware,
      ALPSReadHwState,
      ALPSAutoDevProbe,
-diff --git a/src/eventcomm.c b/src/eventcomm.c
-index 4593bba..86e8192 100644
 --- a/src/eventcomm.c
 +++ b/src/eventcomm.c
 @@ -41,6 +41,8 @@
@@ -51,7 +43,7 @@ index 4593bba..86e8192 100644
  
  
  #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
-@@ -55,16 +57,115 @@
+@@ -55,16 +57,116 @@
   *	Function Definitions
   ****************************************************************************/
  
@@ -74,6 +66,7 @@ index 4593bba..86e8192 100644
 +    ecpriv = priv->proto_data;
 +    ecpriv->need_grab = TRUE;
 +    ecpriv->num_touches = 10;
++    ecpriv->cur_slot = -1;
 +
 +    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_SLOT), &abs));
 +    if (rc >= 0 && abs.maximum > 0)
@@ -86,7 +79,8 @@ index 4593bba..86e8192 100644
 +        
 +    return Success;
 +}
-+
+ 
+-    need_grab = (BOOL*)priv->proto_data;
 +static Bool
 +EventDeviceInitHook(DeviceIntPtr dev)
 +{
@@ -160,8 +154,7 @@ index 4593bba..86e8192 100644
 +    ecpriv->touch_mask = NULL;
 +    return !Success;
 +}
- 
--    need_grab = (BOOL*)priv->proto_data;
++
 +static void
 +EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
 +{
@@ -172,16 +165,18 @@ index 4593bba..86e8192 100644
  
      if (para->grab_event_device) {
  	/* Try to grab the event device so that data don't leak to /dev/input/mice */
-@@ -76,7 +177,48 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
+@@ -76,7 +178,50 @@ EventDeviceOnHook(InputInfoPtr pInfo, Sy
  	}
      }
  
 -    *need_grab = FALSE;
 +    ecpriv->need_grab = FALSE;
 +
-+    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_SLOT), &abs));
-+    if (rc >= 0)
-+        ecpriv->cur_slot = abs.value;
++    if (priv->has_touch) {
++        SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_MT_SLOT), &abs));
++        if (rc >= 0)
++            ecpriv->cur_slot = abs.value;
++    }
 +
 +    ecpriv->mtdev = malloc(sizeof(struct mtdev));
 +    if (!ecpriv->mtdev)
@@ -222,7 +217,7 @@ index 4593bba..86e8192 100644
  }
  
  static Bool
-@@ -171,11 +313,13 @@ static void
+@@ -171,11 +316,14 @@ static void
  event_query_axis_ranges(InputInfoPtr pInfo)
  {
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
@@ -233,12 +228,13 @@ index 4593bba..86e8192 100644
      char buf[256];
 -    int rc;
 +    int i, rc;
++    uint8_t prop;
 +
 +    memset(ecpriv->absbits, 0, sizeof(ecpriv->absbits));
  
      SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_X), &abs));
      if (rc >= 0)
-@@ -207,11 +351,12 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+@@ -207,11 +355,12 @@ event_query_axis_ranges(InputInfoPtr pIn
  
      priv->has_pressure = FALSE;
      priv->has_width = FALSE;
@@ -254,10 +250,15 @@ index 4593bba..86e8192 100644
      }
      else
  	xf86Msg(X_ERROR, "%s: failed to query ABS bits (%s)\n", pInfo->name,
-@@ -270,15 +415,29 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+@@ -270,15 +419,34 @@ event_query_axis_ranges(InputInfoPtr pIn
  
  	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
      }
++
++    /* We don't support SemiMultitouch devices yet. */
++    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGPROP(sizeof(prop)), &prop));
++    if (rc >= 0 && (prop & INPUT_PROP_SEMI_MT))
++        return;
 +
 +    for (i = ABS_MT_TOUCH_MAJOR; i <= ABS_MT_PRESSURE; i++) {
 +	if (!BitIsOn(ecpriv->absbits, i))
@@ -286,7 +287,7 @@ index 4593bba..86e8192 100644
  	return FALSE;
  
      xf86Msg(X_PROBED, "%s: touchpad found\n", pInfo->name);
-@@ -286,13 +445,49 @@ EventQueryHardware(InputInfoPtr pInfo)
+@@ -286,13 +454,49 @@ EventQueryHardware(InputInfoPtr pInfo)
      return TRUE;
  }
  
@@ -337,7 +338,7 @@ index 4593bba..86e8192 100644
      if (len <= 0)
      {
          /* We use X_NONE here because it doesn't alloc */
-@@ -316,6 +511,7 @@ EventReadHwState(InputInfoPtr pInfo,
+@@ -316,6 +520,7 @@ EventReadHwState(InputInfoPtr pInfo,
      struct SynapticsHwState *hw = &(comm->hwState);
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
      SynapticsParameters *para = &priv->synpara;
@@ -345,7 +346,7 @@ index 4593bba..86e8192 100644
  
      while (SynapticsReadEvent(pInfo, &ev)) {
  	switch (ev.type) {
-@@ -331,6 +527,7 @@ EventReadHwState(InputInfoPtr pInfo,
+@@ -331,6 +536,7 @@ EventReadHwState(InputInfoPtr pInfo,
  		else
  		    hw->numFingers = 0;
  		*hwRet = *hw;
@@ -353,13 +354,16 @@ index 4593bba..86e8192 100644
  		return TRUE;
  	    }
  	case EV_KEY:
-@@ -404,6 +601,52 @@ EventReadHwState(InputInfoPtr pInfo,
+@@ -404,6 +610,55 @@ EventReadHwState(InputInfoPtr pInfo,
  	    case ABS_TOOL_WIDTH:
  		hw->fingerWidth = ev.value;
  		break;
 +            case ABS_MT_SLOT:
-+                ProcessTouch(pInfo, priv);
-+                ecpriv->cur_slot = ev.value;
++                if (priv->has_touch)
++                {
++                    ProcessTouch(pInfo, priv);
++                    ecpriv->cur_slot = ev.value;
++                }
 +                break;
 +            case ABS_MT_TRACKING_ID:
 +                if (ecpriv->cur_slot < 0)
@@ -406,7 +410,7 @@ index 4593bba..86e8192 100644
  	    }
  	    break;
  	}
-@@ -423,9 +666,9 @@ static void
+@@ -423,9 +678,9 @@ static void
  EventReadDevDimensions(InputInfoPtr pInfo)
  {
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
@@ -418,7 +422,7 @@ index 4593bba..86e8192 100644
  	event_query_axis_ranges(pInfo);
      event_query_info(pInfo);
  }
-@@ -482,8 +725,11 @@ EventAutoDevProbe(InputInfoPtr pInfo)
+@@ -482,8 +737,11 @@ EventAutoDevProbe(InputInfoPtr pInfo)
  }
  
  struct SynapticsProtocolOperations event_proto_operations = {
@@ -431,8 +435,6 @@ index 4593bba..86e8192 100644
      EventQueryHardware,
      EventReadHwState,
      EventAutoDevProbe,
-diff --git a/src/eventcomm.h b/src/eventcomm.h
-index 8fd7bcb..f3d94ba 100644
 --- a/src/eventcomm.h
 +++ b/src/eventcomm.h
 @@ -29,9 +29,31 @@
@@ -467,8 +469,6 @@ index 8fd7bcb..f3d94ba 100644
 +} EventcommPrivate;
 +
  #endif /* _EVENTCOMM_H_ */
-diff --git a/src/ps2comm.c b/src/ps2comm.c
-index 4e372b3..0878f7c 100644
 --- a/src/ps2comm.c
 +++ b/src/ps2comm.c
 @@ -668,7 +668,10 @@ PS2AutoDevProbe(InputInfoPtr pInfo)
@@ -482,11 +482,9 @@ index 4e372b3..0878f7c 100644
      PS2QueryHardware,
      PS2ReadHwState,
      PS2AutoDevProbe,
-diff --git a/src/synaptics.c b/src/synaptics.c
-index 88bd024..b6e3c47 100644
 --- a/src/synaptics.c
 +++ b/src/synaptics.c
-@@ -723,6 +723,10 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
+@@ -730,6 +730,10 @@ SynapticsPreInit(InputDriverPtr drv, Inp
      priv->tap_button_state = TBS_BUTTON_UP;
      priv->touch_on.millis = 0;
  
@@ -497,7 +495,7 @@ index 88bd024..b6e3c47 100644
      /* read hardware dimensions */
      ReadDevDimensions(pInfo);
  
-@@ -899,6 +903,9 @@ DeviceClose(DeviceIntPtr dev)
+@@ -906,6 +910,9 @@ DeviceClose(DeviceIntPtr dev)
      InputInfoPtr pInfo = dev->public.devicePrivate;
      SynapticsPrivate *priv = (SynapticsPrivate *) pInfo->private;
  
@@ -507,7 +505,7 @@ index 88bd024..b6e3c47 100644
      RetValue = DeviceOff(dev);
      TimerFree(priv->timer);
      priv->timer = NULL;
-@@ -1077,6 +1084,9 @@ DeviceInit(DeviceIntPtr dev)
+@@ -1084,6 +1091,9 @@ DeviceInit(DeviceIntPtr dev)
      InitDeviceProperties(pInfo);
      XIRegisterPropertyHandler(pInfo->dev, SetProperty, NULL, NULL);
  
@@ -517,8 +515,6 @@ index 88bd024..b6e3c47 100644
      return Success;
  }
  
-diff --git a/src/synapticsstr.h b/src/synapticsstr.h
-index 9ad8638..e8113ac 100644
 --- a/src/synapticsstr.h
 +++ b/src/synapticsstr.h
 @@ -22,6 +22,8 @@
@@ -530,7 +526,7 @@ index 9ad8638..e8113ac 100644
  #include "synproto.h"
  
  #ifdef DBG
-@@ -236,6 +238,7 @@ typedef struct _SynapticsPrivateRec
+@@ -238,6 +240,7 @@ typedef struct _SynapticsPrivateRec
      Bool has_pressure;			/* device reports pressure */
      Bool has_width;			/* device reports finger width */
      Bool has_scrollbuttons;		/* device has physical scrollbuttons */
@@ -538,8 +534,6 @@ index 9ad8638..e8113ac 100644
  
      enum TouchpadModel model;          /* The detected model */
  } SynapticsPrivate;
-diff --git a/src/synproto.h b/src/synproto.h
-index 96ddf3e..4d5f510 100644
 --- a/src/synproto.h
 +++ b/src/synproto.h
 @@ -83,8 +83,11 @@ struct SynapticsHwInfo;
@@ -554,7 +548,7 @@ index 96ddf3e..4d5f510 100644
      Bool (*QueryHardware)(InputInfoPtr pInfo);
      Bool (*ReadHwState)(InputInfoPtr pInfo,
  			struct SynapticsProtocolOperations *proto_ops,
-@@ -102,5 +105,4 @@ extern struct SynapticsProtocolOperations psm_proto_operations;
+@@ -102,5 +105,4 @@ extern struct SynapticsProtocolOperation
  #endif /* BUILD_PSMCOMM */
  extern struct SynapticsProtocolOperations alps_proto_operations;
  
