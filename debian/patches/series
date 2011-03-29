@@ -10,3 +10,6 @@
 116_xi2_1.patch
 117_gestures.patch
 118_quell_error_msg.patch
+119_active_area_touches.patch
+120_active_touches_num_fingers.patch
+121_semi-mt_num_fingers.patch

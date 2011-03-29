@@ -1,0 +1,158 @@
+From 07af5bb64e1dae33ef463b71957564111aa532ab Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Tue, 29 Mar 2011 12:11:28 -0400
+Subject: [PATCH 3/3] Add fixes for semi-multitouch devices with integrated buttons
+
+Some machines, such as early Dell Mini series, have synaptics trackpads
+that provide semi-multitouch data and have integrated left and right
+buttons at the bottom of the trackpad. Special care must be taken to
+ensure these trackpads function correctly, otherwise a button press with
+one finger and a drag with another finger may end up sending a two
+finger scroll event.
+
+This patch implements the following:
+
+1. When the first or second touch begins on a semi-mt device, the touch
+   bounding box must be entirely in the trackpad active area or else the
+   active touch count is not incremented.
+2. The maximum active touch count is 2 for a semi-mt device, but more
+   fingers may be reported through BTN_*TAP events. If the active touch
+   count is 2, use the BTN_*TAP events for determining the number of
+   fingers on the touchpad. Otherwise, use the active touch count.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ src/eventcomm.c |   59 +++++++++++++++++++++++++++++++++++++++++--------------
+ src/eventcomm.h |    5 ++++
+ 2 files changed, 49 insertions(+), 15 deletions(-)
+
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index d3fc943..b247934 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -406,11 +406,6 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+ 	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
+     }
+ 
+-    /* We don't support SemiMultitouch devices yet. */
+-    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGPROP(sizeof(prop)), &prop));
+-    if (rc >= 0 && (prop & INPUT_PROP_SEMI_MT))
+-        return;
+-
+     for (i = ABS_MT_TOUCH_MAJOR; i <= ABS_MT_PRESSURE; i++) {
+ 	if (!BitIsOn(ecpriv->absbits, i))
+             continue;
+@@ -424,6 +419,16 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+         ecpriv->mt_axis_map[i - ABS_MT_TOUCH_MAJOR] = ecpriv->num_mt_axes++;
+         priv->has_touch = TRUE;
+     }
++
++    if (priv->has_touch) {
++        /* We don't support SemiMultitouch devices yet. */
++        SYSCALL(rc = ioctl(pInfo->fd, EVIOCGPROP(sizeof(prop)), &prop));
++        if (rc >= 0 && (prop & INPUT_PROP_SEMI_MT))
++            ecpriv->semi_mt = TRUE;
++        else
++            ecpriv->semi_mt = FALSE;
++    }
++
+ }
+ 
+ static Bool
+@@ -453,10 +458,11 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+     }
+ 
+     if (ecpriv->close_slot)
+-    {  
+-        xf86PostTouchEvent(pInfo->dev,
+-                           ecpriv->mt_slot_map[ecpriv->cur_slot],
+-                           XI_TouchEnd, 0, ecpriv->touch_mask);
++    {
++        if (!ecpriv->semi_mt)
++            xf86PostTouchEvent(pInfo->dev,
++                               ecpriv->mt_slot_map[ecpriv->cur_slot],
++                               XI_TouchEnd, 0, ecpriv->touch_mask);
+         ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
+         ecpriv->close_slot = FALSE;
+         ecpriv->active_touches--;
+@@ -470,17 +476,22 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+             int x = valuator_mask_get(ecpriv->touch_mask, x_axis);
+             int y = valuator_mask_get(ecpriv->touch_mask, y_axis);
+ 
+-            if (is_inside_active_area(priv, x, y))
++            if ((!ecpriv->semi_mt && is_inside_active_area(priv, x, y)) ||
++                (ecpriv->semi_mt &&
++                 (is_inside_active_area(priv, ecpriv->min_x, ecpriv->min_y) &&
++                  (ecpriv->active_touches == 0 ||
++                   is_inside_active_area(priv, ecpriv->max_x, ecpriv->max_y)))))
+             {
+-                xf86PostTouchEvent(pInfo->dev,
+-                                   ecpriv->mt_slot_map[ecpriv->cur_slot],
+-                                   XI_TouchBegin, 0, ecpriv->touch_mask);
++                if (!ecpriv->semi_mt)
++                    xf86PostTouchEvent(pInfo->dev,
++                                       ecpriv->mt_slot_map[ecpriv->cur_slot],
++                                       XI_TouchBegin, 0, ecpriv->touch_mask);
+                 ecpriv->active_touches++;
+             }
+             else
+                 ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
+         }
+-        else
++        else if (!ecpriv->semi_mt)
+         {
+             xf86PostTouchEvent(pInfo->dev,
+                                ecpriv->mt_slot_map[ecpriv->cur_slot],
+@@ -535,7 +546,7 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+     case EV_SYN:
+         switch (ev->code) {
+         case SYN_REPORT:
+-            if (priv->has_touch)
++            if (priv->has_touch && ecpriv->active_touches < 2)
+                 hw->numFingers = ecpriv->active_touches;
+             else if (comm->oneFinger)
+                 hw->numFingers = 1;
+@@ -667,6 +678,24 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+                 valuator_mask_set(ecpriv->cur_vals,
+                                   ecpriv->mt_axis_map[ev->code - ABS_MT_TOUCH_MAJOR],
+                                   ev->value);
++
++                if (ecpriv->semi_mt)
++                {
++                    if (ev->code == ABS_MT_POSITION_X)
++                    {
++                        if (ecpriv->cur_slot == 0)
++                            ecpriv->min_x = ev->value;
++                        else
++                            ecpriv->max_x = ev->value;
++                    }
++                    else if (ev->code == ABS_MT_POSITION_Y)
++                    {
++                        if (ecpriv->cur_slot == 0)
++                            ecpriv->min_y = ev->value;
++                        else
++                            ecpriv->max_y = ev->value;
++                    }
++                }
+             }
+             break;
+         }
+diff --git a/src/eventcomm.h b/src/eventcomm.h
+index d9c9ebb..4ac36a8 100644
+--- a/src/eventcomm.h
++++ b/src/eventcomm.h
+@@ -59,6 +59,11 @@ typedef struct {
+     struct mtdev *mtdev;
+     struct grail *grail;
+     int active_touches;
++    Bool semi_mt;
++    int min_x;
++    int max_x;
++    int min_y;
++    int max_y;
+ } EventcommPrivate;
+ 
+ extern Bool EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+-- 
+1.7.4.1
+
