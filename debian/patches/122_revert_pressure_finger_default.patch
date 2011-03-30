@@ -1,0 +1,48 @@
+From c31cbe1a856dd6a1093469091d90ac12619b6244 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Wed, 30 Mar 2011 10:47:13 -0400
+Subject: [PATCH] Revert "Default to 2-finger emulation when HW supports it"
+
+The default pressure threshold set by this patch is low enough to cause
+spurious behavior in some devices. One bug report also notes that the
+pressure values seem to vary with environment state (temperature,
+air pressure, etc.). Thus, this commit is being reverted to restore
+behavior to what it was before Natty.
+
+This reverts upstream commit ffa6dc2809734a6aaa690e9133d6761480603a68.
+
+Fixes LP: #742213
+
+Reported-by: steubens (https://launchpad.net/~d-launchpad-lez-ath-cx)
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ src/synaptics.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index f4e440a..51d3ad0 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -463,18 +463,13 @@ static void set_default_parameters(InputInfoPtr pInfo)
+     fingerLow = priv->minp + range * (25.0/256);
+     fingerHigh = priv->minp + range * (30.0/256);
+     fingerPress = priv->minp + range * 1.000;
++    emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
+     edgeMotionMinZ = priv->minp + range * (30.0/256);
+     edgeMotionMaxZ = priv->minp + range * (160.0/256);
+     pressureMotionMinZ = priv->minp + range * (30.0/256);
+     pressureMotionMaxZ = priv->minp + range * (160.0/256);
+     palmMinZ = priv->minp + range * (200.0/256);
+ 
+-    /* Enable emulation when hw supports both pressure and width. */
+-    if (!priv->has_double && priv->has_width)
+-	emulateTwoFingerMinZ = fingerHigh;
+-    else
+-	emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
+-
+     range = priv->maxw - priv->minw;
+ 
+     /* scaling based on defaults below and a tool width of 16 */
+-- 
+1.7.4.1
+

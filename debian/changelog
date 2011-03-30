@@ -5,8 +5,10 @@ xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu9) UNRELEASED; 
     - Added 119_active_area_touches.patch
     - Added 120_active_touches_num_fingers.patch
     - Added 121_semi-mt_num_fingers.patch
+  * Fix spurious right click events on some trackpads (LP: #742213)
+    - Added 122_revert_pressure_finger_default.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Tue, 29 Mar 2011 13:53:00 -0400
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 30 Mar 2011 10:54:50 -0400
 
 xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu8) natty; urgency=low
 
