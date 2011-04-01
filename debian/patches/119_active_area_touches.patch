@@ -10,22 +10,23 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
  src/synproto.h  |    2 ++
  3 files changed, 27 insertions(+), 5 deletions(-)
 
-diff --git a/src/eventcomm.c b/src/eventcomm.c
-index 10c9668..bb22f55 100644
---- a/src/eventcomm.c
-+++ b/src/eventcomm.c
-@@ -447,7 +447,10 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+Index: xserver-xorg-input-synaptics/src/eventcomm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-04-01 08:38:31.647029257 -0400
++++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-04-01 08:39:46.215699655 -0400
+@@ -447,7 +447,11 @@
  
      if (!priv->has_touch || ecpriv->cur_slot < 0 ||
          ecpriv->mt_slot_map[ecpriv->cur_slot] == (uint32_t)-1)
 +    {
-+        valuator_mask_zero(ecpriv->touch_mask);
++        if (ecpriv->touch_mask)
++            valuator_mask_zero(ecpriv->touch_mask);
          return;
 +    }
  
      if (ecpriv->close_slot)
      {  
-@@ -459,10 +462,27 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+@@ -459,10 +463,27 @@
      }
      else
      {
@@ -56,7 +57,7 @@ index 10c9668..bb22f55 100644
          ecpriv->new_touch = FALSE;
      }
  
-@@ -620,7 +640,7 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+@@ -620,7 +641,7 @@
                                         ecpriv->cur_vals);
                  }
              }
@@ -65,11 +66,11 @@ index 10c9668..bb22f55 100644
                  ecpriv->close_slot = TRUE;
              break;
          case ABS_MT_TOUCH_MAJOR:
-diff --git a/src/synaptics.c b/src/synaptics.c
-index ce06216..f4e440a 100644
---- a/src/synaptics.c
-+++ b/src/synaptics.c
-@@ -1188,7 +1188,7 @@ edge_detection(SynapticsPrivate *priv, int x, int y)
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-04-01 08:38:31.651029289 -0400
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-04-01 08:39:09.047363887 -0400
+@@ -1195,7 +1195,7 @@
   * priv->synpara.area_{left|right|top|bottom}_edge are
   * all set to zero), the function returns TRUE.
   */
@@ -78,11 +79,11 @@ index ce06216..f4e440a 100644
  is_inside_active_area(SynapticsPrivate *priv, int x, int y)
  {
      Bool inside_area = TRUE;
-diff --git a/src/synproto.h b/src/synproto.h
-index 4f93d61..1702f2a 100644
---- a/src/synproto.h
-+++ b/src/synproto.h
-@@ -81,6 +81,7 @@ enum SynapticsProtocol {
+Index: xserver-xorg-input-synaptics/src/synproto.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synproto.h	2011-04-01 08:38:31.655029323 -0400
++++ xserver-xorg-input-synaptics/src/synproto.h	2011-04-01 08:38:31.727029958 -0400
+@@ -81,6 +81,7 @@
  struct _SynapticsParameters;
  struct SynapticsHwInfo;
  struct CommData;
@@ -90,13 +91,10 @@ index 4f93d61..1702f2a 100644
  
  struct SynapticsProtocolOperations {
      int (*DevicePreInitHook)(InputDriverPtr drv, InputInfoPtr pInfo, int flags);
-@@ -107,5 +108,6 @@ extern struct SynapticsProtocolOperations alps_proto_operations;
+@@ -107,5 +108,6 @@
  
  extern int HandleState(InputInfoPtr, struct SynapticsHwState*);
  extern CARD32 timerFunc(OsTimerPtr timer, CARD32 now, pointer arg);
 +extern Bool is_inside_active_area(struct _SynapticsPrivateRec *priv, int x, int y);
  
  #endif /* _SYNPROTO_H_ */
--- 
-1.7.4.1
-
