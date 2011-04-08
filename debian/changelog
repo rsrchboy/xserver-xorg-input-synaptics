@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu11) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu11) natty; urgency=low
 
   * Fix jumpy cursor on multitouch trackpads (LP: #751525)
     - Added 123_order_ProcessTouch_for_numFingers.patch
