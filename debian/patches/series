@@ -15,3 +15,4 @@
 121_semi-mt_num_fingers.patch
 122_revert_pressure_finger_default.patch
 123_order_ProcessTouch_for_numFingers.patch
+124_syndaemon_events.patch
