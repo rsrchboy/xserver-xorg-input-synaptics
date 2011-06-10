@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu15) oneiric; urgency=low
+
+  * Also build-conflict with libxtst-dev as to make sure it's not present in
+    e.g. local debug builds.
+
+ -- Loïc Minier <loic.minier@ubuntu.com>  Fri, 10 Jun 2011 18:01:59 +0200
+
 xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu14) oneiric; urgency=low
 
   * Drop libxtst-dev build dependency so syndaemon does not use XRecord,
