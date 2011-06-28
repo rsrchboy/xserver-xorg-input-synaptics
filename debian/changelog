@@ -7,6 +7,8 @@ xserver-xorg-input-synaptics (1.4.1-1) UNRELEASED; urgency=low
   * Refresh patch:
     - 02-do-not-use-synaptics-for-keyboards.patch to cope with the lines
       removed in d25ba5e11d.
+  * Drop patch:
+    - 03-man-no-hal.patch, superseded by upstream commit e49d5d07c7.
 
  -- Cyril Brulebois <kibi@debian.org>  Tue, 28 Jun 2011 15:04:24 +0200
 
