@@ -1,3 +1,192 @@
+commit a1c77348563d882a5da870d6884ee91434458689
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jun 28 14:47:04 2011 +1000
+
+    synaptics 1.4.1
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 65c8d5c703b2f9a65e3bf86b1ad35a0d439b46aa
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon May 23 10:18:22 2011 +1000
+
+    syndaemon: don't compare against a null-property. (#37459)
+    
+    synaptics_property is not set, touchpad_off_prop is the property we need to
+    check against.
+    
+    False check for (nprops != 0) instead of (nprops < 0) would result in
+    syndaemon always reporting a touchpad device, even if none are present.
+    
+    X.Org Bug 37459 <http://bugs.freedesktop.org/show_bug.cgi?id=37459>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit be83094bd98c353b0ee7894eefcb1ae91e0cae30)
+
+commit 11b70094aa66a85bc06e5c160cdc15139df94cb7
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon May 23 10:12:42 2011 +1000
+
+    syndaemon: fix abysimal indentation in dp_get_device.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit e4958186fae78770bc739be701b849f28c87cf11)
+
+commit ee216923ddaf4492c7e1eb026fa0b4f5e8ed5ec9
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 19 09:45:10 2011 +1000
+
+    include: update documentation for capabilities property
+    
+    pressure and width were added recently
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 0c8971c80c21d7541d9614ac67a8d4954d4859ec)
+
+commit 77ad03caf8070a25d21e37ae3b7602be6cffe3b1
+Author: Christoph Brill <egore911@egore911.de>
+Date:   Tue May 17 08:08:08 2011 +0200
+
+    Update maintainer information
+    
+    There is no distinct maintainer for synaptics but everything should go
+    to the list.
+    (cherry picked from commit 8ad40444596259b8b5b60ae4069e94875253c21a)
+
+commit f23b388478cf60ee53aa4ca435693fcc9f3324ec
+Author: Diego Elio Pettenò <flameeyes@gmail.com>
+Date:   Sat May 14 03:34:26 2011 +0200
+
+    README: fix typos.
+    
+    Signed-off-by: Christoph Brill <egore911@egore911.de>
+    (cherry picked from commit 0c0e3e3df6af54777e47550e555e76c787f6f0a4)
+
+commit ccdf11061a08d664f092493968f182ac8241052b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun May 8 11:56:25 2011 -0700
+
+    Fix "nose canellation" typo in man page
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    (cherry picked from commit ec791423531a12129358a2e10b4f9b4721fcd761)
+
+commit de59d0368e427e5d1ed299b8769cbf15706801d7
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 18 14:18:22 2011 +1000
+
+    synaptics 1.4.0.901
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 27d04237d60ba0bcd0dafa30f9fd076e80e4d2f6
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Fri Apr 15 15:29:57 2011 -0400
+
+    Drain XRecord connection of any events after handling replies
+    
+    If the X server sends an event to the XRecord connection the event
+    will never be handled. This will cause the event queue to fill up in
+    Xlib and lead to syndaemon running away at 100% cpu usage.
+    
+    This change drains any events from the connection. It's not a fix for
+    the underlying bug in the server or Xlib, but it does paper over the
+    issue for now.
+    
+    https://bugs.launchpad.net/bugs/754470
+    http://bugs.freedesktop.org/show_bug.cgi?id=31921
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit bdc9c7cf9767bda77c690cb4211f6f6cb4567748)
+
+commit ae226ae5c90b9c6724e1f1cd44e6d223641e59fa
+Author: Cyril Brulebois <kibi@debian.org>
+Date:   Thu Apr 14 05:38:25 2011 +0200
+
+    Fix egde/edge typo in manpage and comments.
+    
+    Debian bug #622663 <http://bugs.debian.org/622663>
+    
+    Signed-off-by: Cyril Brulebois <kibi@debian.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit fe05c60fee1f8fc24cc6cc2af7027d897607af2a)
+
+commit e783c187757b0412f53c8ec555d7f5bf7b10195b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 18 20:56:51 2011 +1000
+
+    eventcomm: add a missing break statement
+    
+    If the EV_SYN wasn't SYN_REPORT, we'd fall through to key event processing,
+    which almost certainly won't do what we want and/or need.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Cyril Brulebois <kibi@debian.org>
+    (cherry picked from commit ecf42db47629cadc7a332398a1784bb0acbd6511)
+
+commit 92ff5f4318ca602a2cdf3deb1d859a7235163416
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 18 10:34:03 2011 +1000
+
+    conf: add a descriptive header with warning to example config file
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit b7acee2346494846e80d2fe25f699081a51c49a2)
+
+commit d25ba5e11d5b86978a576adaab539ca62311a881
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 18 10:40:50 2011 +1000
+
+    conf: remove SHM example from fdi
+    
+    SHM is dead for configuration.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit bc01d6a88ae84a0b1e52b8feb93c168d5120cd58)
+
+commit 847131077636bc935e3b4d7c9f1c94e537c3f79b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 18 10:29:37 2011 +1000
+
+    man: add short blurb about InputClass configuration in servers 1.8
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 5f546777173dc78146025499d186fe97d31eaeac)
+
+commit e49d5d07c718df59802ac79511dcfcbd200dd9c7
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 18 10:26:37 2011 +1000
+
+    man: update source path for fdi file and shorten description.
+    
+    Don't describe what the example config file does in the man page, let the
+    file speak for itself. Point out that fdi files are for servers 1.5 - 1.7
+    only.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 86cab92b41443a5c9391b3bb20c93d902cf67961)
+
+commit a62aad0f94498ad7e80ee2408cb3e56860b8ccaf
+Author: Christoph Brill <egore911@egore911.de>
+Date:   Wed Mar 9 23:25:05 2011 +0100
+
+    Add note about MatchDevicePath
+    
+    This question seems to pop up very often. Add a note pointing to Peter's
+    blog entry describing the details of this misconfiguration.
+    (cherry picked from commit 0662e1c18122768549e51baf9ce3649c57ff0528)
+
+commit f963bc06f42b33e6f4452eab7dc10a4158cb0dd5
+Author: Alexandr Shadchin <alexandr.shadchin@gmail.com>
+Date:   Mon Feb 28 16:38:19 2011 +0500
+
+    Fix typo (resx -> resy)
+    
+    Signed-off-by: Alexandr Shadchin <Alexandr.Shadchin@gmail.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 3c598daec845ff6ef4ba0769ad78a0d562effe29)
+
 commit de0dfb76444ad4160468d00515876c91a9fa20bf
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Mar 4 12:36:24 2011 +1000
