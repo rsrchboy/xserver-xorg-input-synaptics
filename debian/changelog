@@ -3,6 +3,7 @@ xserver-xorg-input-synaptics (1.4.1-1) UNRELEASED; urgency=low
   * New upstream release:
     - Fix some typos in documentation (Closes: #622663).
     - Fix “syndaemon consumes 100% CPU” (LP: #754470).
+  * Bump Standards-Version to 3.9.2 (no changes).
 
  -- Cyril Brulebois <kibi@debian.org>  Tue, 28 Jun 2011 15:04:24 +0200
 

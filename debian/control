@@ -15,7 +15,7 @@ Build-Depends:
  pkg-config,
  quilt,
  xutils-dev (>= 1:7.5+4)
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
 
