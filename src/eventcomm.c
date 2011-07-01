@@ -184,6 +184,11 @@ event_query_axis_ranges(InputInfoPtr pInfo)
 		abs.minimum, abs.maximum);
 	priv->minx = abs.minimum;
 	priv->maxx = abs.maximum;
+	/* The kernel's fuzziness concept seems a bit weird, but it can more or
+	 * less be applied as hysteresis directly, i.e. no factor here. Though,
+	 * we don't trust a zero fuzz as it probably is just a lazy value. */
+	if (abs.fuzz > 0)
+	    priv->synpara.hyst_x = abs.fuzz;
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,30)
 	priv->resx = abs.resolution;
 #endif
@@ -198,6 +203,9 @@ event_query_axis_ranges(InputInfoPtr pInfo)
 		abs.minimum, abs.maximum);
 	priv->miny = abs.minimum;
 	priv->maxy = abs.maximum;
+	/* don't trust a zero fuzz */
+	if (abs.fuzz > 0)
+	    priv->synpara.hyst_y = abs.fuzz;
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,30)
 	priv->resy = abs.resolution;
 #endif
@@ -333,6 +341,7 @@ EventReadHwState(InputInfoPtr pInfo,
 		*hwRet = *hw;
 		return TRUE;
 	    }
+	    break;
 	case EV_KEY:
 	    v = (ev.value ? TRUE : FALSE);
 	    switch (ev.code) {

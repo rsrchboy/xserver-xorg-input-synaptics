@@ -1,3 +1,46 @@
+xserver-xorg-input-synaptics (1.4.1-1) unstable; urgency=low
+
+  * New upstream release:
+    - Fix some typos in documentation (Closes: #622663).
+    - Fix “syndaemon consumes 100% CPU” (LP: #754470).
+  * Bump Standards-Version to 3.9.2 (no changes).
+  * Refresh patch:
+    - 02-do-not-use-synaptics-for-keyboards.patch to cope with the lines
+      removed in d25ba5e11d.
+  * Drop patch:
+    - 03-man-no-hal.patch, superseded by upstream commit e49d5d07c7.
+
+ -- Cyril Brulebois <kibi@debian.org>  Tue, 28 Jun 2011 15:38:13 +0200
+
+xserver-xorg-input-synaptics (1.4.0-1) unstable; urgency=low
+
+  * New upstream release:
+    + Fix the FTBFS on GNU/kFreeBSD.
+
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 05 Mar 2011 16:26:01 +0100
+
+xserver-xorg-input-synaptics (1.3.99.901-1) unstable; urgency=low
+
+  * New upstream release.
+  * Disable patch: 01-synaptics-dont-grab-if-not-on-current-VT.patch (no
+    longer applies, needs to be sent/discussed upstream anyway).
+
+ -- Cyril Brulebois <kibi@debian.org>  Mon, 21 Feb 2011 04:27:15 +0100
+
+xserver-xorg-input-synaptics (1.3.0-2) unstable; urgency=low
+
+  * Switch to Architecture: any, adding armhf support (Closes: #604672).
+  * Switch to dh:
+    - Use debhelper 8.
+    - Use dh-autoreconf.
+    - Bump xserver-xorg-dev build-dep for dh_xsf_substvars and xsf
+      debhelper sequence.
+  * Remove xsfbs accordingly.
+  * Get rid of xfree86-* packages in Conflicts/Replaces/Provides.
+  * Bump Standards-Version to 3.9.1 (no changes needed).
+
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 05 Feb 2011 14:40:47 +0100
+
 xserver-xorg-input-synaptics (1.3.99+git20110116.0e27ce3a-0ubuntu15) oneiric; urgency=low
 
   * Also build-conflict with libxtst-dev as to make sure it's not present in

@@ -227,6 +227,11 @@ main_loop(Display *display, double idle_time, int poll_delay)
 	if (keyboard_activity(display))
 	    last_activity = current_time;
 
+	/* If system times goes backwards, touchpad can get locked. Make
+	 * sure our last activity wasn't in the future and reset if it was. */
+	if (last_activity > current_time)
+	    last_activity = current_time - idle_time - 1;
+
 	if (current_time > last_activity + idle_time) {	/* Enable touchpad */
 	    toggle_touchpad(True);
 	} else {			    /* Disable touchpad */
@@ -416,6 +421,14 @@ void record_main_loop(Display* display, double idle_time) {
 
 	    XRecordProcessReplies(dpy_data);
 
+	    /* If there are any events left over, they are in error. Drain them
+	     * from the connection queue so we don't get stuck. */
+	    while (XEventsQueued(dpy_data, QueuedAlready) > 0) {
+	        XEvent event;
+	        XNextEvent(dpy_data, &event);
+	        fprintf(stderr, "bad event received, major opcode %d\n", event.type);
+	    }
+
 	    if (!ignore_modifier_keys && cbres.key_event) {
 		disable_event = 1;
 	    }
@@ -452,7 +465,6 @@ dp_get_device(Display *dpy)
     XDeviceInfo *info		= NULL;
     int ndevices		= 0;
     Atom touchpad_type		= 0;
-    Atom synaptics_property	= 0;
     Atom *properties		= NULL;
     int nprops			= 0;
     int error			= 0;
@@ -474,24 +486,24 @@ dp_get_device(Display *dpy)
 	    properties = XListDeviceProperties(dpy, dev, &nprops);
 	    if (!properties || !nprops)
 	    {
-	  fprintf(stderr, "No properties on device '%s'.\n",
-		  info[ndevices].name);
-	  error = 1;
-	  goto unwind;
-      }
+		fprintf(stderr, "No properties on device '%s'.\n",
+			info[ndevices].name);
+		error = 1;
+		goto unwind;
+	    }
 
 	    while(nprops--)
 	    {
-	  if (properties[nprops] == synaptics_property)
-	      break;
-      }
-	    if (!nprops)
+		if (properties[nprops] == touchpad_off_prop)
+		    break;
+	    }
+	    if (nprops < 0)
 	    {
-	  fprintf(stderr, "No synaptics properties on device '%s'.\n",
-		  info[ndevices].name);
-	  error = 1;
-	  goto unwind;
-      }
+		fprintf(stderr, "No synaptics properties on device '%s'.\n",
+			info[ndevices].name);
+		error = 1;
+		goto unwind;
+	    }
 
 	    break; /* Yay, device is suitable */
 	}

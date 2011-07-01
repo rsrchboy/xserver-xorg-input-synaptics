@@ -203,7 +203,7 @@ SynapticsDefaultDimensions(InputInfoPtr pInfo)
     {
 	priv->miny = 1729;
 	priv->maxy = 4171;
-	priv->resx = 0;
+	priv->resy = 0;
 
 	xf86Msg(X_PROBED,
 		"%s: invalid y-axis range.  defaulting to %d - %d\n",
@@ -387,18 +387,19 @@ calculate_edge_widths(SynapticsPrivate *priv, int *l, int *r, int *t, int *b)
  * the log message.
  */
 static int set_percent_option(pointer options, const char* optname,
-                              const int range, const int offset)
+                              const int range, const int offset,
+                              const int default_value)
 {
     int result;
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 11
-    int percent = xf86CheckPercentOption(options, optname, -1);
+    double percent = xf86CheckPercentOption(options, optname, -1);
 
-    if (percent != -1) {
+    if (percent >= 0.0) {
         percent = xf86SetPercentOption(options, optname, -1);
         result = percent/100.0 * range + offset;
     } else
 #endif
-        result = xf86SetIntOption(options, optname, 0);
+        result = xf86SetIntOption(options, optname, default_value);
 
     return result;
 }
@@ -427,6 +428,7 @@ static void set_default_parameters(InputInfoPtr pInfo)
     int horizResolution = 1;
     int vertResolution = 1;
     int width, height, diag, range;
+    int horizHyst, vertHyst;
 
     /* read the parameters */
     if (priv->synshm)
@@ -457,6 +459,10 @@ static void set_default_parameters(InputInfoPtr pInfo)
     edgeMotionMinSpeed = 1;
     edgeMotionMaxSpeed = diag * .080;
     accelFactor = 200.0 / diag; /* trial-and-error */
+
+    /* hysteresis, assume >= 0 is a detected value (e.g. evdev fuzz) */
+    horizHyst = pars->hyst_x >= 0 ? pars->hyst_x : diag * 0.005;
+    vertHyst = pars->hyst_y >= 0 ? pars->hyst_y : diag * 0.005;
 
     range = priv->maxp - priv->minp;
 
@@ -513,10 +519,13 @@ static void set_default_parameters(InputInfoPtr pInfo)
     pars->top_edge = xf86SetIntOption(opts, "TopEdge", t);
     pars->bottom_edge = xf86SetIntOption(opts, "BottomEdge", b);
 
-    pars->area_top_edge = set_percent_option(opts, "AreaTopEdge", height, priv->miny);
-    pars->area_bottom_edge = set_percent_option(opts, "AreaBottomEdge", height, priv->miny);
-    pars->area_left_edge = set_percent_option(opts, "AreaLeftEdge", width, priv->minx);
-    pars->area_right_edge = set_percent_option(opts, "AreaRightEdge", width, priv->minx);
+    pars->area_top_edge = set_percent_option(opts, "AreaTopEdge", height, priv->miny, 0);
+    pars->area_bottom_edge = set_percent_option(opts, "AreaBottomEdge", height, priv->miny, 0);
+    pars->area_left_edge = set_percent_option(opts, "AreaLeftEdge", width, priv->minx, 0);
+    pars->area_right_edge = set_percent_option(opts, "AreaRightEdge", width, priv->minx, 0);
+
+    pars->hyst_x = set_percent_option(opts, "HorizHysteresis", width, 0, horizHyst);
+    pars->hyst_y = set_percent_option(opts, "VertHysteresis", height, 0, vertHyst);
 
     pars->finger_low = xf86SetIntOption(opts, "FingerLow", fingerLow);
     pars->finger_high = xf86SetIntOption(opts, "FingerHigh", fingerHigh);
@@ -722,6 +731,8 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
     priv->tap_button = 0;
     priv->tap_button_state = TBS_BUTTON_UP;
     priv->touch_on.millis = 0;
+    priv->synpara.hyst_x = -1;
+    priv->synpara.hyst_y = -1;
 
     /* read hardware dimensions */
     ReadDevDimensions(pInfo);
@@ -1396,8 +1407,6 @@ SynapticsDetectFinger(SynapticsPrivate *priv, struct SynapticsHwState *hw)
 	    finger = FS_UNTOUCHED;
 	else if (hw->z < priv->prev_z - 5)	/* z not stable, may be a palm */
 	    finger = FS_UNTOUCHED;
-	else if (hw->z > para->palm_min_z)	/* z too large -> probably palm */
-	    finger = FS_UNTOUCHED;
 	else if (hw->fingerWidth > para->palm_min_width) /* finger width too large -> probably palm */
 	    finger = FS_UNTOUCHED;
     }
@@ -1538,11 +1547,12 @@ GetTimeOut(SynapticsPrivate *priv)
 
 static int
 HandleTapProcessing(SynapticsPrivate *priv, struct SynapticsHwState *hw,
-		    edge_type edge, enum FingerState finger, Bool inside_active_area)
+		    enum FingerState finger, Bool inside_active_area)
 {
     SynapticsParameters *para = &priv->synpara;
     Bool touch, release, is_timeout, move;
     int timeleft, timeout;
+    edge_type edge;
     int delay = 1000000000;
 
     if (priv->palm)
@@ -1589,6 +1599,7 @@ HandleTapProcessing(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	    SetTapState(priv, TS_MOVE, hw->millis);
 	    goto restart;
 	} else if (release) {
+	    edge = edge_detection(priv, priv->touch_on.x, priv->touch_on.y);
 	    SelectTapButton(priv, edge);
 	    /* Disable taps outside of the active area */
 	    if (!inside_active_area) {
@@ -1713,14 +1724,118 @@ estimate_delta(double x0, double x1, double x2, double x3)
     return x0 * 0.3 + x1 * 0.1 - x2 * 0.1 - x3 * 0.3;
 }
 
+/**
+ * Applies hysteresis. center is shifted such that it is in range with
+ * in by the margin again. The new center is returned.
+ * @param in the current value
+ * @param center the current center
+ * @param margin the margin to center in which no change is applied
+ * @return the new center (which might coincide with the previous)
+ */
+static int hysteresis(int in, int center, int margin) {
+    int diff = in - center;
+    if (abs(diff) <= margin) {
+	diff = 0;
+    } else if (diff > margin) {
+	diff -= margin;
+    } else if (diff < -margin) {
+	diff += margin;
+    }
+    return center + diff;
+}
+
+static void
+get_delta_for_trackstick(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
+                         double *dx, double *dy)
+{
+    SynapticsParameters *para = &priv->synpara;
+    double dtime = (hw->millis - HIST(0).millis) / 1000.0;
+
+    *dx = (hw->x - priv->trackstick_neutral_x);
+    *dy = (hw->y - priv->trackstick_neutral_y);
+
+    *dx = *dx * dtime * para->trackstick_speed;
+    *dy = *dy * dtime * para->trackstick_speed;
+}
+
+static void
+get_edge_speed(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
+               edge_type edge, int *x_edge_speed, int *y_edge_speed)
+{
+    SynapticsParameters *para = &priv->synpara;
+
+    int minZ = para->edge_motion_min_z;
+    int maxZ = para->edge_motion_max_z;
+    int minSpd = para->edge_motion_min_speed;
+    int maxSpd = para->edge_motion_max_speed;
+    int edge_speed;
+
+    if (hw->z <= minZ) {
+        edge_speed = minSpd;
+    } else if (hw->z >= maxZ) {
+        edge_speed = maxSpd;
+    } else {
+        edge_speed = minSpd + (hw->z - minZ) * (maxSpd - minSpd) / (maxZ - minZ);
+    }
+    if (!priv->synpara.circular_pad) {
+        /* on rectangular pad */
+        if (edge & RIGHT_EDGE) {
+            *x_edge_speed = edge_speed;
+        } else if (edge & LEFT_EDGE) {
+            *x_edge_speed = -edge_speed;
+        }
+        if (edge & TOP_EDGE) {
+            *y_edge_speed = -edge_speed;
+        } else if (edge & BOTTOM_EDGE) {
+            *y_edge_speed = edge_speed;
+        }
+    } else if (edge) {
+        /* at edge of circular pad */
+        double relX, relY;
+
+        relative_coords(priv, hw->x, hw->y, &relX, &relY);
+        *x_edge_speed = (int)(edge_speed * relX);
+        *y_edge_speed = (int)(edge_speed * relY);
+    }
+}
+
+static void
+get_delta(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
+          edge_type edge, double *dx, double *dy)
+{
+    SynapticsParameters *para = &priv->synpara;
+    double dtime = (hw->millis - HIST(0).millis) / 1000.0;
+    double integral;
+    double tmpf;
+    int x_edge_speed = 0;
+    int y_edge_speed = 0;
+
+    /* HIST is full enough: priv->count_packet_finger > 3 */
+    *dx = estimate_delta(hw->x, HIST(0).x, HIST(1).x, HIST(2).x);
+    *dy = estimate_delta(hw->y, HIST(0).y, HIST(1).y, HIST(2).y);
+
+    if ((priv->tap_state == TS_DRAG) || para->edge_motion_use_always)
+        get_edge_speed(priv, hw, edge, &x_edge_speed, &y_edge_speed);
+
+    /* report edge speed as synthetic motion. Of course, it would be
+     * cooler to report floats than to buffer, but anyway. */
+    tmpf = *dx + x_edge_speed * dtime + priv->frac_x;
+    priv->frac_x = modf(tmpf, &integral);
+    *dx = integral;
+    tmpf = *dy + y_edge_speed * dtime + priv->frac_y;
+    priv->frac_y = modf(tmpf, &integral);
+    *dy = integral;
+}
+
+/**
+ * Compute relative motion ('deltas') including edge motion xor trackstick.
+ */
 static int
 ComputeDeltas(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
 	      edge_type edge, int *dxP, int *dyP, Bool inside_area)
 {
-    SynapticsParameters *para = &priv->synpara;
     enum MovingState moving_state;
     double dx, dy;
-    double integral;
     int delay = 1000000000;
 
     dx = dy = 0;
@@ -1742,79 +1857,32 @@ ComputeDeltas(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
 	    break;
 	}
     }
-    if (inside_area && moving_state && !priv->palm &&
-	!priv->vert_scroll_edge_on && !priv->horiz_scroll_edge_on &&
-	!priv->vert_scroll_twofinger_on && !priv->horiz_scroll_twofinger_on &&
-	!priv->circ_scroll_on && priv->prevFingers == hw->numFingers) {
-	/* FIXME: Wtf?? what's with 13? */
-	delay = MIN(delay, 13);
-	if (priv->count_packet_finger > 3) { /* min. 3 packets */
-	    double tmpf;
-	    int x_edge_speed = 0;
-	    int y_edge_speed = 0;
-	    double dtime = (hw->millis - HIST(0).millis) / 1000.0;
 
-	    if (priv->moving_state == MS_TRACKSTICK) {
-		dx = (hw->x - priv->trackstick_neutral_x);
-		dy = (hw->y - priv->trackstick_neutral_y);
-
-		dx = dx * dtime * para->trackstick_speed;
-		dy = dy * dtime * para->trackstick_speed;
-	    } else if (moving_state == MS_TOUCHPAD_RELATIVE) {
-		dx = estimate_delta(hw->x, HIST(0).x, HIST(1).x, HIST(2).x);
-		dy = estimate_delta(hw->y, HIST(0).y, HIST(1).y, HIST(2).y);
-
-		if ((priv->tap_state == TS_DRAG) || para->edge_motion_use_always) {
-		    int minZ = para->edge_motion_min_z;
-		    int maxZ = para->edge_motion_max_z;
-		    int minSpd = para->edge_motion_min_speed;
-		    int maxSpd = para->edge_motion_max_speed;
-		    int edge_speed;
-
-		    if (hw->z <= minZ) {
-			edge_speed = minSpd;
-		    } else if (hw->z >= maxZ) {
-			edge_speed = maxSpd;
-		    } else {
-			edge_speed = minSpd + (hw->z - minZ) * (maxSpd - minSpd) / (maxZ - minZ);
-		    }
-		    if (!priv->synpara.circular_pad) {
-			/* on rectangular pad */
-			if (edge & RIGHT_EDGE) {
-			    x_edge_speed = edge_speed;
-			} else if (edge & LEFT_EDGE) {
-			    x_edge_speed = -edge_speed;
-			}
-			if (edge & TOP_EDGE) {
-			    y_edge_speed = -edge_speed;
-			} else if (edge & BOTTOM_EDGE) {
-			    y_edge_speed = edge_speed;
-			}
-		    } else if (edge) {
-			/* at edge of circular pad */
-			double relX, relY;
-
-			relative_coords(priv, hw->x, hw->y, &relX, &relY);
-			x_edge_speed = (int)(edge_speed * relX);
-			y_edge_speed = (int)(edge_speed * relY);
-		    }
-		}
-	    }
-
-	    /* report edge speed as synthetic motion. Of course, it would be
-	     * cooler to report floats than to buffer, but anyway. */
-	    tmpf = dx + x_edge_speed * dtime + priv->frac_x;
-	    priv->frac_x = modf(tmpf, &integral);
-	    dx = integral;
-	    tmpf = dy + y_edge_speed * dtime + priv->frac_y;
-	    priv->frac_y = modf(tmpf, &integral);
-	    dy = integral;
-	}
-
-	priv->count_packet_finger++;
-    } else {				    /* reset packet counter */
-	priv->count_packet_finger = 0;
+    if (!inside_area || !moving_state || priv->palm ||
+	priv->vert_scroll_edge_on || priv->horiz_scroll_edge_on ||
+	priv->vert_scroll_twofinger_on || priv->horiz_scroll_twofinger_on ||
+	priv->circ_scroll_on || priv->prevFingers != hw->numFingers)
+    {
+        /* reset packet counter. */
+        priv->count_packet_finger = 0;
+        goto out;
     }
+
+    /* to create fluid edge motion, call back 'soon'
+     * even in the absence of new hardware events */
+    delay = MIN(delay, 13);
+
+    if (priv->count_packet_finger <= 3) /* min. 3 packets, see get_delta() */
+        goto skip; /* skip the lot */
+
+    if (priv->moving_state == MS_TRACKSTICK)
+        get_delta_for_trackstick(priv, hw, &dx, &dy);
+    else if (moving_state == MS_TOUCHPAD_RELATIVE)
+        get_delta(priv, hw, edge, &dx, &dy);
+
+skip:
+    priv->count_packet_finger++;
+out:
     priv->prevFingers = hw->numFingers;
 
     *dxP = dx;
@@ -1958,7 +2026,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	    priv->circ_scroll_on = FALSE;
 	}
 
-	if (!finger || hw->numFingers < 2) {
+	if (!finger || hw->numFingers != 2) {
 	    if (priv->vert_scroll_twofinger_on) {
 		DBG(7, "vert two-finger scroll off\n");
 		priv->vert_scroll_twofinger_on = FALSE;
@@ -2364,6 +2432,14 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw)
     if (para->touchpad_off == 1)
 	return delay;
 
+    /* apply hysteresis before doing anything serious. This cancels
+     * out a lot of noise which might surface in strange phenomena
+     * like flicker in scrolling or noise motion. */
+    priv->hyst_center_x = hysteresis(hw->x, priv->hyst_center_x, para->hyst_x);
+    priv->hyst_center_y = hysteresis(hw->y, priv->hyst_center_y, para->hyst_y);
+    hw->x = priv->hyst_center_x;
+    hw->y = priv->hyst_center_y;
+
     inside_active_area = is_inside_active_area(priv, hw->x, hw->y);
 
     /* now we know that these _coordinates_ aren't in the area.
@@ -2399,7 +2475,7 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw)
 
     /* tap and drag detection. Needs to be performed even if the finger is in
      * the dead area to reset the state. */
-    timeleft = HandleTapProcessing(priv, hw, edge, finger, inside_active_area);
+    timeleft = HandleTapProcessing(priv, hw, finger, inside_active_area);
     if (timeleft > 0)
 	delay = MIN(delay, timeleft);
 
