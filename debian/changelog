@@ -3,15 +3,15 @@ xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
   * Merge from Debian unstable, remaining changes:
     - 101_resolution_detect_option.patch:
       + Provide an option to prevent synaptics from communicating the
-	touchpad size to the xserver. (LP: 327428)
+        touchpad size to the xserver. (LP: 327428)
     - 103_enable_cornertapping.patch:
       + Enable right/middle clicks by tapping in the bottom- and top-right
-	corners.
+        corners.
     - 104_always_enable_tapping.patch:
       + Enable tapping regardless of the presence of physical buttons.
     - 106_always_enable_vert_edge_scroll.patch:
       + Enable vertical edge tapping by default even if we enable two-finger
-	scrolling as well.
+        scrolling as well.
     - 115_evdev_only.patch:
       + Only bind to /dev/input/event* evdev devices (LP 624985)
     - 116_xi2_1.patch:
@@ -19,7 +19,7 @@ xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
       + multitouch and uTouch gesture support
     - 118_quell_error_msg.patch:
       + Don't print error "Unable to find a synaptics device" when used
-	on system that doesn't have a touchpad anyway. (LP: 716712)
+        on system that doesn't have a touchpad anyway. (LP: 716712)
     - 119_active_area_touches.patch:
     - 120_active_touches_num_fingers.patch:
     - 121_semi-mt_num_fingers.patch:
