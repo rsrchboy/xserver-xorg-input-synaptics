@@ -77,7 +77,7 @@
      else
          len = read(pInfo->fd, ev, sizeof(*ev));
  
-@@ -503,166 +488,182 @@ SynapticsReadEvent(InputInfoPtr pInfo, s
+@@ -503,167 +488,182 @@ SynapticsReadEvent(InputInfoPtr pInfo, s
          if (errno != EAGAIN)
              xf86MsgVerb(X_NONE, 0, "%s: Read error %s\n", pInfo->name, strerror(errno));
          rc = FALSE;
@@ -216,6 +216,7 @@
                  ProcessTouch(pInfo, priv);
 -		return TRUE;
 -	    }
+-	    break;
 -	case EV_KEY:
 -	    v = (ev.value ? TRUE : FALSE);
 -	    switch (ev.code) {
