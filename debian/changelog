@@ -1,3 +1,56 @@
+xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
+
+  * Merge from Debian unstable, remaining changes:
+    - 101_resolution_detect_option.patch:
+      + Provide an option to prevent synaptics from communicating the
+	touchpad size to the xserver. (LP: 327428)
+    - 103_enable_cornertapping.patch:
+      + Enable right/middle clicks by tapping in the bottom- and top-right
+	corners.
+    - 104_always_enable_tapping.patch:
+      + Enable tapping regardless of the presence of physical buttons.
+    - 106_always_enable_vert_edge_scroll.patch:
+      + Enable vertical edge tapping by default even if we enable two-finger
+	scrolling as well.
+    - 115_evdev_only.patch:
+      + Only bind to /dev/input/event* evdev devices (LP 624985)
+    - 116_xi2_1.patch:
+    - 117_gestures.patch:
+      + multitouch and uTouch gesture support
+    - 118_quell_error_msg.patch:
+      + Don't print error "Unable to find a synaptics device" when used
+	on system that doesn't have a touchpad anyway. (LP: 716712)
+    - 119_active_area_touches.patch:
+    - 120_active_touches_num_fingers.patch:
+    - 121_semi-mt_num_fingers.patch:
+      + Fix handling for SemiMultitouch trackpads with integrated buttons
+        (LP: 736523)
+    - 122_revert_pressure_finger_default.patch:
+      + Fix spurious right click events on some trackpads (LP: 742213)
+    - 123_order_ProcessTouch_for_numFingers.patch:
+      + Fix jumpy cursor on multitouch trackpads (LP: 751525)
+    - 124_syndaemon_events.patch:
+      + Drain spurious events from XRecord connection as a work around
+        for a buggy X server. (LP: 754470)
+    - debian/control:
+      + Add depends on libmtdev and libutouch-grail
+      + Build-depend on multitouch-enabled inputproto.
+      + Depend on multitouch-enabled xserver.
+      + Depend on udev.
+      + Drop libxtst-dev build dependency so syndaemon does not use XRecord,
+        preventing a wide range of crashes in _CallCallbacks. (LP: 774978)
+    - debian/gbp.conf:
+      + Specify ‘ubuntu’ branch.
+    - debian/local/51-synaptics-quirks.conf:
+      + Split out our synaptics quirks into 51-synaptics-quirks.conf
+    - debian/local/66-xorg-synaptics.rules:
+      + Add the udev rule back for tagging specific machines to be quirked.
+    - debian/xserver-xorg-input-synaptics.postinst.in:
+      + Trigger udev to pick up new udev rules
+  * Drop 114_jumpy_cursor_first_part.patch, fixed upstream.
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 05 Jul 2011 09:43:02 +0300
+
 xserver-xorg-input-synaptics (1.4.1-1) unstable; urgency=low
 
   * New upstream release:
