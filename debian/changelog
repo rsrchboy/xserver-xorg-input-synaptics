@@ -37,7 +37,7 @@ xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
       + Build-depend on multitouch-enabled inputproto.
       + Depend on multitouch-enabled xserver.
       + Depend on udev.
-      + Drop libxtst-dev build dependency so syndaemon does not use XRecord,
+      + Move libxtst-dev to Build-Conflicts so syndaemon does not use XRecord,
         preventing a wide range of crashes in _CallCallbacks. (LP: 774978)
     - debian/gbp.conf:
       + Specify ‘ubuntu’ branch.
