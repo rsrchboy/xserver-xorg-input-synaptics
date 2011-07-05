@@ -1,6 +1,8 @@
---- a/configure.ac
-+++ b/configure.ac
-@@ -101,6 +101,9 @@ case "${host}" in
+Index: xserver-xorg-input-synaptics/configure.ac
+===================================================================
+--- xserver-xorg-input-synaptics.orig/configure.ac	2011-07-05 11:54:32.981347672 +0300
++++ xserver-xorg-input-synaptics/configure.ac	2011-07-05 11:54:55.781347674 +0300
+@@ -101,6 +101,9 @@
  	AC_MSG_RESULT([eventcomm])
  	BUILD_EVENTCOMM="yes"
  	AC_DEFINE(BUILD_EVENTCOMM, 1, [Optional backend eventcomm enabled])
@@ -10,9 +12,11 @@
  	;;
  *freebsd* | *openbsd* | *netbsd* | *dragonfly*)
  	AC_MSG_RESULT([psmcomm])
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -40,6 +40,7 @@ AM_CFLAGS = $(XORG_CFLAGS)
+Index: xserver-xorg-input-synaptics/src/Makefile.am
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/Makefile.am	2011-07-05 11:54:33.041347672 +0300
++++ xserver-xorg-input-synaptics/src/Makefile.am	2011-07-05 11:54:55.781347674 +0300
+@@ -40,6 +40,7 @@
  if BUILD_EVENTCOMM
  @DRIVER_NAME@_drv_la_SOURCES += \
  	eventcomm.c eventcomm.h
@@ -20,9 +24,11 @@
  endif
  
  if BUILD_PSMCOMM
---- a/src/alpscomm.c
-+++ b/src/alpscomm.c
-@@ -230,6 +230,9 @@ ALPSAutoDevProbe(InputInfoPtr pInfo)
+Index: xserver-xorg-input-synaptics/src/alpscomm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/alpscomm.c	2011-07-05 11:54:33.001347672 +0300
++++ xserver-xorg-input-synaptics/src/alpscomm.c	2011-07-05 11:54:55.781347674 +0300
+@@ -230,6 +230,9 @@
  struct SynapticsProtocolOperations alps_proto_operations = {
      NULL,
      NULL,
@@ -32,8 +38,10 @@
      ALPSQueryHardware,
      ALPSReadHwState,
      ALPSAutoDevProbe,
---- a/src/eventcomm.c
-+++ b/src/eventcomm.c
+Index: xserver-xorg-input-synaptics/src/eventcomm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-07-05 11:54:33.051347672 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-07-05 11:54:55.781347674 +0300
 @@ -41,6 +41,8 @@
  #include "synaptics.h"
  #include "synapticsstr.h"
@@ -165,7 +173,7 @@
  
      if (para->grab_event_device) {
  	/* Try to grab the event device so that data don't leak to /dev/input/mice */
-@@ -76,7 +178,50 @@ EventDeviceOnHook(InputInfoPtr pInfo, Sy
+@@ -76,7 +178,50 @@
  	}
      }
  
@@ -217,7 +225,7 @@
  }
  
  static Bool
-@@ -171,11 +316,14 @@ static void
+@@ -171,11 +316,14 @@
  event_query_axis_ranges(InputInfoPtr pInfo)
  {
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
@@ -234,7 +242,7 @@
  
      SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_X), &abs));
      if (rc >= 0)
-@@ -207,11 +355,12 @@ event_query_axis_ranges(InputInfoPtr pIn
+@@ -215,11 +363,12 @@
  
      priv->has_pressure = FALSE;
      priv->has_width = FALSE;
@@ -250,7 +258,7 @@
      }
      else
  	xf86Msg(X_ERROR, "%s: failed to query ABS bits (%s)\n", pInfo->name,
-@@ -270,15 +419,34 @@ event_query_axis_ranges(InputInfoPtr pIn
+@@ -278,15 +427,34 @@
  
  	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
      }
@@ -287,7 +295,7 @@
  	return FALSE;
  
      xf86Msg(X_PROBED, "%s: touchpad found\n", pInfo->name);
-@@ -286,13 +454,49 @@ EventQueryHardware(InputInfoPtr pInfo)
+@@ -294,13 +462,49 @@
      return TRUE;
  }
  
@@ -338,7 +346,7 @@
      if (len <= 0)
      {
          /* We use X_NONE here because it doesn't alloc */
-@@ -316,6 +520,7 @@ EventReadHwState(InputInfoPtr pInfo,
+@@ -324,6 +528,7 @@
      struct SynapticsHwState *hw = &(comm->hwState);
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
      SynapticsParameters *para = &priv->synpara;
@@ -346,15 +354,15 @@
  
      while (SynapticsReadEvent(pInfo, &ev)) {
  	switch (ev.type) {
-@@ -331,6 +536,7 @@ EventReadHwState(InputInfoPtr pInfo,
+@@ -339,6 +544,7 @@
  		else
  		    hw->numFingers = 0;
  		*hwRet = *hw;
 +                ProcessTouch(pInfo, priv);
  		return TRUE;
  	    }
- 	case EV_KEY:
-@@ -404,6 +610,55 @@ EventReadHwState(InputInfoPtr pInfo,
+ 	    break;
+@@ -413,6 +619,55 @@
  	    case ABS_TOOL_WIDTH:
  		hw->fingerWidth = ev.value;
  		break;
@@ -410,7 +418,7 @@
  	    }
  	    break;
  	}
-@@ -423,9 +678,9 @@ static void
+@@ -432,9 +687,9 @@
  EventReadDevDimensions(InputInfoPtr pInfo)
  {
      SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
@@ -422,7 +430,7 @@
  	event_query_axis_ranges(pInfo);
      event_query_info(pInfo);
  }
-@@ -482,8 +737,11 @@ EventAutoDevProbe(InputInfoPtr pInfo)
+@@ -491,8 +746,11 @@
  }
  
  struct SynapticsProtocolOperations event_proto_operations = {
@@ -435,8 +443,10 @@
      EventQueryHardware,
      EventReadHwState,
      EventAutoDevProbe,
---- a/src/eventcomm.h
-+++ b/src/eventcomm.h
+Index: xserver-xorg-input-synaptics/src/eventcomm.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.h	2011-07-05 11:54:32.991347672 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.h	2011-07-05 11:54:55.781347674 +0300
 @@ -29,9 +29,31 @@
  
  #include <linux/input.h>
@@ -469,9 +479,11 @@
 +} EventcommPrivate;
 +
  #endif /* _EVENTCOMM_H_ */
---- a/src/ps2comm.c
-+++ b/src/ps2comm.c
-@@ -668,7 +668,10 @@ PS2AutoDevProbe(InputInfoPtr pInfo)
+Index: xserver-xorg-input-synaptics/src/ps2comm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/ps2comm.c	2011-07-05 11:54:33.011347672 +0300
++++ xserver-xorg-input-synaptics/src/ps2comm.c	2011-07-05 11:54:55.781347674 +0300
+@@ -668,7 +668,10 @@
  
  struct SynapticsProtocolOperations psaux_proto_operations = {
      NULL,
@@ -482,11 +494,13 @@
      PS2QueryHardware,
      PS2ReadHwState,
      PS2AutoDevProbe,
---- a/src/synaptics.c
-+++ b/src/synaptics.c
-@@ -730,6 +730,10 @@ SynapticsPreInit(InputDriverPtr drv, Inp
-     priv->tap_button_state = TBS_BUTTON_UP;
-     priv->touch_on.millis = 0;
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-07-05 11:54:51.321347674 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-07-05 11:54:55.781347674 +0300
+@@ -735,6 +735,10 @@
+     priv->synpara.hyst_x = -1;
+     priv->synpara.hyst_y = -1;
  
 +    if (priv->proto_ops->DevicePreInitHook)
 +        if (priv->proto_ops->DevicePreInitHook(drv, pInfo, flags) != Success)
@@ -495,7 +509,7 @@
      /* read hardware dimensions */
      ReadDevDimensions(pInfo);
  
-@@ -906,6 +910,9 @@ DeviceClose(DeviceIntPtr dev)
+@@ -911,6 +915,9 @@
      InputInfoPtr pInfo = dev->public.devicePrivate;
      SynapticsPrivate *priv = (SynapticsPrivate *) pInfo->private;
  
@@ -505,7 +519,7 @@
      RetValue = DeviceOff(dev);
      TimerFree(priv->timer);
      priv->timer = NULL;
-@@ -1084,6 +1091,9 @@ DeviceInit(DeviceIntPtr dev)
+@@ -1089,6 +1096,9 @@
      InitDeviceProperties(pInfo);
      XIRegisterPropertyHandler(pInfo->dev, SetProperty, NULL, NULL);
  
@@ -515,8 +529,10 @@
      return Success;
  }
  
---- a/src/synapticsstr.h
-+++ b/src/synapticsstr.h
+Index: xserver-xorg-input-synaptics/src/synapticsstr.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synapticsstr.h	2011-07-05 11:54:33.021347672 +0300
++++ xserver-xorg-input-synaptics/src/synapticsstr.h	2011-07-05 11:54:55.781347674 +0300
 @@ -22,6 +22,8 @@
  #ifndef	_SYNAPTICSSTR_H_
  #define _SYNAPTICSSTR_H_
@@ -526,7 +542,7 @@
  #include "synproto.h"
  
  #ifdef DBG
-@@ -238,6 +240,7 @@ typedef struct _SynapticsPrivateRec
+@@ -240,6 +242,7 @@
      Bool has_pressure;			/* device reports pressure */
      Bool has_width;			/* device reports finger width */
      Bool has_scrollbuttons;		/* device has physical scrollbuttons */
@@ -534,9 +550,11 @@
  
      enum TouchpadModel model;          /* The detected model */
  } SynapticsPrivate;
---- a/src/synproto.h
-+++ b/src/synproto.h
-@@ -83,8 +83,11 @@ struct SynapticsHwInfo;
+Index: xserver-xorg-input-synaptics/src/synproto.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synproto.h	2011-07-05 11:54:33.071347672 +0300
++++ xserver-xorg-input-synaptics/src/synproto.h	2011-07-05 11:54:55.781347674 +0300
+@@ -83,8 +83,11 @@
  struct CommData;
  
  struct SynapticsProtocolOperations {
@@ -548,7 +566,7 @@
      Bool (*QueryHardware)(InputInfoPtr pInfo);
      Bool (*ReadHwState)(InputInfoPtr pInfo,
  			struct SynapticsProtocolOperations *proto_ops,
-@@ -102,5 +105,4 @@ extern struct SynapticsProtocolOperation
+@@ -102,5 +105,4 @@
  #endif /* BUILD_PSMCOMM */
  extern struct SynapticsProtocolOperations alps_proto_operations;
  

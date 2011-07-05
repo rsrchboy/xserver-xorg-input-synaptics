@@ -26,11 +26,11 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
  src/eventcomm.h |    5 ++++
  2 files changed, 49 insertions(+), 15 deletions(-)
 
-diff --git a/src/eventcomm.c b/src/eventcomm.c
-index d3fc943..b247934 100644
---- a/src/eventcomm.c
-+++ b/src/eventcomm.c
-@@ -406,11 +406,6 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+Index: xserver-xorg-input-synaptics/src/eventcomm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-07-05 11:55:10.801347676 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-07-05 11:55:12.731347678 +0300
+@@ -414,11 +414,6 @@
  	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
      }
  
@@ -42,7 +42,7 @@ index d3fc943..b247934 100644
      for (i = ABS_MT_TOUCH_MAJOR; i <= ABS_MT_PRESSURE; i++) {
  	if (!BitIsOn(ecpriv->absbits, i))
              continue;
-@@ -424,6 +419,16 @@ event_query_axis_ranges(InputInfoPtr pInfo)
+@@ -432,6 +427,16 @@
          ecpriv->mt_axis_map[i - ABS_MT_TOUCH_MAJOR] = ecpriv->num_mt_axes++;
          priv->has_touch = TRUE;
      }
@@ -59,7 +59,7 @@ index d3fc943..b247934 100644
  }
  
  static Bool
-@@ -453,10 +458,11 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+@@ -462,10 +467,11 @@
      }
  
      if (ecpriv->close_slot)
@@ -75,7 +75,7 @@ index d3fc943..b247934 100644
          ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
          ecpriv->close_slot = FALSE;
          ecpriv->active_touches--;
-@@ -470,17 +476,22 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+@@ -479,17 +485,22 @@
              int x = valuator_mask_get(ecpriv->touch_mask, x_axis);
              int y = valuator_mask_get(ecpriv->touch_mask, y_axis);
  
@@ -103,7 +103,7 @@ index d3fc943..b247934 100644
          {
              xf86PostTouchEvent(pInfo->dev,
                                 ecpriv->mt_slot_map[ecpriv->cur_slot],
-@@ -535,7 +546,7 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+@@ -544,7 +555,7 @@
      case EV_SYN:
          switch (ev->code) {
          case SYN_REPORT:
@@ -112,7 +112,7 @@ index d3fc943..b247934 100644
                  hw->numFingers = ecpriv->active_touches;
              else if (comm->oneFinger)
                  hw->numFingers = 1;
-@@ -667,6 +678,24 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+@@ -676,6 +687,24 @@
                  valuator_mask_set(ecpriv->cur_vals,
                                    ecpriv->mt_axis_map[ev->code - ABS_MT_TOUCH_MAJOR],
                                    ev->value);
@@ -137,11 +137,11 @@ index d3fc943..b247934 100644
              }
              break;
          }
-diff --git a/src/eventcomm.h b/src/eventcomm.h
-index d9c9ebb..4ac36a8 100644
---- a/src/eventcomm.h
-+++ b/src/eventcomm.h
-@@ -59,6 +59,11 @@ typedef struct {
+Index: xserver-xorg-input-synaptics/src/eventcomm.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.h	2011-07-05 11:55:10.801347676 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.h	2011-07-05 11:55:12.731347678 +0300
+@@ -59,6 +59,11 @@
      struct mtdev *mtdev;
      struct grail *grail;
      int active_touches;
@@ -153,6 +153,3 @@ index d9c9ebb..4ac36a8 100644
  } EventcommPrivate;
  
  extern Bool EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
--- 
-1.7.4.1
-

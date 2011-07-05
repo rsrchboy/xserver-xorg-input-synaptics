@@ -19,11 +19,11 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
  src/synaptics.c |    7 +------
  1 files changed, 1 insertions(+), 6 deletions(-)
 
-diff --git a/src/synaptics.c b/src/synaptics.c
-index f4e440a..51d3ad0 100644
---- a/src/synaptics.c
-+++ b/src/synaptics.c
-@@ -463,18 +463,13 @@ static void set_default_parameters(InputInfoPtr pInfo)
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-07-05 11:55:08.771347676 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-07-05 11:55:14.761347678 +0300
+@@ -469,18 +469,13 @@
      fingerLow = priv->minp + range * (25.0/256);
      fingerHigh = priv->minp + range * (30.0/256);
      fingerPress = priv->minp + range * 1.000;
@@ -43,6 +43,3 @@ index f4e440a..51d3ad0 100644
      range = priv->maxw - priv->minw;
  
      /* scaling based on defaults below and a tool width of 16 */
--- 
-1.7.4.1
-

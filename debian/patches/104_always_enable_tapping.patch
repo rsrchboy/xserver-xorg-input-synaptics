@@ -1,10 +1,10 @@
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2009-01-26 09:52:14.000000000 +0200
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2009-01-26 09:52:27.000000000 +0200
-@@ -403,10 +403,10 @@
- 	palmMinWidth = 10;
-     }
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-07-05 11:54:45.481347675 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-07-05 11:54:48.311347674 +0300
+@@ -488,10 +488,10 @@
+     palmMinWidth = priv->minw + range * (10.0/16);
+     emulateTwoFingerMinW = priv->minw + range * (7.0/16);
  
 -    /* Enable tap if we don't have a phys left button */
 -    tapButton1 = priv->has_left ? 0 : 1;
@@ -15,5 +15,5 @@ Index: xserver-xorg-input-synaptics/src/synaptics.c
 +    tapButton2 = 2;
 +    tapButton3 = 3;
  
-     /* Enable multifinger-click if we don't have right/middle button,
+     /* Enable multifinger-click if only have one physical button,
         otherwise clickFinger is always button 1. */

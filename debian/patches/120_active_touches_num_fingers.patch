@@ -15,11 +15,11 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
  src/eventcomm.h |    1 +
  2 files changed, 8 insertions(+), 1 deletions(-)
 
-diff --git a/src/eventcomm.c b/src/eventcomm.c
-index bb22f55..d3fc943 100644
---- a/src/eventcomm.c
-+++ b/src/eventcomm.c
-@@ -459,6 +459,7 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+Index: xserver-xorg-input-synaptics/src/eventcomm.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-07-05 11:55:08.771347676 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-07-05 11:55:10.801347676 +0300
+@@ -468,6 +468,7 @@
                             XI_TouchEnd, 0, ecpriv->touch_mask);
          ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
          ecpriv->close_slot = FALSE;
@@ -27,7 +27,7 @@ index bb22f55..d3fc943 100644
      }
      else
      {
-@@ -470,9 +471,12 @@ ProcessTouch(InputInfoPtr pInfo, SynapticsPrivate *priv)
+@@ -479,9 +480,12 @@
              int y = valuator_mask_get(ecpriv->touch_mask, y_axis);
  
              if (is_inside_active_area(priv, x, y))
@@ -40,7 +40,7 @@ index bb22f55..d3fc943 100644
              else
                  ecpriv->mt_slot_map[ecpriv->cur_slot] = -1;
          }
-@@ -531,7 +535,9 @@ EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
+@@ -540,7 +544,9 @@
      case EV_SYN:
          switch (ev->code) {
          case SYN_REPORT:
@@ -51,11 +51,11 @@ index bb22f55..d3fc943 100644
                  hw->numFingers = 1;
              else if (comm->twoFingers)
                  hw->numFingers = 2;
-diff --git a/src/eventcomm.h b/src/eventcomm.h
-index c6ef87c..d9c9ebb 100644
---- a/src/eventcomm.h
-+++ b/src/eventcomm.h
-@@ -58,6 +58,7 @@ typedef struct {
+Index: xserver-xorg-input-synaptics/src/eventcomm.h
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.h	2011-07-05 11:55:02.771347676 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.h	2011-07-05 11:55:10.801347676 +0300
+@@ -58,6 +58,7 @@
      int num_touches;
      struct mtdev *mtdev;
      struct grail *grail;
@@ -63,6 +63,3 @@ index c6ef87c..d9c9ebb 100644
  } EventcommPrivate;
  
  extern Bool EventProcessEvent(InputInfoPtr pInfo, struct CommData *comm,
--- 
-1.7.4.1
-

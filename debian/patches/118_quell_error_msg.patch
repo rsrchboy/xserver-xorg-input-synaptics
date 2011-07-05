@@ -1,7 +1,8 @@
-diff -Nurp patched//tools/synclient.c working//tools/synclient.c
---- patched//tools/synclient.c	2011-03-02 11:52:26.000000000 -0800
-+++ working//tools/synclient.c	2011-03-02 11:54:13.000000000 -0800
-@@ -390,9 +390,7 @@ dp_get_device(Display *dpy)
+Index: xserver-xorg-input-synaptics/tools/synclient.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/tools/synclient.c	2011-07-05 11:54:31.731347670 +0300
++++ xserver-xorg-input-synaptics/tools/synclient.c	2011-07-05 11:55:06.211347676 +0300
+@@ -391,9 +391,7 @@
  unwind:
      XFree(properties);
      XFreeDeviceList(info);
@@ -12,10 +13,11 @@ diff -Nurp patched//tools/synclient.c working//tools/synclient.c
      {
  	XCloseDevice(dpy, dev);
  	dev = NULL;
-diff -Nurp patched//tools/syndaemon.c working//tools/syndaemon.c
---- patched//tools/syndaemon.c	2011-03-02 11:52:14.000000000 -0800
-+++ working//tools/syndaemon.c	2011-03-02 11:54:37.000000000 -0800
-@@ -500,9 +500,7 @@ dp_get_device(Display *dpy)
+Index: xserver-xorg-input-synaptics/tools/syndaemon.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/tools/syndaemon.c	2011-07-05 11:54:31.751347670 +0300
++++ xserver-xorg-input-synaptics/tools/syndaemon.c	2011-07-05 11:55:06.211347676 +0300
+@@ -512,9 +512,7 @@
  unwind:
      XFree(properties);
      XFreeDeviceList(info);

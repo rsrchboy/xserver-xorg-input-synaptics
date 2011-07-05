@@ -12,9 +12,9 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
 
 Index: xserver-xorg-input-synaptics/src/eventcomm.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-04-01 08:38:31.647029257 -0400
-+++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-04-01 08:39:46.215699655 -0400
-@@ -447,7 +447,11 @@
+--- xserver-xorg-input-synaptics.orig/src/eventcomm.c	2011-07-05 11:55:02.771347676 +0300
++++ xserver-xorg-input-synaptics/src/eventcomm.c	2011-07-05 11:55:08.771347676 +0300
+@@ -455,7 +455,11 @@
  
      if (!priv->has_touch || ecpriv->cur_slot < 0 ||
          ecpriv->mt_slot_map[ecpriv->cur_slot] == (uint32_t)-1)
@@ -26,7 +26,7 @@ Index: xserver-xorg-input-synaptics/src/eventcomm.c
  
      if (ecpriv->close_slot)
      {  
-@@ -459,10 +463,27 @@
+@@ -467,10 +471,27 @@
      }
      else
      {
@@ -57,7 +57,7 @@ Index: xserver-xorg-input-synaptics/src/eventcomm.c
          ecpriv->new_touch = FALSE;
      }
  
-@@ -620,7 +641,7 @@
+@@ -628,7 +649,7 @@
                                         ecpriv->cur_vals);
                  }
              }
@@ -68,9 +68,9 @@ Index: xserver-xorg-input-synaptics/src/eventcomm.c
          case ABS_MT_TOUCH_MAJOR:
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-04-01 08:38:31.651029289 -0400
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2011-04-01 08:39:09.047363887 -0400
-@@ -1195,7 +1195,7 @@
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-07-05 11:55:02.771347676 +0300
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-07-05 11:55:08.771347676 +0300
+@@ -1200,7 +1200,7 @@
   * priv->synpara.area_{left|right|top|bottom}_edge are
   * all set to zero), the function returns TRUE.
   */
@@ -81,8 +81,8 @@ Index: xserver-xorg-input-synaptics/src/synaptics.c
      Bool inside_area = TRUE;
 Index: xserver-xorg-input-synaptics/src/synproto.h
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synproto.h	2011-04-01 08:38:31.655029323 -0400
-+++ xserver-xorg-input-synaptics/src/synproto.h	2011-04-01 08:38:31.727029958 -0400
+--- xserver-xorg-input-synaptics.orig/src/synproto.h	2011-07-05 11:55:02.771347676 +0300
++++ xserver-xorg-input-synaptics/src/synproto.h	2011-07-05 11:55:08.771347676 +0300
 @@ -81,6 +81,7 @@
  struct _SynapticsParameters;
  struct SynapticsHwInfo;
