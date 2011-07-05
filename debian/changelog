@@ -261,6 +261,27 @@ xserver-xorg-input-synaptics (1.2.2-3) experimental; urgency=low
 
  -- Cyril Brulebois <kibi@debian.org>  Wed, 13 Oct 2010 00:26:45 +0200
 
+xserver-xorg-input-synaptics (1.2.2-2ubuntu7) natty; urgency=low
+
+  * Add 116_resolution_detect_option.patch: Provide an option to prevent
+    synaptics from communicating the touchpad size to the xserver.  This
+    can be used to solve problems where differences in touchpad and screen
+    dimensions cause the mouse pointer to skip pixels when moving.
+    (LP: #327428)
+
+ -- Bryce Harrington <bryce@ubuntu.com>  Wed, 01 Dec 2010 17:03:44 -0800
+
+xserver-xorg-input-synaptics (1.2.2-2ubuntu6) natty; urgency=low
+
+  * Add quirk for Dell Inspiron 6400 to register taps more reliably.
+    The touchpad hardware occasionally sends invalid (1, 5855) coords
+    for taps, which the driver then interprets as a corner tap, which
+    by default get ignored.  Instead of ignoring them, we treat them
+    as left-button clicks.
+    (LP #133060)
+
+ -- Bryce Harrington <bryce@ubuntu.com>  Wed, 01 Dec 2010 12:32:39 -0800
+
 xserver-xorg-input-synaptics (1.2.2-2ubuntu5) maverick; urgency=low
 
   * 115_evdev_only.patch was added but never applied. (LP: #624985)
