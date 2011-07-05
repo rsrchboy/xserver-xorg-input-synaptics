@@ -48,6 +48,7 @@ xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
     - debian/xserver-xorg-input-synaptics.postinst.in:
       + Trigger udev to pick up new udev rules
   * Drop 114_jumpy_cursor_first_part.patch, fixed upstream.
+  * Update 115_evdev_only.patch to apply.
 
  -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 05 Jul 2011 09:43:02 +0300
 
