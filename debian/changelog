@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.4.1-1ubuntu1) oneiric; urgency=low
 
   * Merge from Debian unstable, remaining changes:
     - 101_resolution_detect_option.patch:
@@ -51,7 +51,7 @@ xserver-xorg-input-synaptics (1.4.1-1ubuntu1) UNRELEASED; urgency=low
   * Update 115_evdev_only.patch to apply.
   * Update 117_gestures.patch to apply.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 05 Jul 2011 09:43:02 +0300
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Tue, 05 Jul 2011 16:40:31 +0300
 
 xserver-xorg-input-synaptics (1.4.1-1) unstable; urgency=low
 
