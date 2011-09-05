@@ -130,10 +130,28 @@ static Bool QueryHardware(InputInfoPtr);
 static void ReadDevDimensions(InputInfoPtr);
 static void ScaleCoordinates(SynapticsPrivate *priv, struct SynapticsHwState *hw);
 static void CalculateScalingCoeffs(SynapticsPrivate *priv);
+static void SanitizeDimensions(InputInfoPtr pInfo);
 
 void InitDeviceProperties(InputInfoPtr pInfo);
 int SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
                 BOOL checkonly);
+
+const static struct {
+    const char *name;
+    struct SynapticsProtocolOperations *proto_ops;
+} protocols[] = {
+#ifdef BUILD_EVENTCOMM
+    {"event", &event_proto_operations},
+#endif
+#ifdef BUILD_PSMCOMM
+    {"psm", &psm_proto_operations},
+#endif
+#ifdef BUILD_PS2COMM
+    {"psaux", &psaux_proto_operations},
+    {"alps", &alps_proto_operations},
+#endif
+    {NULL, NULL}
+};
 
 InputDriverRec SYNAPTICS = {
     1,
@@ -183,8 +201,8 @@ _X_EXPORT XF86ModuleData synapticsModuleData = {
  * The default values 1900, etc. come from the dawn of time, when men where
  * men, or possibly apes.
  */
-void
-SynapticsDefaultDimensions(InputInfoPtr pInfo)
+static void
+SanitizeDimensions(InputInfoPtr pInfo)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
 
@@ -194,9 +212,9 @@ SynapticsDefaultDimensions(InputInfoPtr pInfo)
 	priv->maxx = 5685;
 	priv->resx = 0;
 
-	xf86Msg(X_PROBED,
-		"%s: invalid x-axis range.  defaulting to %d - %d\n",
-		pInfo->name, priv->minx, priv->maxx);
+	xf86IDrvMsg(pInfo, X_PROBED,
+		    "invalid x-axis range.  defaulting to %d - %d\n",
+		    priv->minx, priv->maxx);
     }
 
     if (priv->miny >= priv->maxy)
@@ -205,90 +223,53 @@ SynapticsDefaultDimensions(InputInfoPtr pInfo)
 	priv->maxy = 4171;
 	priv->resy = 0;
 
-	xf86Msg(X_PROBED,
-		"%s: invalid y-axis range.  defaulting to %d - %d\n",
-		pInfo->name, priv->miny, priv->maxy);
+	xf86IDrvMsg(pInfo, X_PROBED,
+		    "invalid y-axis range.  defaulting to %d - %d\n",
+		    priv->miny, priv->maxy);
     }
 
     if (priv->minp >= priv->maxp)
     {
 	priv->minp = 0;
-	priv->maxp = 256;
+	priv->maxp = 255;
 
-	xf86Msg(X_PROBED,
-		"%s: invalid pressure range.  defaulting to %d - %d\n",
-		pInfo->name, priv->minp, priv->maxp);
+	xf86IDrvMsg(pInfo, X_PROBED,
+		    "invalid pressure range.  defaulting to %d - %d\n",
+		    priv->minp, priv->maxp);
     }
 
     if (priv->minw >= priv->maxw)
     {
 	priv->minw = 0;
-	priv->maxw = 16;
+	priv->maxw = 15;
 
-	xf86Msg(X_PROBED,
-		"%s: invalid finger width range.  defaulting to %d - %d\n",
-		pInfo->name, priv->minw, priv->maxw);
+	xf86IDrvMsg(pInfo, X_PROBED,
+		    "invalid finger width range.  defaulting to %d - %d\n",
+		    priv->minw, priv->maxw);
     }
 }
 
 static void
 SetDeviceAndProtocol(InputInfoPtr pInfo)
 {
-    char *str_par, *device;
     SynapticsPrivate *priv = pInfo->private;
-    enum SynapticsProtocol proto = SYN_PROTO_PSAUX;
+    char *proto, *device;
+    int i;
 
+    proto = xf86SetStrOption(pInfo->options, "Protocol", NULL);
     device = xf86SetStrOption(pInfo->options, "Device", NULL);
-    if (!device) {
-	device = xf86SetStrOption(pInfo->options, "Path", NULL);
-	if (device) {
-	    pInfo->options =
-	    	xf86ReplaceStrOption(pInfo->options, "Device", device);
-	}
+    for (i = 0; protocols[i].name; i++) {
+        if ((!device || !proto) &&
+            protocols[i].proto_ops->AutoDevProbe &&
+            protocols[i].proto_ops->AutoDevProbe(pInfo, device))
+            break;
+        else if (proto && !strcmp(proto, protocols[i].name))
+            break;
     }
-    if (device && strstr(device, "/dev/input/event")) {
-#ifdef BUILD_EVENTCOMM
-	proto = SYN_PROTO_EVENT;
-#endif
-    } else {
-	str_par = xf86FindOptionValue(pInfo->options, "Protocol");
-	if (str_par && !strcmp(str_par, "psaux")) {
-	    /* Already set up */
-#ifdef BUILD_EVENTCOMM
-	} else if (str_par && !strcmp(str_par, "event")) {
-	    proto = SYN_PROTO_EVENT;
-#endif /* BUILD_EVENTCOMM */
-#ifdef BUILD_PSMCOMM
-	} else if (str_par && !strcmp(str_par, "psm")) {
-	    proto = SYN_PROTO_PSM;
-#endif /* BUILD_PSMCOMM */
-	} else if (str_par && !strcmp(str_par, "alps")) {
-	    proto = SYN_PROTO_ALPS;
-	} else { /* default to auto-dev */
-#ifdef BUILD_EVENTCOMM
-	    if (!device && event_proto_operations.AutoDevProbe(pInfo))
-		proto = SYN_PROTO_EVENT;
-#endif
-	}
-    }
-    switch (proto) {
-    case SYN_PROTO_PSAUX:
-	priv->proto_ops = &psaux_proto_operations;
-	break;
-#ifdef BUILD_EVENTCOMM
-    case SYN_PROTO_EVENT:
-	priv->proto_ops = &event_proto_operations;
-	break;
-#endif /* BUILD_EVENTCOMM */
-#ifdef BUILD_PSMCOMM
-    case SYN_PROTO_PSM:
-	priv->proto_ops = &psm_proto_operations;
-	break;
-#endif /* BUILD_PSMCOMM */
-    case SYN_PROTO_ALPS:
-	priv->proto_ops = &alps_proto_operations;
-	break;
-    }
+    free(proto);
+    free(device);
+
+    priv->proto_ops = protocols[i].proto_ops;
 }
 
 /*
@@ -310,11 +291,11 @@ alloc_shm_data(InputInfoPtr pInfo)
 	    shmctl(shmid, IPC_RMID, NULL);
 	if ((shmid = shmget(SHM_SYNAPTICS, sizeof(SynapticsSHM),
 				0774 | IPC_CREAT)) == -1) {
-	    xf86Msg(X_ERROR, "%s error shmget\n", pInfo->name);
+	    xf86IDrvMsg(pInfo, X_ERROR, "error shmget\n");
 	    return FALSE;
 	}
 	if ((priv->synshm = (SynapticsSHM*)shmat(shmid, NULL, 0)) == NULL) {
-	    xf86Msg(X_ERROR, "%s error shmat\n", pInfo->name);
+	    xf86IDrvMsg(pInfo, X_ERROR, "error shmat\n");
 	    return FALSE;
 	}
     } else {
@@ -444,7 +425,6 @@ static void set_default_parameters(InputInfoPtr pInfo)
      * If the range was autodetected, apply these edge widths to all four
      * sides.
      */
-    SynapticsDefaultDimensions(pInfo);
 
     width = abs(priv->maxx - priv->minx);
     height = abs(priv->maxy - priv->miny);
@@ -464,25 +444,20 @@ static void set_default_parameters(InputInfoPtr pInfo)
     horizHyst = pars->hyst_x >= 0 ? pars->hyst_x : diag * 0.005;
     vertHyst = pars->hyst_y >= 0 ? pars->hyst_y : diag * 0.005;
 
-    range = priv->maxp - priv->minp;
+    range = priv->maxp - priv->minp + 1;
 
     /* scaling based on defaults and a pressure of 256 */
     fingerLow = priv->minp + range * (25.0/256);
     fingerHigh = priv->minp + range * (30.0/256);
     fingerPress = priv->minp + range * 1.000;
+    emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
     edgeMotionMinZ = priv->minp + range * (30.0/256);
     edgeMotionMaxZ = priv->minp + range * (160.0/256);
     pressureMotionMinZ = priv->minp + range * (30.0/256);
     pressureMotionMaxZ = priv->minp + range * (160.0/256);
     palmMinZ = priv->minp + range * (200.0/256);
 
-    /* Enable emulation when hw supports both pressure and width. */
-    if (!priv->has_double && priv->has_width)
-	emulateTwoFingerMinZ = fingerHigh;
-    else
-	emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
-
-    range = priv->maxw - priv->minw;
+    range = priv->maxw - priv->minw + 1;
 
     /* scaling based on defaults below and a tool width of 16 */
     palmMinWidth = priv->minw + range * (10.0/16);
@@ -599,8 +574,7 @@ static void set_default_parameters(InputInfoPtr pInfo)
 	int tmp = pars->top_edge;
 	pars->top_edge = pars->bottom_edge;
 	pars->bottom_edge = tmp;
-	xf86Msg(X_WARNING, "%s: TopEdge is bigger than BottomEdge. Fixing.\n",
-		pInfo->name);
+	xf86IDrvMsg(pInfo, X_WARNING, "TopEdge is bigger than BottomEdge. Fixing.\n");
     }
 }
 
@@ -714,11 +688,17 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
 
     /* may change pInfo->options */
     SetDeviceAndProtocol(pInfo);
+    if (priv->proto_ops == NULL) {
+        xf86IDrvMsg(pInfo, X_ERROR, "Synaptics driver unable to detect protocol\n");
+        goto SetupProc_fail;
+    }
+
+    priv->device = xf86FindOptionValue(pInfo->options, "Device");
 
     /* open the touchpad device */
     pInfo->fd = xf86OpenSerial(pInfo->options);
     if (pInfo->fd == -1) {
-	xf86Msg(X_ERROR, "Synaptics driver unable to open device\n");
+	xf86IDrvMsg(pInfo, X_ERROR, "Synaptics driver unable to open device\n");
 	goto SetupProc_fail;
     }
     xf86ErrorFVerb(6, "port opened successfully\n");
@@ -750,7 +730,7 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
     priv->comm.buffer = XisbNew(pInfo->fd, INPUT_BUFFER_SIZE);
 
     if (!QueryHardware(pInfo)) {
-	xf86Msg(X_ERROR, "%s Unable to query/initialize Synaptics hardware.\n", pInfo->name);
+	xf86IDrvMsg(pInfo, X_ERROR, "Unable to query/initialize Synaptics hardware.\n");
 	goto SetupProc_fail;
     }
 
@@ -844,10 +824,9 @@ DeviceOn(DeviceIntPtr dev)
 
     DBG(3, "Synaptics DeviceOn called\n");
 
-    SetDeviceAndProtocol(pInfo);
     pInfo->fd = xf86OpenSerial(pInfo->options);
     if (pInfo->fd == -1) {
-	xf86Msg(X_WARNING, "%s: cannot open input device\n", pInfo->name);
+	xf86IDrvMsg(pInfo, X_WARNING, "cannot open input device\n");
 	return !Success;
     }
 
@@ -1012,8 +991,8 @@ DeviceInit(DeviceIntPtr dev)
 	 * May be overridden in xf86InitValuatorDefaults */
 	tmpf = 1.0 / priv->synpara.min_speed;
 
-	xf86Msg(X_CONFIG, "%s: (accel) MinSpeed is now constant deceleration "
-	        "%.1f\n", dev->name, tmpf);
+	xf86IDrvMsg(pInfo, X_CONFIG, "(accel) MinSpeed is now constant deceleration "
+		    "%.1f\n", tmpf);
 	prop = XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION);
 	XIChangeDeviceProperty(dev, prop, float_type, 32,
 	                       PropModeReplace, 1, &tmpf, FALSE);
@@ -1026,10 +1005,10 @@ DeviceInit(DeviceIntPtr dev)
 	 * 100 packet/s by default. */
 	pVel->corr_mul = 12.5f; /*1000[ms]/80[/s] = 12.5 */
 
-	xf86Msg(X_CONFIG, "%s: MaxSpeed is now %.2f\n",
-		dev->name, priv->synpara.max_speed);
-	xf86Msg(X_CONFIG, "%s: AccelFactor is now %.3f\n",
-		dev->name, priv->synpara.accl);
+	xf86IDrvMsg(pInfo, X_CONFIG, "MaxSpeed is now %.2f\n",
+		    priv->synpara.max_speed);
+	xf86IDrvMsg(pInfo, X_CONFIG, "AccelFactor is now %.3f\n",
+		    priv->synpara.accl);
 
 	prop = XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER);
 	i = AccelProfileDeviceSpecific;
@@ -1255,8 +1234,7 @@ static Bool
 SynapticsGetHwState(InputInfoPtr pInfo, SynapticsPrivate *priv,
 		    struct SynapticsHwState *hw)
 {
-    return priv->proto_ops->ReadHwState(pInfo, priv->proto_ops,
-					&priv->comm, hw);
+    return priv->proto_ops->ReadHwState(pInfo, &priv->comm, hw);
 }
 
 /*
@@ -1895,9 +1873,25 @@ struct ScrollData {
     int left, right, up, down;
 };
 
+static double
+estimate_delta_circ(SynapticsPrivate *priv)
+{
+	double a1 = angle(priv, HIST(3).x, HIST(3).y);
+	double a2 = angle(priv, HIST(2).x, HIST(2).y);
+	double a3 = angle(priv, HIST(1).x, HIST(1).y);
+	double a4 = angle(priv, HIST(0).x, HIST(0).y);
+	double d1 = diffa(a2, a1);
+	double d2 = d1 + diffa(a3, a2);
+	double d3 = d2 + diffa(a4, a3);
+	return estimate_delta(d3, d2, d1, 0);
+}
+
+/* vert and horiz are to know which direction to start coasting
+ * circ is true if the user had been circular scrolling.
+ */
 static void
-start_coasting(SynapticsPrivate *priv, struct SynapticsHwState *hw, edge_type edge,
-	       Bool vertical)
+start_coasting(SynapticsPrivate *priv, struct SynapticsHwState *hw,
+	       Bool vert, Bool horiz, Bool circ)
 {
     SynapticsParameters *para = &priv->synpara;
 
@@ -1906,10 +1900,10 @@ start_coasting(SynapticsPrivate *priv, struct SynapticsHwState *hw, edge_type ed
 
     if ((priv->scroll_packet_count > 3) && (para->coasting_speed > 0.0)) {
 	double pkt_time = (HIST(0).millis - HIST(3).millis) / 1000.0;
-	if (para->scroll_twofinger_vert || vertical) {
+	if (vert && !circ) {
 	    double dy = estimate_delta(HIST(0).y, HIST(1).y, HIST(2).y, HIST(3).y);
 	    int sdelta = para->scroll_dist_vert;
-	    if ((para->scroll_twofinger_vert || (edge & RIGHT_EDGE)) && pkt_time > 0 && sdelta > 0) {
+	    if (pkt_time > 0 && sdelta > 0) {
 		double scrolls_per_sec = dy / pkt_time / sdelta;
 		if (fabs(scrolls_per_sec) >= para->coasting_speed) {
 		    priv->autoscroll_yspd = scrolls_per_sec;
@@ -1917,15 +1911,32 @@ start_coasting(SynapticsPrivate *priv, struct SynapticsHwState *hw, edge_type ed
 		}
 	    }
 	}
-	if (para->scroll_twofinger_horiz || !vertical){
+	if (horiz && !circ){
 	    double dx = estimate_delta(HIST(0).x, HIST(1).x, HIST(2).x, HIST(3).x);
 	    int sdelta = para->scroll_dist_horiz;
-	    if ((para->scroll_twofinger_horiz || (edge & BOTTOM_EDGE)) && pkt_time > 0 && sdelta > 0) {
+	    if (pkt_time > 0 && sdelta > 0) {
 		double scrolls_per_sec = dx / pkt_time / sdelta;
 		if (fabs(scrolls_per_sec) >= para->coasting_speed) {
 		    priv->autoscroll_xspd = scrolls_per_sec;
 		    priv->autoscroll_x = (hw->x - priv->scroll_x) / (double)sdelta;
 		}
+	    }
+	}
+	if (circ) {
+	    double da = estimate_delta_circ(priv);
+	    double sdelta = para->scroll_dist_circ;
+	    if (pkt_time > 0 && sdelta > 0) {
+	        double scrolls_per_sec = da / pkt_time / sdelta;
+	        if (fabs(scrolls_per_sec) >= para->coasting_speed) {
+	            if (vert) {
+	                priv->autoscroll_yspd = scrolls_per_sec;
+	                priv->autoscroll_y = diffa(priv->scroll_a, angle(priv, hw->x, hw->y)) / sdelta;
+	            }
+	            else if (horiz) {
+	                priv->autoscroll_xspd = scrolls_per_sec;
+	                priv->autoscroll_x = diffa(priv->scroll_a, angle(priv, hw->x, hw->y)) / sdelta;
+	            }
+	        }
 	    }
 	}
     }
@@ -2018,8 +2029,12 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
     {
 	Bool oldv = priv->vert_scroll_twofinger_on || priv->vert_scroll_edge_on ||
 	              (priv->circ_scroll_on && priv->circ_scroll_vert);
+
 	Bool oldh = priv->horiz_scroll_twofinger_on || priv->horiz_scroll_edge_on ||
 	              (priv->circ_scroll_on && !priv->circ_scroll_vert);
+
+	Bool oldc = priv->circ_scroll_on;
+
 	if (priv->circ_scroll_on && !finger) {
 	    /* circular scroll locks in until finger is raised */
 	    DBG(7, "cicular scroll off\n");
@@ -2058,11 +2073,16 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	}
 	/* if we were scrolling, but couldn't corner edge scroll,
 	 * and are no longer scrolling, then start coasting */
-	if ((oldv || oldh) && !para->scroll_edge_corner &&
-	    !(priv->circ_scroll_on || priv->vert_scroll_edge_on ||
-	      priv->horiz_scroll_edge_on || priv->horiz_scroll_twofinger_on ||
-	      priv->vert_scroll_twofinger_on)) {
-	    start_coasting(priv, hw, edge, oldv);
+	oldv = oldv && !(priv->vert_scroll_twofinger_on || priv->vert_scroll_edge_on ||
+	              (priv->circ_scroll_on && priv->circ_scroll_vert));
+
+	oldh = oldh && !(priv->horiz_scroll_twofinger_on || priv->horiz_scroll_edge_on ||
+	              (priv->circ_scroll_on && !priv->circ_scroll_vert));
+
+	oldc = oldc && !priv->circ_scroll_on;
+
+	if ((oldv || oldh) && !para->scroll_edge_corner) {
+	    start_coasting(priv, hw, oldv, oldh, oldc);
 	}
     }
 
@@ -2077,7 +2097,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 		 * we're in the corner, but we were moving so slowly when we
 		 * got here that we didn't actually start coasting. */
 		DBG(7, "corner edge scroll on\n");
-		start_coasting(priv, hw, edge, TRUE);
+		start_coasting(priv, hw, TRUE, FALSE, FALSE);
 	    }
 	} else if (para->circular_scrolling) {
 	    priv->vert_scroll_edge_on = FALSE;
@@ -2096,7 +2116,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 		 * we're in the corner, but we were moving so slowly when we
 		 * got here that we didn't actually start coasting. */
 		DBG(7, "corner edge scroll on\n");
-		start_coasting(priv, hw, edge, FALSE);
+		start_coasting(priv, hw, FALSE, TRUE, FALSE);
 	    }
 	} else if (para->circular_scrolling) {
 	    priv->horiz_scroll_edge_on = FALSE;
@@ -2613,6 +2633,8 @@ ReadDevDimensions(InputInfoPtr pInfo)
 
     if (priv->proto_ops->ReadDevDimensions)
 	priv->proto_ops->ReadDevDimensions(pInfo);
+
+    SanitizeDimensions(pInfo);
 }
 
 static Bool
@@ -2623,7 +2645,7 @@ QueryHardware(InputInfoPtr pInfo)
     priv->comm.protoBufTail = 0;
 
     if (!priv->proto_ops->QueryHardware(pInfo)) {
-	xf86Msg(X_PROBED, "%s: no supported touchpad found\n", pInfo->name);
+	xf86IDrvMsg(pInfo, X_PROBED, "no supported touchpad found\n");
 	if (priv->proto_ops->DeviceOffHook)
             priv->proto_ops->DeviceOffHook(pInfo);
         return FALSE;

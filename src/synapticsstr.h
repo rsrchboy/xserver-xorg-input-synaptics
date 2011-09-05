@@ -35,6 +35,10 @@
 #define DBG(verb, msg, ...) /* */
 #endif
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 12
+#define xf86IDrvMsg(pInfo, type, ...) xf86Msg(type, __VA_ARGS__)
+#endif
+
 /******************************************************************************
  *		Definitions
  *					structs, typedefs, #defines, enums
@@ -175,6 +179,7 @@ typedef struct _SynapticsPrivateRec
 
     struct SynapticsHwState hwState;
 
+    char *device;			/* device node */
     Bool shm_config;			/* True when shared memory area allocated */
 
     OsTimerPtr timer;			/* for up/down-button repeat, tap processing, etc */
@@ -240,10 +245,9 @@ typedef struct _SynapticsPrivateRec
     Bool has_width;			/* device reports finger width */
     Bool has_scrollbuttons;		/* device has physical scrollbuttons */
 
-    enum TouchpadModel model;          /* The detected model */
+    enum TouchpadModel model;		/* The detected model */
+    unsigned short id_vendor;		/* vendor id */
+    unsigned short id_product;		/* product id */
 } SynapticsPrivate;
-
-
-extern void SynapticsDefaultDimensions(InputInfoPtr pInfo);
 
 #endif /* _SYNAPTICSSTR_H_ */

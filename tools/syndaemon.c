@@ -449,7 +449,6 @@ void record_main_loop(Display* display, double idle_time) {
 
 	if (ret == 0 && pad_disabled) { /* timeout => enable event */
 	    toggle_touchpad(True);
-	    if (verbose) printf("enable touchpad\n");
 	}
 
     } /* end while(1) */
@@ -598,7 +597,7 @@ main(int argc, char *argv[])
 	    FILE *fd = fopen(pid_file, "w");
 	    if (!fd) {
 		perror("Can't create pid file");
-		exit(2);
+		exit(3);
 	    }
 	    fprintf(fd, "%d\n", getpid());
 	    fclose(fd);
@@ -616,7 +615,7 @@ main(int argc, char *argv[])
 	else {
 	    fprintf(stderr, "Use of XRecord requested, but failed to "
 		    " initialize.\n");
-            exit(2);
+            exit(4);
         }
     } else
 #endif /* HAVE_X11_EXTENSIONS_RECORD_H */
@@ -628,3 +627,5 @@ main(int argc, char *argv[])
       }
     return 0;
 }
+
+/* vim: set noexpandtab tabstop=8 shiftwidth=4: */
