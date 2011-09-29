@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.4.1-1ubuntu2) UNRELEASED; urgency=low
+
+  * rules: Really install the quirks file, and migrate to using
+    MatchProduct on it.
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 29 Sep 2011 20:59:07 +0300
+
 xserver-xorg-input-synaptics (1.4.1-1ubuntu1) oneiric; urgency=low
 
   * Merge from Debian unstable, remaining changes:
