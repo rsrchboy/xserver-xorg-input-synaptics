@@ -1,10 +1,10 @@
-xserver-xorg-input-synaptics (1.4.1-1ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.4.1-1ubuntu2) oneiric; urgency=low
 
   * Really install the quirks files, and rename the udev rules file
     to emphasize that it's about quirks.
   * postinst: Bump the version check to run udevadm trigger on upgrade.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 29 Sep 2011 20:59:07 +0300
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 29 Sep 2011 22:16:55 +0300
 
 xserver-xorg-input-synaptics (1.4.1-1ubuntu1) oneiric; urgency=low
 
