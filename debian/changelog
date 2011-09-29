@@ -1,7 +1,7 @@
 xserver-xorg-input-synaptics (1.4.1-1ubuntu2) UNRELEASED; urgency=low
 
-  * rules: Really install the quirks file, and migrate to using
-    MatchProduct on it.
+  * Really install the quirks files, and rename the udev rules file
+    to emphasize that it's about quirks.
 
  -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 29 Sep 2011 20:59:07 +0300
 

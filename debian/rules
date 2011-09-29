@@ -8,8 +8,6 @@ override_dh_auto_install:
 override_dh_install:
 	find debian/tmp -name '*.la' -delete
 	dh_install --fail-missing
-	install -d debian/xserver-xorg-input-synaptics/usr/share/X11/xorg.conf.d
-	install -m 644 debian/local/51-synaptics-quirks.conf debian/xserver-xorg-input-synaptics/usr/share/X11/xorg.conf.d
 
 # That's a plugin, use appropriate warning level:
 override_dh_shlibdeps:
