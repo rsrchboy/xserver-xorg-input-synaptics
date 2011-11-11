@@ -1,8 +1,9 @@
-xserver-xorg-input-synaptics (1.5.0-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.0-1) unstable; urgency=low
 
+  [ Timo Aaltonen ]
   * New upstream release.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Mon, 05 Sep 2011 11:57:11 +0300
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 11 Nov 2011 17:15:22 +0100
 
 xserver-xorg-input-synaptics (1.4.1-1) unstable; urgency=low
 
