@@ -21,25 +21,18 @@ Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
 
 Index: xserver-xorg-input-synaptics/src/synaptics.c
 ===================================================================
---- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-07-05 11:55:08.771347676 +0300
-+++ xserver-xorg-input-synaptics/src/synaptics.c	2011-07-05 11:55:14.761347678 +0300
-@@ -469,18 +469,13 @@
-     fingerLow = priv->minp + range * (25.0/256);
-     fingerHigh = priv->minp + range * (30.0/256);
-     fingerPress = priv->minp + range * 1.000;
-+    emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
-     edgeMotionMinZ = priv->minp + range * (30.0/256);
-     edgeMotionMaxZ = priv->minp + range * (160.0/256);
-     pressureMotionMinZ = priv->minp + range * (30.0/256);
-     pressureMotionMaxZ = priv->minp + range * (160.0/256);
-     palmMinZ = priv->minp + range * (200.0/256);
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2011-12-19 11:16:14.000000000 +1100
++++ xserver-xorg-input-synaptics/src/synaptics.c	2011-12-19 11:24:53.746135268 +1100
+@@ -459,6 +459,12 @@
  
--    /* Enable emulation when hw supports both pressure and width. */
--    if (!priv->has_double && priv->has_width)
--	emulateTwoFingerMinZ = fingerHigh;
--    else
--	emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
--
-     range = priv->maxw - priv->minw;
+     range = priv->maxw - priv->minw + 1;
  
++    /* Enable emulation when hw supports both pressure and width. */
++    if (!priv->has_double && priv->has_width)
++	emulateTwoFingerMinZ = fingerHigh;
++    else
++	emulateTwoFingerMinZ = priv->minp + range * (282.0/256);
++
      /* scaling based on defaults below and a tool width of 16 */
+     palmMinWidth = priv->minw + range * (10.0/16);
+     emulateTwoFingerMinW = priv->minw + range * (7.0/16);

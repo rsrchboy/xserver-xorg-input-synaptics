@@ -1,3 +1,51 @@
+xserver-xorg-input-synaptics (1.5.0-2ubuntu1~nomt1) UNRELEASED; urgency=low
+
+  * Merge from Debian testing.  Remaining Ubuntu changes:
+    - 101_resolution_detect_option.patch:
+      + Provide an option to prevent synaptics from communicating the
+        touchpad size to the xserver. (LP: 327428)
+    - 103_enable_cornertapping.patch:
+      + Enable right/middle clicks by tapping in the bottom- and top-right
+        corners.
+    - 104_always_enable_tapping.patch:
+      + Enable tapping regardless of the presence of physical buttons.
+    - 106_always_enable_vert_edge_scroll.patch:
+      + Enable vertical edge tapping by default even if we enable two-finger
+        scrolling as well.
+    - 115_evdev_only.patch:
+      + Only bind to /dev/input/event* evdev devices (LP 624985)
+    - 118_quell_error_msg.patch:
+      + Don't print error "Unable to find a synaptics device" when used
+        on system that doesn't have a touchpad anyway. (LP: 716712)
+    - 122_revert_pressure_finger_default.patch:
+      + Fix spurious right click events on some trackpads (LP: 742213)
+    - 124_syndaemon_events.patch:
+      + Drain spurious events from XRecord connection as a work around
+        for a buggy X server. (LP: 754470)
+    - debian/control:
+      + Depend on udev.
+      + Move libxtst-dev to Build-Conflicts so syndaemon does not use XRecord,
+        preventing a wide range of crashes in _CallCallbacks. (LP: 774978)
+    - debian/gbp.conf:
+      + Specify ‘ubuntu’ branch.
+    - debian/local/51-synaptics-quirks.conf:
+      + Split out our synaptics quirks into 51-synaptics-quirks.conf
+    - debian/local/66-xorg-synaptics.rules:
+      + Add the udev rule back for tagging specific machines to be quirked.
+    - debian/xserver-xorg-input-synaptics.postinst.in:
+      + Trigger udev to pick up new udev rules
+  * Temporarily drop multitouch patches for X server 1.11 bringup:
+    + 116_xi2_1.patch
+    + 117_gestures.patch
+    + 119_active_area_touches.patch
+    + 120_active_touches_num_fingers.patch
+    + 121_semi-mt_num_fingers.patch
+    + 123_order_ProcessTouch_for_numFingers.patch
+  * debian/patches/122_revert_pressure_finger_default.patch:
+    + Refresh for new upstream
+
+ -- Christopher James Halse Rogers <raof@ubuntu.com>  Mon, 19 Dec 2011 11:10:25 +1100
+
 xserver-xorg-input-synaptics (1.5.0-2) unstable; urgency=low
 
   * Cherry-pick to fix regression on powerpc (Closes: #649002):
