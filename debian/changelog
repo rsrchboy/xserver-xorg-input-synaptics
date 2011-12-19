@@ -1,3 +1,17 @@
+xserver-xorg-input-synaptics (1.5.0-2) unstable; urgency=low
+
+  * Cherry-pick to fix regression on powerpc (Closes: #649002):
+    - b7e65f04f: Revert the switch from TEST_BIT to BitIsOn.
+
+ -- Cyril Brulebois <kibi@debian.org>  Mon, 12 Dec 2011 13:28:36 +0100
+
+xserver-xorg-input-synaptics (1.5.0-1) unstable; urgency=low
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 11 Nov 2011 17:15:22 +0100
+
 xserver-xorg-input-synaptics (1.4.1-1ubuntu2) oneiric; urgency=low
 
   * Really install the quirks files, and rename the udev rules file

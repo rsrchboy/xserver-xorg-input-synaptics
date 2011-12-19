@@ -51,43 +51,66 @@
 #define LONG(x)  ((x) / LONG_BITS)
 #define TEST_BIT(bit, array) ((array[LONG(bit)] >> OFF(bit)) & 1)
 
-/*****************************************************************************
- *	Function Definitions
- ****************************************************************************/
+/**
+ * Protocol-specific data.
+ */
+struct eventcomm_proto_data
+{
+    /**
+     * Do we need to grab the event device?
+     * Note that in the current flow, this variable is always false and
+     * exists for readability of the code.
+     */
+    BOOL need_grab;
+};
 
 static void
 EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
-    BOOL *need_grab;
+    struct eventcomm_proto_data *proto_data = (struct eventcomm_proto_data*)priv->proto_data;
 
-    if (!priv->proto_data)
-        priv->proto_data = calloc(1, sizeof(BOOL));
-
-    need_grab = (BOOL*)priv->proto_data;
+    if (!proto_data) {
+	proto_data = calloc(1, sizeof(struct eventcomm_proto_data));
+	priv->proto_data = proto_data;
+    }
 
     if (para->grab_event_device) {
 	/* Try to grab the event device so that data don't leak to /dev/input/mice */
 	int ret;
 	SYSCALL(ret = ioctl(pInfo->fd, EVIOCGRAB, (pointer)1));
 	if (ret < 0) {
-	    xf86Msg(X_WARNING, "%s can't grab event device, errno=%d\n",
-		    pInfo->name, errno);
+	    xf86IDrvMsg(pInfo, X_WARNING, "can't grab event device, errno=%d\n",
+			errno);
 	}
     }
 
-    *need_grab = FALSE;
+    proto_data->need_grab = FALSE;
 }
 
+/**
+ * Test if the device on the file descriptior is recognized as touchpad
+ * device. Required bits for touchpad recognition are:
+ * - ABS_X + ABS_Y for absolute axes
+ * - ABS_PRESSURE or BTN_TOUCH
+ * - BTN_TOOL_FINGER
+ * - BTN_TOOL_PEN is _not_ set
+ *
+ * @param fd The file descriptor to an event device.
+ * @param test_grab If true, test whether an EVIOCGRAB is possible on the
+ * device. A failure to grab the event device returns in a failure.
+ *
+ * @return TRUE if the device is a touchpad or FALSE otherwise.
+ */
 static Bool
-event_query_is_touchpad(int fd, BOOL grab)
+event_query_is_touchpad(int fd, BOOL test_grab)
 {
     int ret = FALSE, rc;
     unsigned long evbits[NBITS(EV_MAX)] = {0};
     unsigned long absbits[NBITS(ABS_MAX)] = {0};
     unsigned long keybits[NBITS(KEY_MAX)] = {0};
 
-    if (grab)
+    if (test_grab)
     {
         SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
         if (rc < 0)
@@ -127,7 +150,7 @@ event_query_is_touchpad(int fd, BOOL grab)
     ret = TRUE;
 
 unwind:
-    if (grab)
+    if (test_grab)
         SYSCALL(ioctl(fd, EVIOCGRAB, (pointer)0));
 
     return (ret == TRUE);
@@ -147,24 +170,80 @@ static model_lookup_t model_lookup_table[] = {
 	{0x0, 0x0, 0x0}
 };
 
-static void
-event_query_info(InputInfoPtr pInfo)
+/**
+ * Check for the vendor/product id on the file descriptor and compare
+ * with the built-in model LUT. This information is used in synaptics.c to
+ * initialize model-specific dimensions.
+ *
+ * @param fd The file descriptor to a event device.
+ * @param[out] model_out The type of touchpad model detected.
+ *
+ * @return TRUE on success or FALSE otherwise.
+ */
+static Bool
+event_query_model(int fd, enum TouchpadModel *model_out, unsigned short *vendor_id, unsigned short *product_id)
 {
-    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
-    short id[4];
+    struct input_id id;
     int rc;
     model_lookup_t *model_lookup;
 
-    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGID, id));
+    SYSCALL(rc = ioctl(fd, EVIOCGID, &id));
     if (rc < 0)
-        return;
+        return FALSE;
 
     for(model_lookup = model_lookup_table; model_lookup->vendor; model_lookup++) {
-        if(model_lookup->vendor == id[ID_VENDOR] &&
-           (model_lookup->product == id[ID_PRODUCT] || model_lookup->product == PRODUCT_ANY))
-            priv->model = model_lookup->model;
+        if(model_lookup->vendor == id.vendor &&
+           (model_lookup->product == id.product|| model_lookup->product == PRODUCT_ANY))
+            *model_out = model_lookup->model;
     }
+
+    *vendor_id = id.vendor;
+    *product_id = id.product;
+
+    return TRUE;
 }
+
+/**
+ * Get absinfo information from the given file descriptor for the given
+ * ABS_FOO code and store the information in min, max, fuzz and res.
+ *
+ * @param fd File descriptor to an event device
+ * @param code Event code (e.g. ABS_X)
+ * @param[out] min Minimum axis range
+ * @param[out] max Maximum axis range
+ * @param[out] fuzz Fuzz of this axis. If NULL, fuzz is ignored.
+ * @param[out] res Axis resolution. If NULL or the current kernel does not
+ * support the resolution field, res is ignored
+ *
+ * @return Zero on success, or errno otherwise.
+ */
+static int
+event_get_abs(InputInfoPtr pInfo, int fd, int code,
+              int *min, int *max, int *fuzz, int *res)
+{
+    int rc;
+    struct input_absinfo abs =  {0};
+
+    SYSCALL(rc = ioctl(fd, EVIOCGABS(code), &abs));
+    if (rc < 0) {
+	xf86IDrvMsg(pInfo, X_ERROR, "%s EVIOCGABS error on %d (%s)\n",
+		    __func__, code, strerror(rc));
+	return errno;
+    }
+
+    *min = abs.minimum;
+    *max = abs.maximum;
+    /* We dont trust a zero fuzz as it probably is just a lazy value */
+    if (fuzz && abs.fuzz > 0)
+	*fuzz = abs.fuzz;
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,30)
+    if (res)
+	*res = abs.resolution;
+#endif
+
+    return 0;
+}
+
 
 /* Query device for axis ranges */
 static void
@@ -174,44 +253,16 @@ event_query_axis_ranges(InputInfoPtr pInfo)
     struct input_absinfo abs = {0};
     unsigned long absbits[NBITS(ABS_MAX)] = {0};
     unsigned long keybits[NBITS(KEY_MAX)] = {0};
-    char buf[256];
+    char buf[256] = {0};
     int rc;
 
-    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_X), &abs));
-    if (rc >= 0)
-    {
-	xf86Msg(X_PROBED, "%s: x-axis range %d - %d\n", pInfo->name,
-		abs.minimum, abs.maximum);
-	priv->minx = abs.minimum;
-	priv->maxx = abs.maximum;
-	/* The kernel's fuzziness concept seems a bit weird, but it can more or
-	 * less be applied as hysteresis directly, i.e. no factor here. Though,
-	 * we don't trust a zero fuzz as it probably is just a lazy value. */
-	if (abs.fuzz > 0)
-	    priv->synpara.hyst_x = abs.fuzz;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,30)
-	priv->resx = abs.resolution;
-#endif
-    } else
-	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", pInfo->name,
-		strerror(errno));
+    /* The kernel's fuzziness concept seems a bit weird, but it can more or
+     * less be applied as hysteresis directly, i.e. no factor here. */
+    event_get_abs(pInfo, pInfo->fd, ABS_X, &priv->minx, &priv->maxx,
+		  &priv->synpara.hyst_x, &priv->resx);
 
-    SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_Y), &abs));
-    if (rc >= 0)
-    {
-	xf86Msg(X_PROBED, "%s: y-axis range %d - %d\n", pInfo->name,
-		abs.minimum, abs.maximum);
-	priv->miny = abs.minimum;
-	priv->maxy = abs.maximum;
-	/* don't trust a zero fuzz */
-	if (abs.fuzz > 0)
-	    priv->synpara.hyst_y = abs.fuzz;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,30)
-	priv->resy = abs.resolution;
-#endif
-    } else
-	xf86Msg(X_ERROR, "%s: failed to query axis range (%s)\n", pInfo->name,
-		strerror(errno));
+    event_get_abs(pInfo, pInfo->fd, ABS_Y, &priv->miny, &priv->maxy,
+		  &priv->synpara.hyst_y, &priv->resy);
 
     priv->has_pressure = FALSE;
     priv->has_width = FALSE;
@@ -222,74 +273,77 @@ event_query_axis_ranges(InputInfoPtr pInfo)
 	priv->has_width = (TEST_BIT(ABS_TOOL_WIDTH, absbits) != 0);
     }
     else
-	xf86Msg(X_ERROR, "%s: failed to query ABS bits (%s)\n", pInfo->name,
-		strerror(errno));
+	xf86IDrvMsg(pInfo, X_ERROR, "failed to query ABS bits (%s)\n", strerror(errno));
 
     if (priv->has_pressure)
-    {
-	SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_PRESSURE), &abs));
-	if (rc >= 0)
-	{
-	    xf86Msg(X_PROBED, "%s: pressure range %d - %d\n", pInfo->name,
-		    abs.minimum, abs.maximum);
-	    priv->minp = abs.minimum;
-	    priv->maxp = abs.maximum;
-	}
-    } else
-	xf86Msg(X_INFO,
-		"%s: device does not report pressure, will use touch data.\n",
-		pInfo->name);
+	event_get_abs(pInfo, pInfo->fd, ABS_PRESSURE, &priv->minp, &priv->maxp,
+		      NULL, NULL);
 
     if (priv->has_width)
-    {
-	SYSCALL(rc = ioctl(pInfo->fd, EVIOCGABS(ABS_TOOL_WIDTH), &abs));
-	if (rc >= 0)
-	{
-	    xf86Msg(X_PROBED, "%s: finger width range %d - %d\n", pInfo->name,
-		    abs.minimum, abs.maximum);
-	    priv->minw = abs.minimum;
-	    priv->maxw = abs.maximum;
-	}
-    }
+	event_get_abs(pInfo, pInfo->fd, ABS_TOOL_WIDTH,
+		      &priv->minw, &priv->maxw,
+		      NULL, NULL);
 
     SYSCALL(rc = ioctl(pInfo->fd, EVIOCGBIT(EV_KEY, sizeof(keybits)), keybits));
     if (rc >= 0)
     {
-	buf[0] = 0;
-	if ((priv->has_left = (TEST_BIT(BTN_LEFT, keybits) != 0)))
-	   strcat(buf, " left");
-	if ((priv->has_right = (TEST_BIT(BTN_RIGHT, keybits) != 0)))
-	   strcat(buf, " right");
-	if ((priv->has_middle = (TEST_BIT(BTN_MIDDLE, keybits) != 0)))
-	   strcat(buf, " middle");
-	if ((priv->has_double = (TEST_BIT(BTN_TOOL_DOUBLETAP, keybits) != 0)))
-	   strcat(buf, " double");
-	if ((priv->has_triple = (TEST_BIT(BTN_TOOL_TRIPLETAP, keybits) != 0)))
-	   strcat(buf, " triple");
+	priv->has_left = (TEST_BIT(BTN_LEFT, keybits) != 0);
+	priv->has_right = (TEST_BIT(BTN_RIGHT, keybits) != 0);
+	priv->has_middle = (TEST_BIT(BTN_MIDDLE, keybits) != 0);
+	priv->has_double = (TEST_BIT(BTN_TOOL_DOUBLETAP, keybits) != 0);
+	priv->has_triple = (TEST_BIT(BTN_TOOL_TRIPLETAP, keybits) != 0);
 
 	if ((TEST_BIT(BTN_0, keybits) != 0) ||
 	    (TEST_BIT(BTN_1, keybits) != 0) ||
 	    (TEST_BIT(BTN_2, keybits) != 0) ||
 	    (TEST_BIT(BTN_3, keybits) != 0))
-	{
 	    priv->has_scrollbuttons = 1;
-	    strcat(buf, " scroll-buttons");
-	}
-
-	xf86Msg(X_PROBED, "%s: buttons:%s\n", pInfo->name, buf);
     }
+
+    /* Now print the device information */
+    xf86IDrvMsg(pInfo, X_PROBED, "x-axis range %d - %d\n",
+		priv->minx, priv->maxx);
+    xf86IDrvMsg(pInfo, X_PROBED, "y-axis range %d - %d\n",
+		priv->miny, priv->maxy);
+    if (priv->has_pressure)
+	xf86IDrvMsg(pInfo, X_PROBED, "pressure range %d - %d\n",
+		    priv->minp, priv->maxp);
+    else
+	xf86IDrvMsg(pInfo, X_INFO,
+		    "device does not report pressure, will use touch data.\n");
+    if (priv->has_width)
+	xf86IDrvMsg(pInfo, X_PROBED, "finger width range %d - %d\n",
+		    abs.minimum, abs.maximum);
+    else
+	xf86IDrvMsg(pInfo, X_INFO,
+		    "device does not report finger width.\n");
+
+    if (priv->has_left)
+	strcat(buf, " left");
+    if (priv->has_right)
+	strcat(buf, " right");
+    if (priv->has_middle)
+	strcat(buf, " middle");
+    if (priv->has_double)
+	strcat(buf, " double");
+    if (priv->has_triple)
+	strcat(buf, " triple");
+    if (priv->has_scrollbuttons)
+	strcat(buf, " scroll-buttons");
+
+    xf86IDrvMsg(pInfo, X_PROBED, "buttons:%s\n", buf);
 }
 
 static Bool
 EventQueryHardware(InputInfoPtr pInfo)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
-    BOOL *need_grab = (BOOL*)priv->proto_data;
+    struct eventcomm_proto_data *proto_data = priv->proto_data;
 
-    if (!event_query_is_touchpad(pInfo->fd, (need_grab) ? *need_grab : TRUE))
+    if (!event_query_is_touchpad(pInfo->fd, (proto_data) ? proto_data->need_grab : TRUE))
 	return FALSE;
 
-    xf86Msg(X_PROBED, "%s: touchpad found\n", pInfo->name);
+    xf86IDrvMsg(pInfo, X_PROBED, "touchpad found\n");
 
     return TRUE;
 }
@@ -314,9 +368,31 @@ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
     return rc;
 }
 
-static Bool
+/**
+ * Count the number of fingers based on the CommData information.
+ * The CommData struct contains the event information based on previous
+ * struct input_events, now we're just counting based on that.
+ *
+ * @param comm Assembled information from previous events.
+ * @return The number of fingers currently set.
+ */
+static int count_fingers(const struct CommData *comm)
+{
+    int fingers = 0;
+
+    if (comm->oneFinger)
+	fingers = 1;
+    else if (comm->twoFingers)
+	fingers = 2;
+    else if (comm->threeFingers)
+	fingers = 3;
+
+    return fingers;
+}
+
+
+Bool
 EventReadHwState(InputInfoPtr pInfo,
-		 struct SynapticsProtocolOperations *proto_ops,
 		 struct CommData *comm, struct SynapticsHwState *hwRet)
 {
     struct input_event ev;
@@ -330,14 +406,7 @@ EventReadHwState(InputInfoPtr pInfo,
 	case EV_SYN:
 	    switch (ev.code) {
 	    case SYN_REPORT:
-		if (comm->oneFinger)
-		    hw->numFingers = 1;
-		else if (comm->twoFingers)
-		    hw->numFingers = 2;
-		else if (comm->threeFingers)
-		    hw->numFingers = 3;
-		else
-		    hw->numFingers = 0;
+		hw->numFingers = count_fingers(comm);
 		*hwRet = *hw;
 		return TRUE;
 	    }
@@ -432,15 +501,18 @@ static void
 EventReadDevDimensions(InputInfoPtr pInfo)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
-    BOOL *need_grab = (BOOL*)priv->proto_data;
+    struct eventcomm_proto_data *proto_data = priv->proto_data;
 
-    if (event_query_is_touchpad(pInfo->fd, (need_grab) ? *need_grab : TRUE))
+    if (event_query_is_touchpad(pInfo->fd, (proto_data) ? proto_data->need_grab : TRUE))
 	event_query_axis_ranges(pInfo);
-    event_query_info(pInfo);
+    event_query_model(pInfo->fd, &priv->model, &priv->id_vendor, &priv->id_product);
+
+    xf86IDrvMsg(pInfo, X_PROBED, "Vendor %#hx Product %#hx\n",
+                priv->id_vendor, priv->id_product);
 }
 
 static Bool
-EventAutoDevProbe(InputInfoPtr pInfo)
+EventAutoDevProbe(InputInfoPtr pInfo, const char *device)
 {
     /* We are trying to find the right eventX device or fall back to
        the psaux protocol and the given device from XF86Config */
@@ -448,14 +520,29 @@ EventAutoDevProbe(InputInfoPtr pInfo)
     Bool touchpad_found = FALSE;
     struct dirent **namelist;
 
+    if (device) {
+	int fd = -1;
+	SYSCALL(fd = open(device, O_RDONLY));
+	if (fd >= 0)
+	{
+	    touchpad_found = event_query_is_touchpad(fd, TRUE);
+
+	    SYSCALL(close(fd));
+            /* if a device is set and not a touchpad (or already grabbed),
+             * we must return FALSE.  Otherwise, we'll add a device that
+             * wasn't requested for and repeat
+             * f5687a6741a19ef3081e7fd83ac55f6df8bcd5c2. */
+	    return touchpad_found;
+	}
+    }
+
     i = scandir(DEV_INPUT_EVENT, &namelist, EventDevOnly, alphasort);
     if (i < 0) {
-		xf86Msg(X_ERROR, "Couldn't open %s\n", DEV_INPUT_EVENT);
+		xf86IDrvMsg(pInfo, X_ERROR, "Couldn't open %s\n", DEV_INPUT_EVENT);
 		return FALSE;
     }
     else if (i == 0) {
-		xf86Msg(X_ERROR, "%s The /dev/input/event* device nodes seem to be missing\n",
-				pInfo->name);
+		xf86IDrvMsg(pInfo, X_ERROR, "The /dev/input/event* device nodes seem to be missing\n");
 		free(namelist);
 		return FALSE;
     }
@@ -472,8 +559,8 @@ EventAutoDevProbe(InputInfoPtr pInfo)
 
 			if (event_query_is_touchpad(fd, TRUE)) {
 				touchpad_found = TRUE;
-			    xf86Msg(X_PROBED, "%s auto-dev sets device to %s\n",
-				    pInfo->name, fname);
+			    xf86IDrvMsg(pInfo, X_PROBED, "auto-dev sets device to %s\n",
+					fname);
 			    pInfo->options =
 			    	xf86ReplaceStrOption(pInfo->options, "Device", fname);
 			}
@@ -481,12 +568,14 @@ EventAutoDevProbe(InputInfoPtr pInfo)
 		}
 		free(namelist[i]);
     }
-	free(namelist);
 
-	if (!touchpad_found) {
-		xf86Msg(X_ERROR, "%s no synaptics event device found\n", pInfo->name);
-		return FALSE;
-	}
+    free(namelist);
+
+    if (!touchpad_found) {
+	xf86IDrvMsg(pInfo, X_ERROR, "no synaptics event device found\n");
+	return FALSE;
+    }
+
     return TRUE;
 }
 
