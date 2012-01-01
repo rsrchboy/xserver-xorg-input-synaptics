@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.5.0+git20120101-1) UNRELEASED; urgency=low
+
+  * New upstream snapshot:
+    - Merge from upstream master up to 9f9b55ab55.
+
+ -- Cyril Brulebois <kibi@debian.org>  Sun, 01 Jan 2012 07:47:32 +0100
+
 xserver-xorg-input-synaptics (1.5.0-2) unstable; urgency=low
 
   * Cherry-pick to fix regression on powerpc (Closes: #649002):
