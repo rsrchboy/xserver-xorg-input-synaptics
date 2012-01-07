@@ -64,7 +64,7 @@ struct eventcomm_proto_data
     BOOL need_grab;
 };
 
-static void
+static Bool
 EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
@@ -82,10 +82,13 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters *para)
 	if (ret < 0) {
 	    xf86IDrvMsg(pInfo, X_WARNING, "can't grab event device, errno=%d\n",
 			errno);
+	    return FALSE;
 	}
     }
 
     proto_data->need_grab = FALSE;
+
+    return TRUE;
 }
 
 /**
@@ -227,7 +230,7 @@ event_get_abs(InputInfoPtr pInfo, int fd, int code,
     SYSCALL(rc = ioctl(fd, EVIOCGABS(code), &abs));
     if (rc < 0) {
 	xf86IDrvMsg(pInfo, X_ERROR, "%s EVIOCGABS error on %d (%s)\n",
-		    __func__, code, strerror(rc));
+		    __func__, code, strerror(errno));
 	return errno;
     }
 
@@ -407,6 +410,7 @@ EventReadHwState(InputInfoPtr pInfo,
 	    switch (ev.code) {
 	    case SYN_REPORT:
 		hw->numFingers = count_fingers(comm);
+		hw->millis = 1000 * ev.time.tv_sec + ev.time.tv_usec / 1000;
 		*hwRet = *hw;
 		return TRUE;
 	    }

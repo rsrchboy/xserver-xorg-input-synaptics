@@ -23,6 +23,7 @@
 #define _SYNAPTICSSTR_H_
 
 #include "synproto.h"
+#include <xserver-properties.h>
 
 #ifdef DBG
 #  undef DBG
@@ -39,6 +40,10 @@
 #define xf86IDrvMsg(pInfo, type, ...) xf86Msg(type, __VA_ARGS__)
 #endif
 
+#ifdef AXIS_LABEL_PROP_REL_VSCROLL
+#define HAVE_SMOOTH_SCROLL
+#endif
+
 /******************************************************************************
  *		Definitions
  *					structs, typedefs, #defines, enums
@@ -48,13 +53,14 @@
 typedef struct _SynapticsMoveHist
 {
     int x, y;
-    int millis;
+    CARD32 millis;
 } SynapticsMoveHistRec;
 
-enum FingerState {		/* Note! The order matters. Compared with < operator. */
-    FS_UNTOUCHED,
-    FS_TOUCHED,
-    FS_PRESSED
+enum FingerState {              /* Note! The order matters. Compared with < operator. */
+    FS_BLOCKED = -1,
+    FS_UNTOUCHED = 0, /* this is 0 so it's the initialized value. */
+    FS_TOUCHED = 1,
+    FS_PRESSED = 2,
 };
 
 enum MovingState {
@@ -182,6 +188,7 @@ typedef struct _SynapticsPrivateRec
     char *device;			/* device node */
     Bool shm_config;			/* True when shared memory area allocated */
 
+    CARD32 timer_time;			/* when timer last fired */
     OsTimerPtr timer;			/* for up/down-button repeat, tap processing, etc */
 
     struct CommData comm;
@@ -191,13 +198,24 @@ typedef struct _SynapticsPrivateRec
     int hist_index;			/* Last added entry in move_hist[] */
     int hyst_center_x;			/* center x of hysteresis*/
     int hyst_center_y;			/* center y of hysteresis*/
-    int scroll_y;			/* last y-scroll position */
-    int scroll_x;			/* last x-scroll position */
-    double scroll_a;			/* last angle-scroll position */
+    struct {
+        int last_x;			/* last x-scroll position */
+        int last_y;			/* last y-scroll position */
+        double delta_x;			/* accumulated horiz scroll delta */
+        double delta_y;			/* accumulated vert scroll delta */
+        double last_a;			/* last angle-scroll position */
+        CARD32 last_millis;		/* time last scroll event posted */
+        double coast_speed_x;		/* Horizontal coasting speed */
+        double coast_speed_y;		/* Vertical coasting speed */
+        double coast_delta_x;		/* Accumulated horizontal coast delta */
+        double coast_delta_y;		/* Accumulated vertical coast delta */
+        int packets_this_scroll;	/* Events received for this scroll */
+    } scroll;
     int count_packet_finger;		/* packet counter with finger on the touchpad */
     int button_delay_millis;		/* button delay for 3rd button emulation */
     Bool prev_up;			/* Previous up button value, for double click emulation */
     enum FingerState finger_state;	/* previous finger state */
+    CARD32 last_motion_millis;	        /* time of the last motion */
 
     enum TapState tap_state;		/* State of tap processing */
     int tap_max_fingers;		/* Max number of fingers seen since entering start state */
@@ -215,18 +233,11 @@ typedef struct _SynapticsPrivateRec
 					   False: Generate horizontal events */
     int trackstick_neutral_x;		/* neutral x position for trackstick mode */
     int trackstick_neutral_y;		/* neutral y position for trackstick mode */
-    double autoscroll_xspd;		/* Horizontal coasting speed */
-    double autoscroll_yspd;		/* Vertical coasting speed */
-    double autoscroll_x;		/* Accumulated horizontal coasting scroll */
-    double autoscroll_y;		/* Accumulated vertical coasting scroll */
-    int scroll_packet_count;		/* Scroll duration */
     double frac_x, frac_y;		/* absolute -> relative fraction */
     enum MidButtonEmulation mid_emu_state;	/* emulated 3rd button */
     int repeatButtons;			/* buttons for repeat */
     int nextRepeat;			/* Time when to trigger next auto repeat event */
     int lastButtons;			/* last state of the buttons */
-    int palm;				/* Set to true when palm detected, reset to false when
-					   palm/finger contact disappears */
     int prev_z;				/* previous z value, for palm detection */
     int prevFingers;			/* previous numFingers, for transition detection */
     int avg_width;			/* weighted average of previous fingerWidth values */
@@ -248,6 +259,12 @@ typedef struct _SynapticsPrivateRec
     enum TouchpadModel model;		/* The detected model */
     unsigned short id_vendor;		/* vendor id */
     unsigned short id_product;		/* product id */
+
+#ifdef HAVE_SMOOTH_SCROLL
+    int scroll_axis_horiz;              /* Horizontal smooth-scrolling axis */
+    int scroll_axis_vert;               /* Vertical smooth-scrolling axis */
+    ValuatorMask *scroll_events_mask;   /* ValuatorMask for smooth-scrolling */
+#endif
 } SynapticsPrivate;
 
 #endif /* _SYNAPTICSSTR_H_ */

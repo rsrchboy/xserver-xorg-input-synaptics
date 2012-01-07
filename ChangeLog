@@ -1,12 +1,190 @@
-commit 065a0b495d2a7eb76b61f9eec85248aefae4c8ee
+commit 9f9b55ab55ed5251c1607c59d8817231d076d82c
 Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Fri Sep 2 16:04:07 2011 +1000
+Date:   Mon Dec 12 11:35:37 2011 +1000
 
-    synaptics 1.5.0
+    test: fix build errors introduced by upstream server change
+    
+    Introduced by upstream change xorg-server-1.11.99.1-33-g09e4b78,
+        Fix gcc -Wwrite-strings warnings in xf86 ddx
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit 3489e2467d43217971f17b9344fc2772cc0f164d
+commit b7e65f04f5f0c17ac8a26393134cc7e8418ccdec
+Author: Cyril Brulebois <kibi@debian.org>
+Date:   Mon Dec 12 01:35:27 2011 +0100
+
+    Revert: "eventcomm: replace synaptics-custom TEST_BIT with server's BitIsOn."
+    
+    This commit reverts 13543b156d78bc4d01a19844a5ee8f283269621b
+    
+    As seen in Debian's #648488, this switch causes a regression on
+    PowerPC, especially seen on iBook G4 with appletouch. Take a defensive
+    stance and revert back to a working state until things have been figured
+    out and fixed properly.
+    
+    Since things have evolved and since that revert triggers a lot of
+    conflicts, the following method was applied:
+     - manual reintroduction of the 3 removed macros: OFF, LONG, TEST_BIT
+     - coccinelle semantic patch to revert from BitIsOn to TEST_BIT
+    
+    Coccinelle semantic patch:
+      @@
+      expression a,b;
+      @@
+      -BitIsOn(a,b)
+      +TEST_BIT(b,a)
+    
+    Bugzilla: http://bugs.debian.org/648488
+    Signed-off-by: Cyril Brulebois <kibi@debian.org>
+
+commit 0cd5a77c3a455e942929eb4d5412fa51630ed13f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Nov 30 09:59:37 2011 +1000
+
+    If protocol is auto-dev and the device path is set, unset the protocol
+    
+    The remainder of the handling code will take try through all protocols,
+    taking the device into account (as of
+    xf86-input-synaptics-1.4.0-34-g241254e)
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit d1301412d7b7acd6325f0561c109f2b8e1c7a999
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Nov 30 09:39:12 2011 +1000
+
+    Return true/false from SetDeviceAndProtocol
+    
+    Instead of requiring the caller to know which private field indicates
+    failure, just return true on success or false on failure.
+    
+    No functional change.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 2603ad69b997c999404ecc441e0d64ea2cc22018
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Oct 18 15:46:03 2011 +1000
+
+    Use the scroll distances as increment for scrolling valuator axes
+    
+    XI2.1 allows an 'increment' for each scrolling variable. Use that instead of
+    hiding it away inside the driver.
+    
+    For circular scrolling, the increment is the one of the respective scrolling
+    axis.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4f46057a33b20df62d919e49a394ab6cb7aa6aa1
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:03:11 2011 +0100
+
+    Scroll: Initial smooth scrolling support
+    
+    Post smooth-scrolling events through the new X server API when
+    available, rather than legacy jerky button events.
+    
+    [Amended to use the final smooth scrolling API]
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Amendments-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 15bef1f7092d37aeaa916ed7642ae3b6e684660c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Oct 21 16:52:57 2011 +1000
+
+    eventcomm: print strerror(errno), not of rc
+    
+    Found by coverity.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Dirk Wallenstein <halsmit@t-online.de>
+
+commit cefc85ad44af340b3d2cad76ec1dc54ceba0558f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Oct 18 15:46:57 2011 +1000
+
+    Fix compiler warning - unused variable 'para'
+    
+    synaptics.c: In function 'post_scroll_events':
+    synaptics.c:2426:26: warning: unused variable 'para' [-Wunused-variable]
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 26831a6eeac6762ad4d99532f62ebbab0827de10
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:03:10 2011 +0100
+
+    Scroll: Prepare ScrollData for smooth scrolling
+    
+    Convert ScrollData from up/down/left/right members for button presses,
+    to more fine-grained delta_x and delta_y members, and move these to
+    priv->scroll.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7c0361d4ec6b1f1325cb6551d0ee2e7f5cfae15b
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:03:05 2011 +0100
+
+    Adjust acceleration scheme for input ABI v14
+    
+    v14 wants doubles, rather than floats, from acceleration schemes.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a15af628154ac37f24896a30614f3be6ecdb65c4
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Oct 12 11:20:06 2011 +1000
+
+    test: wrap ABI 14 xf86OptionRec type changes
+    
+    ABI 13 still uses pointer as type for most option calls, ABI 14 uses the
+    proper type now. Wrap this so we can build against both versions.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ba981e223ae4449b08ff972b69220d435a735075
+Author: Casper Dik <casper.dik@oracle.com>
+Date:   Fri Sep 2 10:32:50 2011 -0700
+
+    Extra buttons on Acer Ferrari 4000 laptop touchpad are not recognized
+    
+    The code was checking for a value of exactly 1, while the Synaptics
+    docs at http://www.synaptics.com/sites/default/files/511-000275-01rA.pdf
+    say:
+    
+        Extended Model ID. This query returns the product ID, additional
+        capability bits, and additional bits to widen the infoSensor
+        field. infoSensor is a part of the Model ID query (query $03).
+        The Extended Model ID query is only present if nExtendedQueries
+        is *greater than* or equal to 1.
+    
+    Signed-off-by: Casper Dik <casper.dik@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit bc789cc7a057357e27faf1c6727dc95f6d02fcea
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Sep 5 09:26:56 2011 +1000
+
+    man: note that a PS/2 device is not supported
+    
+    If all we see is a PS/2 Mouse or similar, then the kernel doesn't give us
+    the required bits to provide all the functionality we want. Note that in the
+    man-page.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Cyril Brulebois <kibi@debian.org>
+
+commit 7a72af1ce105fd857214bb641a8fa2cfd150a5f7
 Author: Alexandr Shadchin <alexandr.shadchin@gmail.com>
 Date:   Fri Aug 26 18:42:08 2011 +0600
 
@@ -14,7 +192,278 @@ Date:   Fri Aug 26 18:42:08 2011 +0600
     
     Signed-off-by: Alexandr Shadchin <Alexandr.Shadchin@gmail.com>
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit 7a72af1ce105fd857214bb641a8fa2cfd150a5f7)
+
+commit 45d4a6bec01deac5cca6639c55062b110462155f
+Author: Alexandr Shadchin <alexandr.shadchin@gmail.com>
+Date:   Fri Aug 26 18:42:07 2011 +0600
+
+    On/Off hooks to return boolean so we can bail out of the caller
+    
+    Signed-off-by: Alexandr Shadchin <Alexandr.Shadchin@gmail.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 2034e1e26497bce815eae0429f7e29faf2d9adaf
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Aug 25 10:58:43 2011 +1000
+
+    Fix compiler warning: unused variable "wakupTime"
+    
+    Introduced in 458c7251295e767fae7a0ac3366212361bce25a6
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4fe1b58c2c6903961a84077363a0c8de5736c650
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:03:09 2011 +0100
+
+    Scroll: Modify ScrollData in repeat_scrollbuttons
+    
+    repeat_scrollbuttons used to read the scroll repeat values and then post
+    button events directly.  Instead, make it modify ScrollData and let
+    post_scroll_events take care of sending the scroll events, which
+    requires moving the repeat_scrollbuttons call upwards.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit df68486254b38b7f08f7d510ce1b75aaef9e52fd
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 23 15:02:26 2011 +0100
+
+    Scroll: Move coasting variables to priv->scroll
+    
+    Also rename (e.g. autoscroll_x -> coast_delta_x, and
+    autoscroll_xspd -> coast_speed_x) variables to clarify things a bit.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit aae994cc0c08e6da270c199af429315a3a2092bf
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Fri Jun 3 18:28:59 2011 +0100
+
+    Scroll: Add last_millis to track scroll event timing
+    
+    Stopping a little short of having a full scroll history, adding
+    last_millis lets us track when the last scroll event we sent was,
+    for more accurate timing of coasting in particular.
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit fb7c0c5965b6843f38e9c881f4c349006ec0da32
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 23 13:58:31 2011 +0100
+
+    Scroll: Move scroll_[xya] into new priv->scroll struct
+    
+    And rename them to last_x, last_y and last_a respectively, as they're
+    used to store the values as of the last scroll event sent.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 81a8ddb4a768bee3a4b304716fa4cfead49a2761
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:03:08 2011 +0100
+
+    Scroll: Clarify rep_buttons assignment
+    
+    Instead of a combined variable declaration with two ternary expressions
+    using raw hex values, expand it to have two genuine if statements,
+    setting with a more clear bitshift.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit f40bbf7494a6122d464e3fff4309f69af2a20e4a
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Mon Mar 7 17:49:42 2011 -0500
+
+    Revise palm check logic
+    
+    Make the palm-check logic more stable and reliable, and make sure that
+    any palms are blocked for the duration of their presses.
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 86dfe5086ff672e4d3c354980b999c6f3a27ebec
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Wed Mar 23 14:12:36 2011 -0700
+
+    More accurate extrapolated fake motion events
+    
+    Use better time estimates so we can provide better fake motion events.
+    This reduces the difference between motion with one and two fingers down
+    to be almost imperceptible, despite the reporting rate being halved on
+    PS/2 devices.
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b26125e412a130b7a8f8b6adf9ffc8e9cc8df42c
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Wed Mar 2 12:31:58 2011 -0500
+
+    Replace the motion estimator
+    
+    Use a smarter motion estimator that attempts to draw a best-fit line
+    through the history where possible, including taking acceleration into
+    account.
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Simon Thum <simon.thum@gmx.de>
+
+commit ffed18dfffda32de7282e44c5b8d1fb7d5454b54
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Tue Jun 14 17:41:58 2011 +0100
+
+    Update count_packet_finger in store_history, not get_delta
+    
+    Seems more sensible to update the count of packets in the history when
+    we update the history, rather than somewhere else entirely.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c8b098214b44cf0585d78c460401ea7d143769f3
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Tue Jun 14 17:24:24 2011 +0100
+
+    Don't store fake events in the motion history
+    
+    As the subject says: don't store any synthesised events in the motion
+    history, since we can recreate those algorithmically.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 458c7251295e767fae7a0ac3366212361bce25a6
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Thu Mar 31 14:29:43 2011 -0700
+
+    Use hardware time where possible
+    
+    Rather than always setting hw->millis as the time when we received the
+    event in our SIGIO handler, use the time provided by the kernel if
+    applicable (i.e. if we're using evdev rather than PS/2 or similar).
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+    
+    [from_timer is in preparation for a future patch, currently unused]
+    
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 495e0fe1b7afa9de04ee0341da1ade4d3d4f50b8
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 23 11:19:18 2011 +0100
+
+    Use CARD32 for timestamps
+    
+    As GetTimeInMillis() returns a CARD32, switch every timestamp usage to
+    follow.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 2ebf984262d6bd471b4b5f1333785865e8d3c25f
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:02:58 2011 +0100
+
+    Introduce POLL_MS for packet frequency
+    
+    We expect to be receiving a steady 80 packets/sec (which gives 40
+    reports/sec with more than one finger on the pad, as Advanced Gesture
+    Mode requires two PS/2 packets per report).  Instead of a random
+    scattering of magic 13 and 20ms numbers scattered throughout the driver,
+    introduce POLL_MS as 14ms.
+    
+    Having this here allows us to call back at a steady frequency to ensure
+    that the finger motion remains steady.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 6d1f8f9886cbd4b3073502f3f37c4dd618971361
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:02:49 2011 +0100
+
+    Give FingerState enums explicit values
+    
+    Since we depend so heavily on ordering and numbering, just give all the
+    enum explicit number values.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0f171af28410f939a915064af9fb9af38118455d
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 9 20:02:52 2011 +0100
+
+    Add HIST_DELTA macro for differences in history
+    
+    HIST_DELTA(a, b, e) is equivalent to HIST(a).e - HIST(b).e.  Replace the
+    one user of this pattern with a HIST_DELTA call.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a24c44375025576dd600ccf370ba365e5d94dc22
+Author: Derek Foreman <derek.foreman@collabora.co.uk>
+Date:   Mon Mar 21 16:01:29 2011 -0700
+
+    Fix pressure->motion property format
+    
+    CARD32, not float.
+    
+    Signed-off-by: Derek Foreman <derek.foreman@collabora.co.uk>
+    Reviewed-by: Daniel Stone <daniel@fooishbar.org>
+
+commit 627b09e5bd0726ad31bfeb4f07b8f8287d8ec46f
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Tue Jun 14 17:07:11 2011 +0100
+
+    Properties: Generalise InitTypedAtom from InitAtom
+    
+    Add InitTypedAtom, which does exactly the same thing as InitAtom, but
+    takes an additional type argument.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+
+commit 299a44cd2035e84859b9d6c84854064326f8d124
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Jun 23 10:58:43 2011 +0100
+
+    Bump minimum xorg-server requirement to 1.7
+    
+    This means we can also drop support for pre-ABI v7.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+
+commit 05fb9b5f248aacb121997f02d7a6e7cbbfb5ed1c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Aug 25 09:50:27 2011 +1000
+
+    Bump to 1.5.99
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit f5141b6c663d97f771fc7c86b32d8d43a1a003c0
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Tue Jun 14 17:43:36 2011 +0100
+
+    Shuffle include order around
+    
+    Group X protocol/server includes together, and synaptics-internal
+    includes together.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
 
 commit 98e8481cf4911506403b8963fc32c61a74cf679e
 Author: Peter Hutterer <peter.hutterer@who-t.net>

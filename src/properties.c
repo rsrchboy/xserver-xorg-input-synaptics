@@ -96,7 +96,8 @@ Atom prop_product_id            = 0;
 Atom prop_device_node           = 0;
 
 static Atom
-InitAtom(DeviceIntPtr dev, char *name, int format, int nvalues, int *values)
+InitTypedAtom(DeviceIntPtr dev, char *name, Atom type, int format, int nvalues,
+              int *values)
 {
     int i;
     Atom atom;
@@ -124,11 +125,16 @@ InitAtom(DeviceIntPtr dev, char *name, int format, int nvalues, int *values)
     }
 
     atom = MakeAtom(name, strlen(name), TRUE);
-    XIChangeDeviceProperty(dev, atom, XA_INTEGER, format,
-                           PropModeReplace, nvalues,
+    XIChangeDeviceProperty(dev, atom, type, format, PropModeReplace, nvalues,
                            converted, FALSE);
     XISetDevicePropertyDeletable(dev, atom, FALSE);
     return atom;
+}
+
+static Atom
+InitAtom(DeviceIntPtr dev, char *name, int format, int nvalues, int *values)
+{
+    return InitTypedAtom(dev, name, XA_INTEGER, format, nvalues, values);
 }
 
 static Atom
@@ -260,7 +266,7 @@ InitDeviceProperties(InputInfoPtr pInfo)
 
     values[0] = para->press_motion_min_z;
     values[1] = para->press_motion_max_z;
-    prop_pressuremotion = InitAtom(pInfo->dev, SYNAPTICS_PROP_PRESSURE_MOTION, 32, 2, values);
+    prop_pressuremotion = InitTypedAtom(pInfo->dev, SYNAPTICS_PROP_PRESSURE_MOTION, XA_CARDINAL, 32, 2, values);
 
     fvalues[0] = para->press_motion_min_factor;
     fvalues[1] = para->press_motion_max_factor;
@@ -419,8 +425,22 @@ SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
             return BadMatch;
 
         dist = (INT32*)prop->data;
-        para->scroll_dist_vert = dist[0];
-        para->scroll_dist_horiz = dist[1];
+        if (para->scroll_dist_vert != dist[0])
+        {
+            para->scroll_dist_vert = dist[0];
+#ifdef HAVE_SMOOTH_SCROLL
+            SetScrollValuator(dev, priv->scroll_axis_vert, SCROLL_TYPE_VERTICAL,
+                              para->scroll_dist_vert, 0);
+#endif
+        }
+        if (para->scroll_dist_horiz != dist[1])
+        {
+            para->scroll_dist_horiz = dist[1];
+#ifdef HAVE_SMOOTH_SCROLL
+            SetScrollValuator(dev, priv->scroll_axis_horiz, SCROLL_TYPE_HORIZONTAL,
+                              para->scroll_dist_horiz, 0);
+#endif
+        }
     } else if (property == prop_scrolledge)
     {
         CARD8 *edge;
@@ -646,11 +666,11 @@ SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
         para->coasting_friction = coast_speeds[1];
     } else if (property == prop_pressuremotion)
     {
-        float *press;
-        if (prop->size != 2 || prop->format != 32 || prop->type != float_type)
+        CARD32 *press;
+        if (prop->size != 2 || prop->format != 32 || prop->type != XA_CARDINAL)
             return BadMatch;
 
-        press = (float*)prop->data;
+        press = (CARD32*)prop->data;
         if (press[0] > press[1])
             return BadValue;
 

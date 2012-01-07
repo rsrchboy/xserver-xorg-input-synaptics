@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.5.0+git20120101-1) experimental; urgency=low
+
+  * New upstream snapshot:
+    - Merge from upstream master up to 9f9b55ab55.
+  * Build against Xserver 1.12 RC1.
+
+ -- Cyril Brulebois <kibi@debian.org>  Sun, 01 Jan 2012 07:54:51 +0100
+
 xserver-xorg-input-synaptics (1.5.0-2ubuntu1~nomt1) UNRELEASED; urgency=low
 
   * Merge from Debian testing.  Remaining Ubuntu changes:
