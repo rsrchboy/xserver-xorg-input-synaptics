@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt2) precise; urgency=low
 
   * Drop patch 122_revert_pressure_finger_default.patch, merged upstream
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 09 Jan 2012 07:01:38 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 09 Jan 2012 07:03:52 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt1) precise; urgency=low
 
