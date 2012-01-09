@@ -13,7 +13,6 @@
 #119_active_area_touches.patch
 #120_active_touches_num_fingers.patch
 #121_semi-mt_num_fingers.patch
-122_revert_pressure_finger_default.patch
 #123_order_ProcessTouch_for_numFingers.patch
 124_syndaemon_events.patch
 125_option_rec_revert.patch
