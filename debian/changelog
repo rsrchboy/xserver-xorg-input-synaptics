@@ -1,10 +1,10 @@
-xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt1) precise; urgency=low
 
   * Lower xserver-xorg-dev build dep for Precise's X server
   * Revert xf86OptionRec upstream changes
     - This particular API change will not be in Precise's X server
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Sat, 07 Jan 2012 09:13:02 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 09 Jan 2012 07:00:49 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120101-1) experimental; urgency=low
 
