@@ -17,7 +17,6 @@ Build-Depends:
  xutils-dev (>= 1:7.5+4),
  x11proto-input-dev (>= 2.1.99.5),
  libmtdev-dev,
- libutouch-grail-dev
 Build-Conflicts:
  libxtst-dev
 Standards-Version: 3.9.2
@@ -31,8 +30,6 @@ Depends:
  ${shlibs:Depends},
  ${xinpdriver:Depends},
  ${misc:Depends},
- libutouch-grail1 (>= 1.0.19),
- xserver-xorg-core (>= 2:1.9.99.902-2ubuntu1)
 Conflicts: xorg-driver-synaptics
 Replaces: xorg-driver-synaptics
 Provides: ${xinpdriver:Provides}, xorg-driver-synaptics
