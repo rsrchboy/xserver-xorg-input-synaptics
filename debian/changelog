@@ -1,11 +1,11 @@
-xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1) precise; urgency=low
 
   * Add multitouch support
     - Add 127_multitouch.patch
   * Bump Build-Depends for x11proto-input-dev to 2.1.99.5
   * Remove obsolete dependencies on utouch-grail and old xserver-xorg-core
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 19 Jan 2012 16:38:25 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 19 Jan 2012 16:39:31 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt3) precise; urgency=low
 
