@@ -2,8 +2,9 @@ xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1) UNRELEASED; urgency=lo
 
   * Add multitouch support
     - Add 127_multitouch.patch
+  * Bump Build-Depends for x11proto-input-dev to 2.1.99.5
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 19 Jan 2012 16:32:52 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 19 Jan 2012 16:35:19 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt3) precise; urgency=low
 

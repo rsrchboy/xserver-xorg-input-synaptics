@@ -15,7 +15,7 @@ Build-Depends:
  pkg-config,
  quilt,
  xutils-dev (>= 1:7.5+4),
- x11proto-input-dev (>= 2.0.1-1ubuntu1),
+ x11proto-input-dev (>= 2.1.99.5),
  libmtdev-dev,
  libutouch-grail-dev
 Build-Conflicts:
