@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1) UNRELEASED; urgency=low
+
+  * Add multitouch support
+    - Add 127_multitouch.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 19 Jan 2012 16:32:52 -0800
+
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu1~nomt3) precise; urgency=low
 
   * Fix default speed due to change in motion estimation
