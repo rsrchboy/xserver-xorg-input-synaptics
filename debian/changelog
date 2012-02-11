@@ -4,8 +4,9 @@ xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu1) UNRELEASED; urgency=lo
   * Drop 127_multitouch.patch, merged upstream
   * Drop 126_default_speed.patch, no longer necessary
   * Refresh 125_option_rec_revert.patch
+  * Add 126_ubuntu_xi22.patch for ubuntu frankenserver support
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 10 Feb 2012 18:21:47 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 10 Feb 2012 18:24:01 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu2) precise; urgency=low
 
