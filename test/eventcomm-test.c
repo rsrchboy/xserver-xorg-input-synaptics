@@ -54,10 +54,14 @@ create_pipe_fd(void)
 }
 
 static void
-reset_data(struct SynapticsHwState *hw, struct CommData *comm)
+reset_data(struct SynapticsHwState **hw, struct CommData *comm,
+           SynapticsPrivate *priv)
 {
+    SynapticsHwStateFree(&comm->hwState);
     memset(comm, 0, sizeof(struct CommData));
-    memset(hw, 0, sizeof(struct SynapticsHwState));
+    SynapticsHwStateFree(hw);
+    *hw = SynapticsHwStateAlloc(priv);
+    comm->hwState = SynapticsHwStateAlloc(priv);
 }
 
 /**
@@ -74,12 +78,13 @@ write_event(int fd, struct input_event *ev, int n)
 static void
 test_buttons(int fd,
              InputInfoPtr pInfo,
-             struct SynapticsHwState *hw,
              struct CommData *comm)
 {
+    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+    struct SynapticsHwState *hw = NULL;
     struct input_event ev = {{0, 0}, EV_KEY, 0, 0};
 
-    reset_data(hw, comm);
+    reset_data(&hw, comm, priv);
 
 #define _test_press_release(_code, field)       \
         ev.code = (_code);                      \
@@ -105,6 +110,8 @@ test_buttons(int fd,
     _test_press_release(BTN_5,          multi[5]);
     _test_press_release(BTN_6,          multi[6]);
     _test_press_release(BTN_7,          multi[7]);
+
+    SynapticsHwStateFree(&hw);
 }
 
 /**
@@ -117,7 +124,7 @@ test_read_hw_state(void)
 {
     InputInfoRec                info    = {0};
     SynapticsPrivate            private;
-    struct SynapticsHwState     hw      = {0};
+    struct SynapticsHwState     *hw     = NULL;
     struct CommData             comm    = {0};
 
     struct input_event ev[] = {
@@ -135,52 +142,83 @@ test_read_hw_state(void)
     info.private = &private;
     info.fd = fd_read;
 
+    private.proto_data = EventProtoDataAlloc();
 
     /* just the syn event */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write(fd_write, &syn, sizeof(syn));
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.numFingers == 0);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->numFingers == 0);
 
     /* one finger */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[0], 1);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.numFingers == 1);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->numFingers == 1);
 
     /* two fingers */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[1], 1);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.numFingers == 2);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->numFingers == 2);
 
     /* three fingers */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[2], 1);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.numFingers == 3);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->numFingers == 3);
 
     /* x/y data */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[3], 2);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.x == ev[3].value);
-    assert(hw.y == ev[4].value);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->x == ev[3].value);
+    assert(hw->y == ev[4].value);
 
     /* pressure */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[5], 1);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.z == ev[5].value);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->z == ev[5].value);
 
     /* finger width */
-    reset_data(&hw, &comm);
+    reset_data(&hw, &comm, &private);
     write_event(fd_write, &ev[6], 1);
-    EventReadHwState(&info, &comm, &hw);
-    assert(hw.fingerWidth == ev[6].value);
+    EventReadHwState(&info, &comm, hw);
+    assert(hw->fingerWidth == ev[6].value);
 
     /* the various buttons */
-    test_buttons(fd_write, &info, &hw, &comm);
+    test_buttons(fd_write, &info, &comm);
+
+    free(private.proto_data);
+    SynapticsHwStateFree(&hw);
+    SynapticsHwStateFree(&comm.hwState);
+}
+
+static Bool
+compare_hw_state(const struct SynapticsHwState *a,
+                 const struct SynapticsHwState *b)
+{
+    #define COMPARE(x) \
+        if (a->x != b->x) return a->x - b->x
+
+    COMPARE(millis);
+    COMPARE(x);
+    COMPARE(y);
+    COMPARE(z);
+    COMPARE(numFingers);
+    COMPARE(fingerWidth);
+    COMPARE(left);
+    COMPARE(right);
+    COMPARE(up);
+    COMPARE(down);
+    if (memcmp(a->multi, b->multi, sizeof(a->multi)))
+        return memcmp(a->multi, b->multi, sizeof(a->multi));
+    COMPARE(middle);
+
+    #undef COMPARE
+
+    return 0;
 }
 
 /**
@@ -191,11 +229,11 @@ static void
 test_ignore_hw_state(void)
 {
     int i;
-    InputInfoRec                info    = {0};
+    InputInfoRec                info     = {0};
     SynapticsPrivate            private;
-    struct SynapticsHwState     hw      = {0};
-    struct SynapticsHwState     hw_zero = {0};
-    struct CommData             comm    = {0};
+    struct SynapticsHwState     *hw      = NULL;
+    struct SynapticsHwState     *hw_zero = NULL;
+    struct CommData             comm     = {0};
 
     int known_abs[] = {
         ABS_X,
@@ -230,14 +268,18 @@ test_ignore_hw_state(void)
     info.private = &private;
     info.fd = fd_read;
 
+    private.proto_data = EventProtoDataAlloc();
+
+    reset_data(&hw_zero, &comm, &private);
+
 #define _assert_no_change(_type, _code) \
-        reset_data(&hw, &comm);                         \
+        reset_data(&hw, &comm, &private);               \
         ev.type = _type;                                \
         ev.code = _code;                                \
         ev.value = 1;                                   \
         write_event(fd_write, &ev, 1);                  \
-        EventReadHwState(&info, &comm, &hw);            \
-        assert(memcmp(&hw, &hw_zero, sizeof(hw)) == 0);
+        EventReadHwState(&info, &comm, hw);            \
+        assert(compare_hw_state(hw, hw_zero) == 0);
 
 
     for (i = ABS_X; i < ABS_MAX; i++)
@@ -273,6 +315,10 @@ test_ignore_hw_state(void)
         _assert_no_change(EV_KEY, i);
     }
 
+    free(private.proto_data);
+    SynapticsHwStateFree(&hw);
+    SynapticsHwStateFree(&hw_zero);
+    SynapticsHwStateFree(&comm.hwState);
 }
 
 int main (int argc, char **argv)

@@ -32,6 +32,19 @@
 #include <xf86Xinput.h>
 #include <xisb.h>
 
+#include "config.h"
+
+struct _SynapticsPrivateRec;
+typedef struct _SynapticsPrivateRec SynapticsPrivate;
+
+enum SynapticsSlotState
+{
+    SLOTSTATE_EMPTY = 0,
+    SLOTSTATE_OPEN,
+    SLOTSTATE_CLOSE,
+    SLOTSTATE_UPDATE,
+};
+
 /*
  * A structure to describe the state of the touchpad hardware (buttons and pad)
  */
@@ -50,6 +63,12 @@ struct SynapticsHwState {
 
     Bool multi[8];
     Bool middle;		/* Some ALPS touchpads have a middle button */
+
+#ifdef HAVE_MULTITOUCH
+    int num_mt_mask;
+    ValuatorMask **mt_mask;
+    enum SynapticsSlotState *slot_state;
+#endif
 };
 
 struct CommData {
@@ -61,7 +80,7 @@ struct CommData {
     int protoBufTail;
 
     /* Used for keeping track of partial HwState updates. */
-    struct SynapticsHwState hwState;
+    struct SynapticsHwState *hwState;
     Bool oneFinger;
     Bool twoFingers;
     Bool threeFingers;
@@ -89,5 +108,11 @@ extern struct SynapticsProtocolOperations event_proto_operations;
 #ifdef BUILD_PSMCOMM
 extern struct SynapticsProtocolOperations psm_proto_operations;
 #endif /* BUILD_PSMCOMM */
+
+extern struct SynapticsHwState *SynapticsHwStateAlloc(SynapticsPrivate *priv);
+extern void SynapticsHwStateFree(struct SynapticsHwState **hw);
+extern void SynapticsCopyHwState(struct SynapticsHwState *dst,
+                                 const struct SynapticsHwState *src);
+extern void SynapticsResetTouchHwState(struct SynapticsHwState *hw);
 
 #endif /* _SYNPROTO_H_ */

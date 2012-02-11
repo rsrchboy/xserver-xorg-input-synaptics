@@ -56,6 +56,14 @@ typedef struct _SynapticsMoveHist
     CARD32 millis;
 } SynapticsMoveHistRec;
 
+typedef struct _SynapticsTouchAxis
+{
+    const char *label;
+    int min;
+    int max;
+    int res;
+} SynapticsTouchAxisRec;
+
 enum FingerState {              /* Note! The order matters. Compared with < operator. */
     FS_BLOCKED = -1,
     FS_UNTOUCHED = 0, /* this is 0 so it's the initialized value. */
@@ -183,15 +191,17 @@ typedef struct _SynapticsPrivateRec
     struct SynapticsProtocolOperations* proto_ops;
     void *proto_data;			/* protocol-specific data */
 
-    struct SynapticsHwState hwState;
+    struct SynapticsHwState *hwState;
 
-    char *device;			/* device node */
+    const char *device;			/* device node */
     Bool shm_config;			/* True when shared memory area allocated */
 
     CARD32 timer_time;			/* when timer last fired */
     OsTimerPtr timer;			/* for up/down-button repeat, tap processing, etc */
 
     struct CommData comm;
+
+    struct SynapticsHwState *local_hw_state; /* used in place of local hw state variables */
 
     Bool absolute_events;               /* post absolute motion events instead of relative */
     SynapticsMoveHistRec move_hist[SYNAPTICS_MOVE_HISTORY]; /* movement history */
@@ -264,6 +274,16 @@ typedef struct _SynapticsPrivateRec
     int scroll_axis_horiz;              /* Horizontal smooth-scrolling axis */
     int scroll_axis_vert;               /* Vertical smooth-scrolling axis */
     ValuatorMask *scroll_events_mask;   /* ValuatorMask for smooth-scrolling */
+#endif
+
+#ifdef HAVE_MULTITOUCH
+    Bool has_touch;                     /* Device has multitouch capabilities */
+    int max_touches;                    /* Number of touches supported */
+    int num_mt_axes;                    /* Number of multitouch axes other than X, Y */
+    SynapticsTouchAxisRec *touch_axes;  /* Touch axis information other than X, Y */
+    int num_slots;                      /* Number of touch slots allocated */
+    int *open_slots;                    /* Array of currently open touch slots */
+    int num_active_touches;             /* Number of active touches on device */
 #endif
 } SynapticsPrivate;
 

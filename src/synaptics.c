@@ -616,7 +616,6 @@ static float SynapticsAccelerationProfile(DeviceIntPtr dev,
                                           float thr_f,
                                           float acc_f) {
     double velocity = velocity_f;
-    double thr = thr_f;
     double acc = acc_f;
 #endif
     InputInfoPtr pInfo = dev->public.devicePrivate;
@@ -646,12 +645,12 @@ static float SynapticsAccelerationProfile(DeviceIntPtr dev,
 	int maxZ = para->press_motion_max_z;
 	double minFctr = para->press_motion_min_factor;
 	double maxFctr = para->press_motion_max_factor;
-	if (priv->hwState.z <= minZ) {
+	if (priv->hwState->z <= minZ) {
 	    accelfct *= minFctr;
-	} else if (priv->hwState.z >= maxZ) {
+	} else if (priv->hwState->z >= maxZ) {
 	    accelfct *= maxFctr;
 	} else {
-	    accelfct *= minFctr + (priv->hwState.z - minZ) * (maxFctr - minFctr) / (maxZ - minZ);
+	    accelfct *= minFctr + (priv->hwState->z - minZ) * (maxFctr - minFctr) / (maxZ - minZ);
 	}
     }
 
@@ -815,6 +814,10 @@ static void SynapticsUnInit(InputDriverPtr drv,
     if (priv && priv->scroll_events_mask)
         valuator_mask_free(&priv->scroll_events_mask);
 #endif
+#ifdef HAVE_MULTITOUCH
+    if (priv && priv->open_slots)
+        free(priv->open_slots);
+#endif
     free(pInfo->private);
     pInfo->private = NULL;
     xf86DeleteInput(pInfo, 0);
@@ -935,11 +938,19 @@ DeviceClose(DeviceIntPtr dev)
     TimerFree(priv->timer);
     priv->timer = NULL;
     free_shm_data(priv);
+    SynapticsHwStateFree(&priv->hwState);
+    SynapticsHwStateFree(&priv->local_hw_state);
+    SynapticsHwStateFree(&priv->comm.hwState);
     return RetValue;
 }
 
-static void InitAxesLabels(Atom *labels, int nlabels)
+static void InitAxesLabels(Atom *labels, int nlabels,
+                           const SynapticsPrivate *priv)
 {
+#ifdef HAVE_MULTITOUCH
+    int i;
+#endif
+
     memset(labels, 0, nlabels * sizeof(Atom));
     switch(nlabels)
     {
@@ -956,6 +967,15 @@ static void InitAxesLabels(Atom *labels, int nlabels)
             labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
             break;
     }
+
+#ifdef HAVE_MULTITOUCH
+    for (i = 0; i < priv->num_mt_axes; i++)
+    {
+        SynapticsTouchAxisRec *axis = &priv->touch_axes[i];
+        int axnum = nlabels - priv->num_mt_axes + i;
+        labels[axnum] = XIGetKnownProperty(axis->label);
+    }
+#endif
 }
 
 static void InitButtonLabels(Atom *labels, int nlabels)
@@ -982,6 +1002,62 @@ static void InitButtonLabels(Atom *labels, int nlabels)
     }
 }
 
+static void
+DeviceInitTouch(DeviceIntPtr dev, Atom *axes_labels)
+{
+#ifdef HAVE_MULTITOUCH
+    InputInfoPtr pInfo = dev->public.devicePrivate;
+    SynapticsPrivate *priv = (SynapticsPrivate *) (pInfo->private);
+    int i;
+
+    if (priv->has_touch)
+    {
+        priv->num_slots = priv->max_touches ? priv->max_touches : 10;
+
+        priv->open_slots = malloc(priv->num_slots * sizeof(int));
+        if (!priv->open_slots)
+        {
+            xf86IDrvMsg(pInfo, X_ERROR,
+                        "failed to allocate open touch slots array\n");
+            priv->has_touch = 0;
+            priv->num_slots = 0;
+            return;
+        }
+
+        /* x/y + whatever other MT axes we found */
+        if (!InitTouchClassDeviceStruct(dev, priv->max_touches,
+                                        XIDependentTouch, 2 + priv->num_mt_axes))
+        {
+            xf86IDrvMsg(pInfo, X_ERROR,
+                        "failed to initialize touch class device\n");
+            priv->has_touch = 0;
+            priv->num_slots = 0;
+            free(priv->open_slots);
+            priv->open_slots = NULL;
+            return;
+        }
+
+        for (i = 0; i < priv->num_mt_axes; i++)
+        {
+            SynapticsTouchAxisRec *axis = &priv->touch_axes[i];
+            int axnum = 4 + i; /* Skip x, y, and scroll axes */
+
+            if (!xf86InitValuatorAxisStruct(dev, axnum, axes_labels[axnum],
+                                            axis->min, axis->max, axis->res, 0,
+                                            axis->res, Absolute))
+            {
+                xf86IDrvMsg(pInfo, X_WARNING,
+                            "failed to initialize axis %s, skipping\n",
+                            axis->label);
+                continue;
+            }
+
+            xf86InitValuatorDefaults(dev, axnum);
+        }
+    }
+#endif
+}
+
 static Bool
 DeviceInit(DeviceIntPtr dev)
 {
@@ -994,14 +1070,25 @@ DeviceInit(DeviceIntPtr dev)
     int min, max;
     int num_axes = 2;
     Atom btn_labels[SYN_MAX_BUTTONS] = { 0 };
-    Atom axes_labels[4] = { 0 };
+    Atom *axes_labels;
     DeviceVelocityPtr pVel;
 
 #ifdef HAVE_SMOOTH_SCROLL
     num_axes += 2;
 #endif
 
-    InitAxesLabels(axes_labels, num_axes);
+#ifdef HAVE_MULTITOUCH
+    num_axes += priv->num_mt_axes;
+#endif
+
+    axes_labels = calloc(num_axes, sizeof(Atom));
+    if (!axes_labels)
+    {
+        xf86IDrvMsg(pInfo, X_ERROR, "failed to allocate axis labels\n");
+        return !Success;
+    }
+
+    InitAxesLabels(axes_labels, num_axes, priv);
     InitButtonLabels(btn_labels, SYN_MAX_BUTTONS);
 
     DBG(3, "Synaptics DeviceInit called\n");
@@ -1107,7 +1194,10 @@ DeviceInit(DeviceIntPtr dev)
     priv->scroll_axis_vert = 3;
     priv->scroll_events_mask = valuator_mask_new(MAX_VALUATORS);
     if (!priv->scroll_events_mask)
+    {
+        free(axes_labels);
         return !Success;
+    }
 
     SetScrollValuator(dev, priv->scroll_axis_horiz, SCROLL_TYPE_HORIZONTAL,
                       priv->synpara.scroll_dist_horiz, 0);
@@ -1115,13 +1205,36 @@ DeviceInit(DeviceIntPtr dev)
                       priv->synpara.scroll_dist_vert, 0);
 #endif
 
+    DeviceInitTouch(dev, axes_labels);
+
+    free(axes_labels);
+
+    priv->hwState = SynapticsHwStateAlloc(priv);
+    if (!priv->hwState)
+        goto fail;
+
+    priv->local_hw_state = SynapticsHwStateAlloc(priv);
+    if (!priv->local_hw_state)
+	goto fail;
+
+    priv->comm.hwState = SynapticsHwStateAlloc(priv);
+
     if (!alloc_shm_data(pInfo))
-	return !Success;
+        goto fail;
 
     InitDeviceProperties(pInfo);
     XIRegisterPropertyHandler(pInfo->dev, SetProperty, NULL, NULL);
 
     return Success;
+
+fail:
+    free_shm_data(priv);
+    free(priv->local_hw_state);
+    free(priv->hwState);
+#ifdef HAVE_MULTITOUCH
+    free(priv->open_slots);
+#endif
+    return !Success;
 }
 
 
@@ -1246,15 +1359,16 @@ timerFunc(OsTimerPtr timer, CARD32 now, pointer arg)
 {
     InputInfoPtr pInfo = arg;
     SynapticsPrivate *priv = (SynapticsPrivate *) (pInfo->private);
-    struct SynapticsHwState hw;
+    struct SynapticsHwState *hw = priv->local_hw_state;
     int delay;
     int sigstate;
 
     sigstate = xf86BlockSIGIO();
 
-    priv->hwState.millis += now - priv->timer_time;
-    hw = priv->hwState;
-    delay = HandleState(pInfo, &hw, hw.millis, TRUE);
+    priv->hwState->millis += now - priv->timer_time;
+    SynapticsCopyHwState(hw, priv->hwState);
+    SynapticsResetTouchHwState(hw);
+    delay = HandleState(pInfo, hw, hw->millis, TRUE);
 
     priv->timer_time = now;
     priv->timer = TimerSet(priv->timer, 0, delay, timerFunc, pInfo);
@@ -1289,13 +1403,15 @@ static void
 ReadInput(InputInfoPtr pInfo)
 {
     SynapticsPrivate *priv = (SynapticsPrivate *) (pInfo->private);
-    struct SynapticsHwState hw;
+    struct SynapticsHwState *hw = priv->local_hw_state;
     int delay = 0;
     Bool newDelay = FALSE;
 
-    while (SynapticsGetHwState(pInfo, priv, &hw)) {
-	priv->hwState = hw;
-	delay = HandleState(pInfo, &hw, hw.millis, FALSE);
+    SynapticsResetTouchHwState(hw);
+
+    while (SynapticsGetHwState(pInfo, priv, hw)) {
+	SynapticsCopyHwState(priv->hwState, hw);
+	delay = HandleState(pInfo, hw, hw->millis, FALSE);
 	newDelay = TRUE;
     }
 
@@ -1537,11 +1653,11 @@ static void
 SetMovingState(SynapticsPrivate *priv, enum MovingState moving_state, CARD32 millis)
 {
     DBG(7, "SetMovingState - %d -> %d center at %d/%d (millis:%d)\n", priv->moving_state,
-		  moving_state,priv->hwState.x, priv->hwState.y, millis);
+		  moving_state,priv->hwState->x, priv->hwState->y, millis);
 
     if (moving_state == MS_TRACKSTICK) {
-	priv->trackstick_neutral_x = priv->hwState.x;
-	priv->trackstick_neutral_y = priv->hwState.y;
+	priv->trackstick_neutral_x = priv->hwState->x;
+	priv->trackstick_neutral_y = priv->hwState->y;
     }
     priv->moving_state = moving_state;
 }
@@ -1847,6 +1963,14 @@ get_delta(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
 
     /* report edge speed as synthetic motion. Of course, it would be
      * cooler to report floats than to buffer, but anyway. */
+
+    /* FIXME: When these values go NaN, bad things happen. Root cause is unknown
+     * thus far though. */
+    if (isnan(priv->frac_x))
+        priv->frac_x = 0;
+    if (isnan(priv->frac_y))
+        priv->frac_y = 0;
+
     tmpf = *dx + x_edge_speed * dtime + priv->frac_x;
     priv->frac_x = modf(tmpf, &integral);
     *dx = integral;
@@ -1878,8 +2002,7 @@ ComputeDeltas(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
 	case TS_1:
 	case TS_3:
 	case TS_5:
-	    if (hw->numFingers == 1)
-		moving_state = MS_TOUCHPAD_RELATIVE;
+	    moving_state = MS_TOUCHPAD_RELATIVE;
 	    break;
 	default:
 	    break;
@@ -1889,7 +2012,8 @@ ComputeDeltas(SynapticsPrivate *priv, const struct SynapticsHwState *hw,
     if (!inside_area || !moving_state || priv->finger_state == FS_BLOCKED ||
 	priv->vert_scroll_edge_on || priv->horiz_scroll_edge_on ||
 	priv->vert_scroll_twofinger_on || priv->horiz_scroll_twofinger_on ||
-	priv->circ_scroll_on || priv->prevFingers != hw->numFingers)
+	priv->circ_scroll_on || priv->prevFingers != hw->numFingers ||
+	(moving_state == MS_TOUCHPAD_RELATIVE && hw->numFingers != 1))
     {
         /* reset packet counter. */
         priv->count_packet_finger = 0;
@@ -2472,6 +2596,122 @@ repeat_scrollbuttons(const InputInfoPtr pInfo,
     return delay;
 }
 
+static void
+HandleTouches(InputInfoPtr pInfo, struct SynapticsHwState *hw)
+{
+#ifdef HAVE_MULTITOUCH
+    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+    SynapticsParameters *para = &priv->synpara;
+    int new_active_touches = priv->num_active_touches;
+    int min_touches = 2;
+    Bool restart_touches = FALSE;
+    int i;
+
+    if (para->click_action[F3_CLICK1] || para->tap_action[F3_TAP])
+        min_touches = 4;
+    else if (para->click_action[F2_CLICK1] || para->tap_action[F2_TAP] ||
+             para->scroll_twofinger_vert || para->scroll_twofinger_horiz)
+        min_touches = 3;
+
+    /* Count new number of active touches */
+    for (i = 0; i < hw->num_mt_mask; i++)
+    {
+        if (hw->slot_state[i] == SLOTSTATE_OPEN)
+            new_active_touches++;
+        else if (hw->slot_state[i] == SLOTSTATE_CLOSE)
+            new_active_touches--;
+    }
+
+    if (priv->num_active_touches < min_touches &&
+        new_active_touches < min_touches)
+    {
+        /* We stayed below number of touches needed to send events */
+        goto out;
+    } else if (priv->num_active_touches >= min_touches &&
+               new_active_touches < min_touches)
+    {
+        /* We are transitioning to less than the number of touches needed to
+         * send events. End all currently open touches. */
+        for (i = 0; i < priv->num_active_touches; i++)
+        {
+            int slot = priv->open_slots[i];
+            xf86PostTouchEvent(pInfo->dev, slot, XI_TouchEnd, 0,
+                               hw->mt_mask[slot]);
+        }
+
+        /* Don't send any more events */
+        goto out;
+    } else if (priv->num_active_touches < min_touches &&
+               new_active_touches >= min_touches)
+    {
+        /* We are transitioning to more than the number of touches needed to
+         * send events. Begin all already open touches. */
+        restart_touches = TRUE;
+        for (i = 0; i < priv->num_active_touches; i++)
+        {
+            int slot = priv->open_slots[i];
+
+            xf86PostTouchEvent(pInfo->dev, slot, XI_TouchBegin, 0,
+                               hw->mt_mask[slot]);
+        }
+    }
+
+    /* Send touch begin events for all new touches */
+    for (i = 0; i < hw->num_mt_mask; i++)
+        if (hw->slot_state[i] == SLOTSTATE_OPEN)
+            xf86PostTouchEvent(pInfo->dev, i, XI_TouchBegin, 0,
+                               hw->mt_mask[i]);
+
+    /* Send touch update/end events for all the rest */
+    for (i = 0; i < priv->num_active_touches; i++)
+    {
+        int slot = priv->open_slots[i];
+
+        /* Don't send update event if we just reopened the touch above */
+        if (hw->slot_state[slot] == SLOTSTATE_UPDATE && !restart_touches)
+            xf86PostTouchEvent(pInfo->dev, slot, XI_TouchUpdate, 0,
+                               hw->mt_mask[slot]);
+        else if (hw->slot_state[slot] == SLOTSTATE_CLOSE)
+            xf86PostTouchEvent(pInfo->dev, slot, XI_TouchEnd, 0,
+                               hw->mt_mask[slot]);
+    }
+            
+out:
+    /* Update the open slots and number of active touches */
+    for (i = 0; i < hw->num_mt_mask; i++)
+    {
+        if (hw->slot_state[i] == SLOTSTATE_OPEN)
+        {
+            priv->open_slots[priv->num_active_touches] = i;
+            priv->num_active_touches++;
+        } else if (hw->slot_state[i] == SLOTSTATE_CLOSE)
+        {
+            Bool found = FALSE;
+            int j;
+
+            for (j = 0; j < priv->num_active_touches - 1; j++)
+            {
+                if (priv->open_slots[j] == i)
+                    found = TRUE;
+
+                if (found)
+                    priv->open_slots[j] = priv->open_slots[j + 1];
+            }
+
+            priv->num_active_touches--;
+        }
+    }
+
+    /* We calculated the value twice, might as well double check our math */
+    if (priv->num_active_touches != new_active_touches)
+        xf86IDrvMsg(pInfo, X_WARNING,
+                    "calculated wrong number of active touches (%d vs %d)\n",
+                    priv->num_active_touches, new_active_touches);
+
+    SynapticsResetTouchHwState(hw);
+#endif
+}
+
 /*
  * React on changes in the hardware state. This function is called every time
  * the hardware state changes. The return value is used to specify how many
@@ -2639,6 +2879,8 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
 	post_button_click(pInfo, 1);
 	post_button_click(pInfo, 1);
     }
+
+    HandleTouches(pInfo, hw);
 
     /* Save old values of some state variables */
     priv->finger_state = finger;

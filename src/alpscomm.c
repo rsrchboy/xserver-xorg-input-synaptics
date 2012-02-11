@@ -211,14 +211,14 @@ ALPSReadHwState(InputInfoPtr pInfo,
 		struct CommData *comm, struct SynapticsHwState *hwRet)
 {
     unsigned char *buf = comm->protoBuf;
-    struct SynapticsHwState *hw = &(comm->hwState);
+    struct SynapticsHwState *hw = comm->hwState;
 
     if (!ALPS_get_packet(comm, pInfo))
 	return FALSE;
 
     ALPS_process_packet(buf, hw);
 
-    *hwRet = *hw;
+    SynapticsCopyHwState(hwRet, hw);
     return TRUE;
 }
 
