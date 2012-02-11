@@ -1,3 +1,396 @@
+commit e6032c34515a19ebac09090028f806d82ddfb62d
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 10:06:54 2012 -0800
+
+    Filter touch events if two-finger scrolling is enabled
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 796e0d43917de99757c08fd2998134cf6f5583c9
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 10:01:49 2012 -0800
+
+    Filter touch events if tap actions are enabled
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 061e4a259644408899e03ba5abdd979691a02b1a
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 09:55:17 2012 -0800
+
+    Filter touch events if click actions are enabled
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 336f9a09d090a8c3a9c976ab04ffb17bcdc2c2ea
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 8 15:06:33 2012 -0800
+
+    Move X touch event processing into synaptics.c
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 673c5fa14bff669d82f5711511a37bd3abe75471
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 8 16:08:02 2012 -0800
+
+    Add open_slots array to SynapticsPrivate
+    
+    Initialize touch stuff in a separate function for readability.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5cb5bb573491058c35bbaac5c4c4fceea4626f57
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 14:45:11 2012 -0800
+
+    Add touch valuator mask to hw state structure
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0df994b3d80006d2fb114226d8b488e98d0e03d4
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 8 15:07:38 2012 -0800
+
+    Rename num_touches to max_touches
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5486ab3486e1ba4a0ef8fc9efe4d243ea90f5794
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 14:38:33 2012 -0800
+
+    Introduce SynapticsCopyHwState function
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5658a2f643cf7440009dde2fa74287332237c0b9
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 8 16:59:54 2012 -0800
+
+    Allocate priv->hwState
+    
+    This is needed for when SynapticsHwState can't be allocated on the stack.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7bcbf8eb110b1f7c6c085d3dcd69f66b00df2b8a
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 15:35:03 2012 -0800
+
+    Allocate SynapticsPrivate.comm->hwState
+    
+    This is needed for when SynapticsHwState can't be allocated on the stack.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a78d55d021c9cd3be6501760d6fca3464ea6dec8
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 15:23:43 2012 -0800
+
+    Allocate SynapticsHwStruct for local function use
+    
+    SynapticsHwStruct (SHS) will soon include ValuatorMasks, which can only
+    be allocated on the heap. The input driver callbacks are called in
+    signal context, so we can't instantiate a new SHS when that occurs.
+    Since we only ever need one SHS, allocate one at device init time and
+    use it in place of local SHS instances.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e5cd694ed1028b94fdbe10d76dbea1e03455f8fb
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Fri Feb 10 10:24:04 2012 -0800
+
+    Transition eventcomm-test to new SynapticsHwState instantiation scheme
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c34cf307f9982b62c6e6dfa2687e1b16f527f2a4
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 15:14:05 2012 -0800
+
+    Introduce SynapticsHwStateAlloc() and SynapticsHwStateFree()
+    
+    Put them in a new file so eventcomm-test can access them.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 146edc2baad1388f49a7a857c2003faa171876c7
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Fri Feb 10 10:48:44 2012 -0800
+
+    Allocate proto data in eventcomm-test
+    
+    Provide a helper function for allocating proto data and use it in
+    eventcomm-test. This ensures a null pointer for priv->proto_data is not
+    dereferenced.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 49f6109032f2ce6171d1aad02672479d2c78c083
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 7 13:07:07 2012 -0800
+
+    Revert "Replace the motion estimator"
+    
+    The algorithm is completely wrong because it uses subtraction of
+    unsigned variables. The negative effects of this commit manifest in
+    cursor warps to edges or corners of the screen.
+    
+    Since the algorithm has never worked right, previous testing must be
+    disregarded. Revert it until we have a tested algorithm.
+    
+    This reverts commit b26125e412a130b7a8f8b6adf9ffc8e9cc8df42c.
+    
+    Conflicts:
+    
+    	src/synaptics.c
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 141d9120b1ff4a88a09a1df7d63a4854447346ec
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Feb 7 03:33:01 2012 +1000
+
+    Submit the right number of MT axes
+    
+    For devices with only x/y, num_mt_axes is 0, since x/y are already counted
+    elsewhere. The server will then fail to init the TouchClassRec since it
+    expects at least 2 touch axes. Fix this, assume we always have at least two
+    touch axes if we have any touch axes at all.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit e4ee51e771a6da247362549044a076462791022b
+Merge: da0d20d 6b808dc
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Feb 7 02:51:08 2012 +1000
+
+    Merge branch 'fixes' of git://people.freedesktop.org/~cndougla/xf86-input-synaptics
+
+commit 6b808dc766a0d1e64e19e4d5fad5f8a1a4e0d62d
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 1 15:23:00 2012 -0800
+
+    Don't initialize semi-multitouch devices for touch device class
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit a8b065eeb847493afd31e49623fac9c952811993
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 1 15:42:21 2012 -0800
+
+    Don't initialize touch state if device does is not multitouch
+    
+    And don't attempt to use it either.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 4824f67e7b9cf402a2df10c17f583916c4ef83eb
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Feb 1 14:26:29 2012 -0800
+
+    Don't emit touch sequences if only one touch is active
+    
+    When a second touch begins, emit a touch begin for the first touch with
+    the current valuator values. When a touch ends and we are going from two
+    touches down to one touch, end both touches. This ensures we don't send
+    a touch sequence at the same time we are moving the pointer.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit da0d20d0fd5cce3707b54146e54e2df0c697e1b4
+Author: Benjamin Otte <otte@redhat.com>
+Date:   Mon Feb 6 00:45:23 2012 +0100
+
+    eventcomm: Fix initialization code
+    
+    num_mt_axes contains the number of non-x/y multitouch axes, and the valuator
+    mask needs to contains x, y, followed by two empy values for the scroll
+    valuators, followed by the remaining MT axes.
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=45663
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3822705204f454fea6cc0bf61904c4b7186abee2
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 2 13:19:16 2012 -0800
+
+    Only move the cursor when one touch is on a touchpad
+    
+    Otherwise, we might post motion events and touch events for the same
+    physical interaction.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit dfdcf8b34363ed2504347d00957a3606f82c0b0d
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 2 13:19:15 2012 -0800
+
+    Ensure delta computation does not go crazy
+    
+    I have seen this a couple times, but I haven't been able to catch it
+    when it starts. It's a feedback loop, so once you miss the entrance of
+    the loop, you can't see what really went wrong.
+    
+    This patch papers over the issue for now.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Acked-by: Daniel Stone <daniel@fooishbar.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 782c7fb6fe20ed21b02808096de12d3cbf1afc8b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Feb 6 23:43:32 2012 +1000
+
+    Remove compiler warning: unused variable "atom"
+    
+    synaptics.c: In function 'DeviceInit':
+    synaptics.c:1161:18: warning: unused variable 'atom' [-Wunused-variable]
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 53adb8399d468d429cd879516aa24a8420f60f60
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Sat Feb 4 23:23:28 2012 +1000
+
+    synclient: fix indentation of "format mismatch" parameters
+    
+    Prefix is 4 spaces, not three.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d15c391544e9ba094b17c9217a837c58d88879f8
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Jan 19 13:05:50 2012 -0800
+
+    eventcomm: Add touch event handling
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit efdc34859bdbcf0622e88aaf8af99944c1fc2141
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Jan 19 13:05:49 2012 -0800
+
+    eventcomm: Read evdev events from mtdev where multitouch is available
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b1b9745979babd480574b41af155dfe5c06591f8
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Jan 19 13:05:48 2012 -0800
+
+    eventcomm: Initialize touch device and axes
+    
+    Use mtdev to ensure touches are tracked and of evdev MT protocol type
+    B.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 56d32619b95eb472104068c35ea7146dccb8d1bf
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Jan 19 13:05:47 2012 -0800
+
+    Add touch device class support
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7ef9150d832d6ede991c5def02d2964c8047ad4f
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Jan 19 13:05:46 2012 -0800
+
+    Allocate axis labels array dynamically
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3804a0ee0bec455fcc61a469dd907738ff5589bd
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Wed Jan 4 17:02:30 2012 +0000
+
+    Constify priv->device
+    
+    Fixes a compiler warning due to discarding the const qualifier as it
+    comes back from the option code.
+    
+    Signed-off-by: Daniel Stone <daniel@fooishbar.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c861d4568c2c6cc56db8e683a8d7035bef711262
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 3 11:03:14 2012 +1000
+
+    test: fix build error introduced in 9f9b55ab55ed5
+    
+    Bad search/replace, ended up in two xf86SetStrOption declarations which
+    differed on ABIs < 14.
+    
+    Fixes https://bugs.freedesktop.org/show_bug.cgi?id=44335
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit f5c60a6d1e87353975a340f8fb2f318c8edceea0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 3 10:59:46 2012 +1000
+
+    Remove unused variable 'thr'
+    
+    synaptics.c: In function 'SynapticsAccelerationProfile':
+    synaptics.c:619:12: warning: unused variable 'thr' [-Wunused-variable]
+    
+    On input ABIs < 14.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 3ec93218d2211420ede260e298ff5e23202556ff
+Author: JJ Ding <dgdunix@gmail.com>
+Date:   Wed Dec 28 14:46:02 2011 +0800
+
+    fix wrong finger width range
+    
+    Signed-off-by: JJ Ding <dgdunix@gmail.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit 9f9b55ab55ed5251c1607c59d8817231d076d82c
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Mon Dec 12 11:35:37 2011 +1000

@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu1) UNRELEASED; urgency=low
+
+  * Update to latest code in git (e6032c3)
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 10 Feb 2012 18:14:58 -0800
+
 xserver-xorg-input-synaptics (1.5.0+git20120101-1ubuntu2) precise; urgency=low
 
   * Add some error handling so eventcomm-test doesn't segfault
