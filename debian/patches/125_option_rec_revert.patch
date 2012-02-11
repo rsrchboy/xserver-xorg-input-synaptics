@@ -1,7 +1,5 @@
-diff --git b/test/fake-symbols.c a/test/fake-symbols.c
-index 2d94622..71c3bc5 100644
---- b/test/fake-symbols.c
-+++ a/test/fake-symbols.c
+--- a/test/fake-symbols.c
++++ b/test/fake-symbols.c
 @@ -26,7 +26,7 @@ xf86WaitForInput (int fd, int timeout)
  }
  
@@ -65,7 +63,7 @@ index 2d94622..71c3bc5 100644
  {
      return NULL;
  }
-@@ -85,7 +85,7 @@ xf86NameCmp(const char *s1, const char *s2)
+@@ -85,7 +85,7 @@ xf86NameCmp(const char *s1, const char *
  }
  
  _X_EXPORT char *
@@ -74,7 +72,7 @@ index 2d94622..71c3bc5 100644
  {
      return NULL;
  }
-@@ -196,8 +196,8 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
+@@ -196,8 +196,8 @@ xf86DeleteInput(InputInfoPtr pInp, int f
      return;
  }
  
@@ -85,7 +83,7 @@ index 2d94622..71c3bc5 100644
  {
      return NULL;
  }
-@@ -225,7 +225,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
+@@ -225,7 +225,7 @@ xf86PostKeyboardEvent(DeviceIntPtr
  }
  
  _X_EXPORT int
@@ -94,7 +92,7 @@ index 2d94622..71c3bc5 100644
  {
      return 0;
  }
-@@ -254,7 +254,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
+@@ -254,7 +254,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceI
  _X_EXPORT int
  XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                          int format, int mode, unsigned long len,
@@ -103,7 +101,7 @@ index 2d94622..71c3bc5 100644
  {
      return 0;
  }
-@@ -367,15 +367,15 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
+@@ -367,15 +367,15 @@ InitValuatorClassDeviceStruct(DeviceIntP
  }
  
  
@@ -123,7 +121,7 @@ index 2d94622..71c3bc5 100644
  {
      return NULL;
  }
-@@ -424,14 +424,14 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
+@@ -424,14 +424,14 @@ InitFocusClassDeviceStruct(DeviceIntPtr
  
  #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 12
  void
@@ -140,11 +138,9 @@ index 2d94622..71c3bc5 100644
  {
  }
  
-diff --git b/test/fake-symbols.h a/test/fake-symbols.h
-index a297d28..dfe1355 100644
---- b/test/fake-symbols.h
-+++ a/test/fake-symbols.h
-@@ -1,38 +1,29 @@
+--- a/test/fake-symbols.h
++++ b/test/fake-symbols.h
+@@ -1,37 +1,29 @@
  #include <xorg-server.h>
  #include <xf86Xinput.h>
  
@@ -178,7 +174,6 @@ index a297d28..dfe1355 100644
  
  
 -extern char * xf86SetStrOption(OPTTYPE optlist, const char *name, CONST char *deflt);
--extern _X_EXPORT char *xf86SetStrOption(XF86OptionPtr optlist, const char *name, const char *deflt);
 -extern int xf86SetBoolOption(OPTTYPE optlist, const char *name, int deflt);
 -extern OPTTYPE xf86AddNewOption(OPTTYPE head, const char *name, const char *val);
 -extern CONST char* xf86FindOptionValue(OPTTYPE options, const char *name);
@@ -196,7 +191,7 @@ index a297d28..dfe1355 100644
  extern void xf86AddEnabledDevice(InputInfoPtr pInfo);
  extern void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
  extern Atom XIGetKnownProperty(char *name);
-@@ -62,7 +53,7 @@ XISetDevicePropertyDeletable(DeviceIntPtr dev, Atom property, Bool deletable);
+@@ -61,7 +52,7 @@ XISetDevicePropertyDeletable(DeviceIntPt
  
  extern InputInfoPtr xf86FirstLocalDevice(void);
  extern void xf86DeleteInput(InputInfoPtr pInp, int flags);
@@ -205,7 +200,7 @@ index a297d28..dfe1355 100644
  extern Bool
  InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, Atom* labels,
                              CARD8 *map);
-@@ -74,7 +65,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
+@@ -73,7 +64,7 @@ xf86PostKeyboardEvent(DeviceIntPtr
                        unsigned int      key_code,
                        int               is_down);
  extern int
@@ -214,7 +209,7 @@ index a297d28..dfe1355 100644
  extern void
  xf86PostButtonEventP(DeviceIntPtr	device,
                       int		is_absolute,
-@@ -92,7 +83,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc);
+@@ -91,7 +82,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceI
  extern int
  XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                          int format, int mode, unsigned long len,
@@ -223,7 +218,7 @@ index a297d28..dfe1355 100644
  extern CARD32 GetTimeInMillis (void);
  
  extern int
-@@ -141,10 +132,10 @@ extern Bool
+@@ -140,10 +131,10 @@ extern Bool
  InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
                                int numMotionEvents, int mode);
  
@@ -237,7 +232,7 @@ index a297d28..dfe1355 100644
  
  extern int
  XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value);
-@@ -168,12 +159,12 @@ extern Bool InitFocusClassDeviceStruct(DeviceIntPtr dev);
+@@ -167,12 +158,12 @@ extern Bool InitFocusClassDeviceStruct(D
  
  #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 12
  extern void
