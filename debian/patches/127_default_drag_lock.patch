@@ -1,0 +1,13 @@
+Index: xserver-xorg-input-synaptics/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.orig/src/synaptics.c	2012-02-13 20:28:22.178606998 -0800
++++ xserver-xorg-input-synaptics/src/synaptics.c	2012-02-13 20:28:22.438610574 -0800
+@@ -558,7 +558,7 @@
+     }
+     pars->scroll_button_repeat = xf86SetIntOption(opts,"ScrollButtonRepeat", 100);
+     pars->touchpad_off = xf86SetIntOption(opts, "TouchpadOff", 0);
+-    pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", FALSE);
++    pars->locked_drags = xf86SetBoolOption(opts, "LockedDrags", TRUE);
+     pars->locked_drag_time = xf86SetIntOption(opts, "LockedDragTimeout", 5000);
+     pars->tap_action[RT_TAP] = xf86SetIntOption(opts, "RTCornerButton", 2);
+     pars->tap_action[RB_TAP] = xf86SetIntOption(opts, "RBCornerButton", 3);
