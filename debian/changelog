@@ -1,9 +1,9 @@
-xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu2) precise; urgency=low
 
   * Enable tap-and-drag locked drags by default
   * Disable three-click action by default so three touch gestures work
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 13 Feb 2012 20:32:32 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 13 Feb 2012 20:51:56 -0800
 
 xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu1) precise; urgency=low
 
