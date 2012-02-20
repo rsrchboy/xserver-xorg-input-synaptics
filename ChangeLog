@@ -1,3 +1,17 @@
+commit f9a906590e59383aef3c53faca98f0de40859f17
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Sat Feb 11 18:57:20 2012 +0100
+
+    Prefer multitouch over single-touch axis ranges
+    
+    We still use single-touch data in most cases, but sometimes the
+    multitouch axes have higher resolution. Since we use the same XI
+    valuators to report ST and MT data, we must pick one axis and scale the
+    other to match. This change picks the MT axis ranges.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit e6032c34515a19ebac09090028f806d82ddfb62d
 Author: Chase Douglas <chase.douglas@canonical.com>
 Date:   Thu Feb 9 10:06:54 2012 -0800
