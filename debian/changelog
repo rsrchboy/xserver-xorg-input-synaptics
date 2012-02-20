@@ -1,9 +1,9 @@
-xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu1) precise; urgency=low
 
   * Update to latest code in git (f9a9065)
     - Scale single-touch values to multitouch axes (LP: #936856)
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 20 Feb 2012 10:58:37 +0100
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 20 Feb 2012 11:13:10 +0100
 
 xserver-xorg-input-synaptics (1.5.0+git20120210-0ubuntu2) precise; urgency=low
 
