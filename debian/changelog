@@ -1,9 +1,9 @@
-xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu3) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu3) precise; urgency=low
 
   * Fix crash on multitouch devices when disabled while typing (LP: #931344)
     - Add temporary patch 130_tmp_touch_count_fix.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Tue, 21 Feb 2012 16:14:22 +0100
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Tue, 21 Feb 2012 16:22:17 +0100
 
 xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu2) precise; urgency=low
 
