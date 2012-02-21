@@ -1,0 +1,125 @@
+From 5739a101d2f96ba4a0854202017d31f2b3dfee26 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Tue, 21 Feb 2012 15:54:00 +0100
+Subject: [PATCH] Update touch state when device is off too
+
+If the device is turned off, usually by syndaemon to disable the
+touchpad while the typing, the touch state will not be updated with the
+latest hardware state changes. If a touch begins while the device is
+off and ends while the device is on, then the touch count will be
+decremented without any previous increment. A similar effect will occur
+if the device is on when the touch begins, but off when the touch ends.
+
+If the touch count goes negative, the index into the touch slot mask
+array will be out of bounds. This can corrupt memory and cause random
+crashes.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ src/synaptics.c |   74 ++++++++++++++++++++++++++++++------------------------
+ 1 files changed, 41 insertions(+), 33 deletions(-)
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index 7b3f680..c736b6a 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -2596,6 +2596,42 @@ repeat_scrollbuttons(const InputInfoPtr pInfo,
+     return delay;
+ }
+ 
++/* Update the open slots and number of active touches */
++static void
++UpdateTouchState(InputInfoPtr pInfo, struct SynapticsHwState *hw)
++{
++#ifdef HAVE_MULTITOUCH
++    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    int i;
++
++    for (i = 0; i < hw->num_mt_mask; i++)
++    {
++        if (hw->slot_state[i] == SLOTSTATE_OPEN)
++        {
++            priv->open_slots[priv->num_active_touches] = i;
++            priv->num_active_touches++;
++        } else if (hw->slot_state[i] == SLOTSTATE_CLOSE)
++        {
++            Bool found = FALSE;
++            int j;
++
++            for (j = 0; j < priv->num_active_touches - 1; j++)
++            {
++                if (priv->open_slots[j] == i)
++                    found = TRUE;
++
++                if (found)
++                    priv->open_slots[j] = priv->open_slots[j + 1];
++            }
++
++            priv->num_active_touches--;
++        }
++    }
++
++    SynapticsResetTouchHwState(hw);
++#endif
++}
++
+ static void
+ HandleTouches(InputInfoPtr pInfo, struct SynapticsHwState *hw)
+ {
+@@ -2675,40 +2711,9 @@ HandleTouches(InputInfoPtr pInfo, struct SynapticsHwState *hw)
+             xf86PostTouchEvent(pInfo->dev, slot, XI_TouchEnd, 0,
+                                hw->mt_mask[slot]);
+     }
+-            
+-out:
+-    /* Update the open slots and number of active touches */
+-    for (i = 0; i < hw->num_mt_mask; i++)
+-    {
+-        if (hw->slot_state[i] == SLOTSTATE_OPEN)
+-        {
+-            priv->open_slots[priv->num_active_touches] = i;
+-            priv->num_active_touches++;
+-        } else if (hw->slot_state[i] == SLOTSTATE_CLOSE)
+-        {
+-            Bool found = FALSE;
+-            int j;
+ 
+-            for (j = 0; j < priv->num_active_touches - 1; j++)
+-            {
+-                if (priv->open_slots[j] == i)
+-                    found = TRUE;
+-
+-                if (found)
+-                    priv->open_slots[j] = priv->open_slots[j + 1];
+-            }
+-
+-            priv->num_active_touches--;
+-        }
+-    }
+-
+-    /* We calculated the value twice, might as well double check our math */
+-    if (priv->num_active_touches != new_active_touches)
+-        xf86IDrvMsg(pInfo, X_WARNING,
+-                    "calculated wrong number of active touches (%d vs %d)\n",
+-                    priv->num_active_touches, new_active_touches);
+-
+-    SynapticsResetTouchHwState(hw);
++out:
++    UpdateTouchState(pInfo, hw);
+ #endif
+ }
+ 
+@@ -2741,7 +2746,10 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
+ 
+     /* If touchpad is switched off, we skip the whole thing and return delay */
+     if (para->touchpad_off == 1)
++    {
++	UpdateTouchState(pInfo, hw);
+ 	return delay;
++    }
+ 
+     /* apply hysteresis before doing anything serious. This cancels
+      * out a lot of noise which might surface in strange phenomena
+-- 
+1.7.9
+
