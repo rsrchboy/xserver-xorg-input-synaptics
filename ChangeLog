@@ -1,3 +1,78 @@
+commit 0a2fd560aa965ceac64c8fb047ca90006408a6f4
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 21 21:42:16 2012 +0100
+
+    Update touch state when device is off too
+    
+    If the device is turned off, usually by syndaemon to disable the
+    touchpad while the typing, the touch state will not be updated with the
+    latest hardware state changes. If a touch begins while the device is
+    off and ends while the device is on, then the touch count will be
+    decremented without any previous increment. A similar effect will occur
+    if the device is on when the touch begins, but off when the touch ends.
+    
+    If the touch count goes negative, the index into the touch slot mask
+    array will be out of bounds. This can corrupt memory and cause random
+    crashes.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit dfc3a8ed713c2878407c6443c4d3092da3125e0c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Feb 21 11:32:40 2012 +1000
+
+    synclient: accept XA_CARDINAL as 32-bit type (#46330)
+    
+    PressureMotionMaxZ and PressureMotionMinZ were changed from float to
+    XA_CARDINAL in 24c44375025576dd600ccf370ba365e5d94dc22. Accept the new type.
+    
+    Fixes:
+      PressureMotionMinZ      = format mismatch (32)
+      PressureMotionMaxZ      = format mismatch (32)
+    
+    X.Org Bug 46330 <http://bugs.freedesktop.org/show_bug.cgi?id=46330>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c25ff549c9636ad89a81fbf364159c7f040d163b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Feb 17 11:49:43 2012 +1000
+
+    Revert "Don't store fake events in the motion history"
+    
+    This commit introduced a regression. On some touchpads, the pointer keeps
+    moving in the last direction when the finger movement stops but the finger
+    is left on the touchpad.
+    
+    Cause appears to be get_delta() which calculates the deltas based on the
+    motion history but has no control flow for the lack of fake motion events
+    in the history after this commit. Thus, under some conditions, the delta is
+    always non-zero as the history does not change.
+    
+    Reproducer attached to bug
+    https://bugs.freedesktop.org/show_bug.cgi?id=45278#c11
+    
+    X.Org Bug 45278 <http://bugs.freedesktop.org/show_bug.cgi?id=45278>
+    
+    This reverts commit c8b098214b44cf0585d78c460401ea7d143769f3.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+    Acked-by: Daniel Stone <daniel@fooishbar.org>
+
+commit 0646cdb99d708e03137afc9aabd8957f3559546a
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Feb 17 11:46:12 2012 +1000
+
+    Fix build error if HAVE_MTDEV is false
+    
+    priv->has_touch is conditional on HAVE_MTDEV
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
 commit f9a906590e59383aef3c53faca98f0de40859f17
 Author: Chase Douglas <chase.douglas@canonical.com>
 Date:   Sat Feb 11 18:57:20 2012 +0100
