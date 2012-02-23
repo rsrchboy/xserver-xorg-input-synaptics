@@ -2,8 +2,11 @@ xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) UNRELEASED; urgency=l
 
   * Update to latest code in git (0a2fd56)
     - Only includes bug fixes
+  * Drop temporary patches that have been merged upstream:
+    - 129_tmp_pointer_drift.patch
+    - 130_tmp_touch_count_fix.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 23 Feb 2012 11:40:08 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 23 Feb 2012 11:41:54 -0800
 
 xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu3) precise; urgency=low
 
