@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) precise; urgency=low
 
   * Update to latest code in git (0a2fd56)
     - Only includes bug fixes
@@ -10,7 +10,7 @@ xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) UNRELEASED; urgency=l
   * Add ClickPad support (LP: #932947)
     - Add 129_clickpad.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 23 Feb 2012 11:46:43 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 23 Feb 2012 11:54:37 -0800
 
 xserver-xorg-input-synaptics (1.5.99~git20120220-0ubuntu3) precise; urgency=low
 
