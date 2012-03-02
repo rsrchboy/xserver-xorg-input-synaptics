@@ -9,8 +9,9 @@ xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) UNRELEASED; urgency=l
       for the discussion guiding this change.
   * Refresh ClickPad support patch with changes from upstream review
     - No new functionality
+  * Remove bottom area mask for Dell netbook clickpads with two buttons
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 02 Mar 2012 09:57:11 -0800
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 02 Mar 2012 13:27:03 -0700
 
 xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) precise; urgency=low
 
