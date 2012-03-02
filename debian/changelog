@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) precise; urgency=low
 
   * Disable ClickPad support when there is no physical right button
     (LP: #941046)
@@ -11,7 +11,7 @@ xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) UNRELEASED; urgency=l
     - No new functionality
   * Remove bottom area mask for Dell netbook clickpads with two buttons
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 02 Mar 2012 13:27:03 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 02 Mar 2012 13:33:26 -0700
 
 xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) precise; urgency=low
 
