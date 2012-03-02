@@ -1,3 +1,17 @@
+xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) UNRELEASED; urgency=low
+
+  * Disable ClickPad support when there is no physical right button
+    (LP: #941046)
+    - This re-enables click actions, which was enabled by default previously
+    - Users can enable ClickPad support through xorg.conf, xinput, or synclient
+    - See
+      https://lists.ubuntu.com/archives/ubuntu-desktop/2012-February/003751.html
+      for the discussion guiding this change.
+  * Refresh ClickPad support patch with changes from upstream review
+    - No new functionality
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 02 Mar 2012 09:57:11 -0800
+
 xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu1) precise; urgency=low
 
   * Update to latest code in git (0a2fd56)
