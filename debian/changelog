@@ -6,8 +6,9 @@ xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) UNRELEASED; urgency=low
     - Re-enables ClickPad support by default (LP: #955404)
     - Everything else is bug fixes
   * Remove 129_clickpad.patch, it has been merged upstream
+  * Bump lintian standards to 3.9.3
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 14 Mar 2012 13:01:23 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 14 Mar 2012 13:10:42 -0700
 
 xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) precise; urgency=low
 
