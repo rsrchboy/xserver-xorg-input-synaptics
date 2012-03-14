@@ -99,7 +99,8 @@ enum TapState {
     TS_3,			/* After second touch */
     TS_DRAG,			/* Pointer drag enabled */
     TS_4,			/* After release when "locked drags" enabled */
-    TS_5			/* After touch when "locked drags" enabled */
+    TS_5,			/* After touch when "locked drags" enabled */
+    TS_CLICKPAD_MOVE,		/* After left button press on a clickpad */
 };
 
 enum TapButtonState {
@@ -112,7 +113,8 @@ enum TouchpadModel {
     MODEL_UNKNOWN = 0,
     MODEL_SYNAPTICS,
     MODEL_ALPS,
-    MODEL_APPLETOUCH
+    MODEL_APPLETOUCH,
+    MODEL_ELANTECH
 };
 
 typedef struct _SynapticsParameters
@@ -125,6 +127,7 @@ typedef struct _SynapticsParameters
     int single_tap_timeout;		    /* timeout to recognize a single tap */
     int tap_time_2;			    /* max. tapping time for double taps */
     int click_time;			    /* The duration of a single click */
+    Bool clickpad;                          /* Device is a has integrated buttons */
     Bool fast_taps;			    /* Faster reaction to single taps */
     int emulate_mid_button_time;	    /* Max time between left and right button presses to
 					       emulate a middle button press. */
@@ -178,11 +181,12 @@ typedef struct _SynapticsParameters
     unsigned int resolution_horiz;          /* horizontal resolution of touchpad in units/mm */
     unsigned int resolution_vert;           /* vertical resolution of touchpad in units/mm */
     int area_left_edge, area_right_edge, area_top_edge, area_bottom_edge; /* area coordinates absolute */
+    int softbutton_areas[2][4];             /* soft button area coordinates, 0 => right, 1 => middle button */
     int hyst_x, hyst_y;                     /* x and y width of hysteresis box */
 } SynapticsParameters;
 
 
-typedef struct _SynapticsPrivateRec
+struct _SynapticsPrivateRec
 {
     SynapticsParameters synpara;            /* Default parameter settings, read from
 					       the X config file */
@@ -192,6 +196,7 @@ typedef struct _SynapticsPrivateRec
     void *proto_data;			/* protocol-specific data */
 
     struct SynapticsHwState *hwState;
+    struct SynapticsHwState *old_hw_state; /* previous hw state */
 
     const char *device;			/* device node */
     Bool shm_config;			/* True when shared memory area allocated */
@@ -265,6 +270,7 @@ typedef struct _SynapticsPrivateRec
     Bool has_pressure;			/* device reports pressure */
     Bool has_width;			/* device reports finger width */
     Bool has_scrollbuttons;		/* device has physical scrollbuttons */
+    Bool has_semi_mt;			/* device is only semi-multitouch capable */
 
     enum TouchpadModel model;		/* The detected model */
     unsigned short id_vendor;		/* vendor id */
@@ -285,6 +291,6 @@ typedef struct _SynapticsPrivateRec
     int *open_slots;                    /* Array of currently open touch slots */
     int num_active_touches;             /* Number of active touches on device */
 #endif
-} SynapticsPrivate;
+};
 
 #endif /* _SYNAPTICSSTR_H_ */
