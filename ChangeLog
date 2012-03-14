@@ -1,3 +1,367 @@
+commit dd650a064b98b1c325a38e1370cc11059c257b07
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 14 08:56:45 2012 +1000
+
+    synaptics 1.5.99.901
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 6c457c0c61a0834361f45a073148db7b4c9be40b
+Merge: defc1d0 fee18d8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 14 08:48:00 2012 +1000
+
+    Merge branch 'clickpad-v3'
+
+commit fee18d8567efd2e5abf6b29eb1ae9ee0e3858013
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Mar 13 16:08:12 2012 +1000
+
+    Soft buttons are only available on clickpad devices, disable them otherwise.
+    
+    If the clickpad support is runtime enabled/disabled, the property
+    appears/disappears accordingly.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit c546779b32d8be23475b3b062e3ebc9235365c0d
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 16:56:29 2012 -0800
+
+    Ignore motion during touch count changes on semi-mt devices
+    
+    Semi-mt devices do not track touches. The locations of touches are
+    unknown, we only have the bounding box of two of them. When the number of
+    fingers changes, the bounding box coordinates may change as well, but
+    the cumulative relative motion updates at that instant are invalid.
+    
+    To work around this, ignore changes in cumulative relative motion if the
+    touch count changes.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 405f1643e26b57ee97063e76e71179ba8e9fbc92
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Feb 6 17:33:11 2012 -0800
+
+    Add soft button areas property
+    
+    Some clickpad devices have button areas painted on them. Set this
+    property to the area of the right and middle buttons to enable proper
+    click actions when clicking in the areas.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit f198522064501726d76bef4e11c02cfc778bb0c5
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 11:18:25 2012 -0800
+
+    Calculate touch data for semi-mt devices, but don't send touch events
+    
+    Previously, all touch data from semi-mt devices was ignored because the
+    X server doesn't support them. However, the touch data must be used for
+    proper clickpad handling.
+    
+    Instead of ignoring semi-mt device touch events, mark the device as
+    being semi-mt and allow initialization of the touch state. The touches
+    will then be used in calculating the cumulative_d{x,y} values that are
+    needed for clickpad support.
+    
+    When handling the touch data for X event processing, simply skip over
+    reporting the touches.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a6361e2d2c093c4170bab63307526702fe9903ad
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Tue Feb 14 14:46:07 2012 -0800
+
+    Disable scrolling when beginning a clickpad press
+    
+    There really isn't a point to scrolling while a clickpad is pressed. In
+    particular, the clickpad button areas and the horizontal edge scrolling
+    areas overlap, so horizontal edge scrolling must be disabled. Also,
+    performing two finger scrolling while a third finger presses the button
+    would require us to inhibit touch events until four touches are present.
+    That is enough reason to disable two finger scrolling as well.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit de75ad6b073c1a36d5a60190de5ffe6611520637
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 10:57:00 2012 -0800
+
+    Enable clickpad click and drag with two fingers
+    
+    Use cumulative relative touch motion when the clickpad is pressed. If
+    more than one touch is active, assume one of the touches is designated
+    solely for pressing the clickpad button. Thus, decrement the number of
+    reported touches.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 500243ac60ffeb5372e2edbce2f4443a07877d2e
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 10:43:08 2012 -0800
+
+    Add cumulative_d{x,y} to SynapticsHwState
+    
+    These values will be used for clickpad press and drag with two fingers.
+    
+    While the clickpad button is not pressed, cumulative_d{x,y} will match x
+    and y values. Once the clickpad button is pressed, cumulative_d{x,y}
+    will be updated with the relative motion of each active touch on the
+    touchpad. This allows for dragging with one finger while another finger
+    stays stationary holding the clickpad button down.
+    
+    This is an easier and less latent approach than trying to guess which
+    touch was the "dragging" touch.
+    
+    [fixed build error for mt off]
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 420e0abef663729b3ce6e9d26360e616b7270ba6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 14:30:58 2012 +1000
+
+    Guess the number of clickpad ClickFingers based on finger distance
+    
+    The actual distance should be done in cm, based on touchpad resolution etc.
+    That is left as an exercise for the reader.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 739cf056685772e69744f009f567e54324bc9dd0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 15:33:56 2012 +1000
+
+    Disable middle mouse button emulation on clickpads
+    
+    Because, well, really, how?
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 331dd969536aad48fae107e2215bfdd3e95db77e
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 11:26:06 2012 -0800
+
+    Add clickpad device property
+    
+    Add it as a writable device property. We may not know how to probe some
+    clickpads so allow the user to override it.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a64e1632836067091be5ca45d0444c416bf48948
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 15:38:25 2012 +1000
+
+    Add a BTN_EMULATED_FLAG to mark emulated buttons on clickfingers
+    
+    And when copying the hardware state, don't copy those buttons that were set
+    through emulation.
+    
+    This is a temporary fix only, we should add new fields to the hw struct that
+    represent the various features as they are enabled/disabled and then treat
+    them accordingly.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 70b4e983c6626b9b20bdf59324f64b3fd99c5202
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 14:29:28 2012 +1000
+
+    Only handle ClickFingers on left button press events
+    
+    ClickFingers doesn't need to be handled on every state, only when the actual
+    button state changes.
+    
+    This is a break from the previous behaviour which allowed pressing the
+    button followed by a two-finger tap to trigger the ClickFinger2 action.
+    Let's see if anyone complains.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit f6c1efbc6d22f41fb8a4abd2f57db173a2ac3171
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 14:20:35 2012 +1000
+
+    Add an old_hw_state field to remember the last values
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit bad1b75524f2fa882e9b6ac7160463fbd3b5cccf
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 13:43:04 2012 +1000
+
+    Move resetting hw state to separate function.
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit f0381f48a9383313e65508ec710b5c690b16286a
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 13:39:32 2012 +1000
+
+    Move filtering into a separate function
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 4eea50d513bca888d8fe13759d0cc44de67bc4c0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 13:25:27 2012 +1000
+
+    Move st->mt scaling to helper function
+    
+    No functional changes.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 5bf7018783d1a96c9fac7a9074274e9b8606604d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 13:22:53 2012 +1000
+
+    Use arrays for st->mt scaling
+    
+    No functional changes
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 893ac427d0a7952c0f949071296fc2255790465e
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Mar 13 11:41:53 2012 +1000
+
+    If the middle button timeout is 0, don't even attempt to emulate.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit defc1d008e5674306a7e9b9cb0c750d9787990b7
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Thu Feb 9 16:22:35 2012 -0800
+
+    Don't use linear regression when calculating touchpad motion deltas
+    
+    The results depend on the data rate of the device. A device with a
+    higher data rate, and thus lower individual deltas, will behave
+    differently with the regression calculation.
+    
+    This can be verified on Synaptics semi-mt clickpads. The data rate is
+    halved when two or more touches are on the device. When trying to press
+    a button and drag the cursor with another touch, the motion will feel
+    faster than dragging with only one touch on the device.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7f5bd79b2e361a89a8c2716c218e4ae70b7164b8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Mar 13 11:28:17 2012 +1000
+
+    tools: add hysteresis support to synclient
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 90d6633d11aa3691b6b39df3931a4024b832eb05
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Mar 12 09:45:05 2012 +1000
+
+    Fix build error - duplicate typedef (#47168)
+    
+    Introduced in c34cf307f9982b62c6e6dfa2687e1b16f527f2a4.
+    synapticsstr.h includes synproto.h, which now contains the typedef.
+    
+    X.Org Bug 47168 <http://bugs.freedesktop.org/show_bug.cgi?id=47168>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit fadf9cf5e8659ca8500faac498327e6cadcd2652
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 9 12:18:46 2012 +1000
+
+    Always require mtdev on eventcomm
+    
+    Since a missing mtdev disables all of multitouch on eventcomm, we might as
+    well always require it.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 65243aedd8512d8cb439f7597862a545e8ca52ea
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 7 09:12:55 2012 +1000
+
+    Fix horiz/vert scroll delta mixup
+    
+    No effect as both have the same value anyway.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 704c0fa3b677d5d648d0ab9d65cd03043797f3bf
+Author: Peter Zotov <whitequark@whitequark.org>
+Date:   Fri Mar 2 11:21:36 2012 +1000
+
+    Implement a workaround for Elantech touchpads
+    
+    All Elantech touchpads report the number of fingers explicitly,
+    and at least the v3 version of the hardware can report any
+    pressure values down to zero. This interferes with the tap
+    detection hysteresis, which is required for dumb touchpads.
+    
+    This commit implements a vendor-specific workaround for Elantech
+    touchpads which sets the FingerLow and FingerHigh options to 1
+    by default, effectively disabling the hysteresis mechanism.
+    
+    Signed-off-by: Peter Zotov <whitequark@whitequark.org>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit cddab79c408db3b13905a2be72aff4f7bf1406f8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Mar 1 16:27:01 2012 +1000
+
+    Fix scoll increment for non-smooth scrolling (#46617)
+    
+    Introduced in 2603ad69b997c999404ecc441e0d64ea2cc22018. Previously, the
+    delta was incremented by (actual delta/scroll dist), button clicks where
+    then sent while (delta-- >= 1).
+    
+    After 2603ad69b997c999404ecc441e0d64ea2cc22018, the delta was incremented by
+    the delta only, scroll dist was used as increment in the smooth scrolling
+    information. On non-smooth-scrolling servers, the driver would now send
+    too many events. Restore the old behaviour by dividing by the scroll
+    distance before entering the button click loop.
+    
+    X.Org Bug 46617 <http://bugs.freedesktop.org/show_bug.cgi?id=46617>
+    
+    Tested-by: Peter Zotov <whitequark@whitequark.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit 0a2fd560aa965ceac64c8fb047ca90006408a6f4
 Author: Chase Douglas <chase.douglas@canonical.com>
 Date:   Tue Feb 21 21:42:16 2012 +0100
