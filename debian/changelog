@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) precise; urgency=low
 
   * New upstream release
     - Includes ClickPad support
@@ -8,7 +8,7 @@ xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) UNRELEASED; urgency=low
   * Remove 129_clickpad.patch, it has been merged upstream
   * Bump lintian standards to 3.9.3
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 14 Mar 2012 13:10:42 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 15 Mar 2012 17:58:09 -0700
 
 xserver-xorg-input-synaptics (1.5.99~git20120223-0ubuntu2) precise; urgency=low
 
