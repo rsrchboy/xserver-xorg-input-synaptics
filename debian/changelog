@@ -1,6 +1,8 @@
 xserver-xorg-input-synaptics (1.5.99.901-1) UNRELEASED; urgency=low
 
-  * New upstream release candidate (1.6 RC1).
+  * New upstream release candidate (1.6 RC1):
+    - Add support for ClickPads.
+  * Multitouch isn't enabled yet (it would require a newer server anyway).
 
  -- Cyril Brulebois <kibi@debian.org>  Tue, 20 Mar 2012 21:36:26 +0000
 
