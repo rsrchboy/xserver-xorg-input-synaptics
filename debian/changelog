@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) precise; urgency=low
 
   * Disable three touch tap in favor of uTouch gestures (LP: #961725)
     - See
@@ -10,7 +10,7 @@ xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) UNRELEASED; urgency=low
   * Fix click action finger count calculation (LP: #961738)
     - Add temporary patch 201_fix_clickfinger_clickpad_actions.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 21 Mar 2012 15:53:15 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 21 Mar 2012 16:00:26 -0700
 
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) precise; urgency=low
 
