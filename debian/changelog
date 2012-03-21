@@ -1,3 +1,13 @@
+xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) UNRELEASED; urgency=low
+
+  * Disable three touch tap in favor of uTouch gestures (LP: #961725)
+    - See
+      https://lists.ubuntu.com/archives/ubuntu-desktop/2012-February/003694.html
+      for details.
+    - Add 129_disable_three_touch_tap.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 21 Mar 2012 15:40:56 -0700
+
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) precise; urgency=low
 
   * New upstream release
