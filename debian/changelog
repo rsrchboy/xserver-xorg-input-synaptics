@@ -5,8 +5,10 @@ xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) UNRELEASED; urgency=low
       https://lists.ubuntu.com/archives/ubuntu-desktop/2012-February/003694.html
       for details.
     - Add 129_disable_three_touch_tap.patch
+  * Fix click actions for non-clickpad touchpads (LP: #960108)
+    - Add temporary patch 200_fix_clickfinger_non-clickpads.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 21 Mar 2012 15:40:56 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 21 Mar 2012 15:46:35 -0700
 
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu1) precise; urgency=low
 

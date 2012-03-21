@@ -19,3 +19,6 @@
 126_ubuntu_xi22.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch
+
+# Temporary patches until they are merged upstream
+200_fix_clickfinger_non-clickpads.patch
