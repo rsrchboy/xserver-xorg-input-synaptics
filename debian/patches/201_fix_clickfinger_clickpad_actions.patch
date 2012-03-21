@@ -1,0 +1,115 @@
+From 5201038f7d4a58f78d9bcbf340fb4a50958c6ab0 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Wed, 21 Mar 2012 12:43:58 -0700
+Subject: [PATCH 1/2] Keep track of which touch slots are open
+
+This change adds a new touch slot state that denotes when the slot is
+open but does not have any new data to report.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ src/eventcomm.c |    3 ++-
+ src/synproto.c  |   13 ++++++++++++-
+ src/synproto.h  |    1 +
+ 3 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index f199c24..3721c91 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -557,7 +557,8 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
+     {
+         int slot_index = last_mt_vals_slot(priv);
+ 
+-        if (hw->slot_state[slot_index] == SLOTSTATE_EMPTY)
++        if (hw->slot_state[slot_index] == SLOTSTATE_EMPTY ||
++            hw->slot_state[slot_index] == SLOTSTATE_OPEN_EMPTY)
+             hw->slot_state[slot_index] = SLOTSTATE_UPDATE;
+         if (ev->code == ABS_MT_TRACKING_ID)
+         {
+diff --git a/src/synproto.c b/src/synproto.c
+index bdf2d21..19a13e5 100644
+--- a/src/synproto.c
++++ b/src/synproto.c
+@@ -152,7 +152,18 @@ SynapticsResetTouchHwState(struct SynapticsHwState *hw)
+         for (j = 2; j < valuator_mask_num_valuators(hw->mt_mask[i]); j++)
+             valuator_mask_unset(hw->mt_mask[i], j);
+ 
+-        hw->slot_state[i] = SLOTSTATE_EMPTY;
++        switch (hw->slot_state[i])
++        {
++            case SLOTSTATE_OPEN:
++            case SLOTSTATE_OPEN_EMPTY:
++            case SLOTSTATE_UPDATE:
++                hw->slot_state[i] = SLOTSTATE_OPEN_EMPTY;
++                break;
++
++            default:
++                hw->slot_state[i] = SLOTSTATE_EMPTY;
++                break;
++        }
+     }
+ #endif
+ }
+diff --git a/src/synproto.h b/src/synproto.h
+index 95ebc92..e16aeb0 100644
+--- a/src/synproto.h
++++ b/src/synproto.h
+@@ -42,6 +42,7 @@ enum SynapticsSlotState
+     SLOTSTATE_EMPTY = 0,
+     SLOTSTATE_OPEN,
+     SLOTSTATE_CLOSE,
++    SLOTSTATE_OPEN_EMPTY,
+     SLOTSTATE_UPDATE,
+ };
+ 
+-- 
+1.7.9.1
+
+From c229afff677daef0e5960cf334b29f1a0af38fcf Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Wed, 21 Mar 2012 12:45:09 -0700
+Subject: [PATCH 2/2] Include open but unchanged touches when guessing
+ clickfingers
+
+On a clickpad, when the button is pressed the clickfinger guessing will
+only work properly if all touches have new data to report. If a touch
+has not changed, then it will not be counted. This leads to inaccurate
+finger counts.
+
+This change ensures that all active touches are counted. Note that the X
+and Y valuators of active but unchanged touches are still valid.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+ src/synaptics.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index e22929b..3c5b12d 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -2600,8 +2600,8 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
+     for (i = 0; i < hw->num_mt_mask - 1; i++) {
+         ValuatorMask *f1;
+ 
+-        /* you can't click on open, you're not fast enough */
+-        if (hw->slot_state[i] != SLOTSTATE_UPDATE)
++        if (hw->slot_state[i] == SLOTSTATE_EMPTY ||
++            hw->slot_state[i] == SLOTSTATE_CLOSE)
+             continue;
+ 
+         f1 = hw->mt_mask[i];
+@@ -2610,7 +2610,8 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
+             ValuatorMask *f2;
+             double x1, x2, y1, y2;
+ 
+-            if (hw->slot_state[j] != SLOTSTATE_UPDATE)
++            if (hw->slot_state[j] == SLOTSTATE_EMPTY ||
++                hw->slot_state[j] == SLOTSTATE_CLOSE)
+                 continue;
+ 
+             f2 = hw->mt_mask[j];
+-- 
+1.7.9.1
+

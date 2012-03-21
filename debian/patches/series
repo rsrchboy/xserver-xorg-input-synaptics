@@ -22,3 +22,4 @@
 
 # Temporary patches until they are merged upstream
 200_fix_clickfinger_non-clickpads.patch
+201_fix_clickfinger_clickpad_actions.patch
