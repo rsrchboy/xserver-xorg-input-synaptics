@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 23 Mar 2012 10:56:18 -0700
+
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) precise; urgency=low
 
   * Disable three touch tap in favor of uTouch gestures (LP: #961725)

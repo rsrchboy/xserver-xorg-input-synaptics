@@ -1,3 +1,122 @@
+commit 4a80c0dc38ea4dafcb112191c2dd7e0082193263
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 23 10:38:20 2012 +1000
+
+    synaptics 1.5.99.902
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit b6779458bcdb049480310ba1acb3991ad061ffc7
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Mar 22 15:15:47 2012 +1000
+
+    conf: enable right-button click by default on non-Apple clickpads
+    
+    The right-half of the bottom 18% of the touchpad are enabled as right button
+    by default. On Apple touchpads (these don't have marking for the right
+    button) disable them by default.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c9cf8827b129a553ad3cd3d7ee6f463a6e94227d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Mar 22 15:20:45 2012 +1000
+
+    use xf86SetStrOption for SoftButtonAreas
+    
+    This way the option is reported in the log when parsed.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit cea97dd5e09b165c2a4b2bbbb5741a03f152ed37
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 14 16:47:26 2012 +1000
+
+    Allow soft button areas to be specified in % of the touchpad
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit b3348eb7e4e2187e11aa3c1cec2a58512759e6aa
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Mar 21 12:58:30 2012 -0700
+
+    Include open but unchanged touches when guessing clickfingers
+    
+    On a clickpad, when the button is pressed the clickfinger guessing will
+    only work properly if all touches have new data to report. If a touch
+    has not changed, then it will not be counted. This leads to inaccurate
+    finger counts.
+    
+    This change ensures that all active touches are counted. Note that the X
+    and Y valuators of active but unchanged touches are still valid.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit eba82d203e5e817a61180c6510d8de0d063ed05d
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Mar 21 12:58:29 2012 -0700
+
+    Keep track of which touch slots are open
+    
+    This change adds a new touch slot state that denotes when the slot is
+    open but does not have any new data to report.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 73ec252b6f2d25cc49557b1d3789b459b60b8d4e
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Mar 21 12:58:28 2012 -0700
+
+    Fix clickfinger actions when buttons other than 1 are reported
+    
+    The "old" logical state now holds the clickfinger action button. In
+    order to check for proper clickpad press transition, we need to check if
+    any of the left, middle, and right logical button states are pressed.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 93c72117e169624854f6eb63591702d7e4dae97c
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Wed Mar 21 12:58:27 2012 -0700
+
+    Fix clickfinger actions when middle button emulation is enabled
+    
+    When MBE is enabled, a physical left button press is delayed until a
+    timeout is reached. This results in the logical left button being
+    depressed while the physical left button is pressed. The physical state
+    is stored as the "old" hw state, and it is used for detecting a
+    transition from depressed to pressed for clickfinger actions. Since the
+    "old" hw state shows the left button pressed, but the current logical
+    state shows the left button unpressed, when the MBE timeout fires and we
+    set the logical left button pressed the transition check fails.
+    
+    Since the "old" hw state is only used for clickfinger left button press
+    transitions, redefining it to hold the previous logical hw state is
+    sufficient for fixing the bug and should not cause any regressions.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5cde789fcafaed47c2533c4315e5c7d5548605f5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Mar 14 13:24:32 2012 +1000
+
+    Fix inverted circular scrolling direction
+    
+    Introduced in 26831a6eeac6762ad4d99532f62ebbab0827de10.
+    In said commit, the old-style button events were changed to delta
+    accumulation. Alas, for circular scrolling, a positive delta is up whereas
+    for everything else a positive delta is down.
+    
+    Reported-by: Thomas Bächler <thomas@archlinux.org>
+    Tested-by: Thomas Bächler <thomas@archlinux.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
 commit dd650a064b98b1c325a38e1370cc11059c257b07
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Wed Mar 14 08:56:45 2012 +1000
