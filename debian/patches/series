@@ -19,5 +19,6 @@
 126_ubuntu_xi22.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch
+130_dont_enable_rightbutton_area.patch
 
 # Temporary patches until they are merged upstream

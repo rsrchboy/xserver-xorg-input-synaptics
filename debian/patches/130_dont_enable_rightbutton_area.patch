@@ -1,0 +1,43 @@
+From 797e51a27f48a93da9f3fb3355ca78c483029e63 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Fri, 23 Mar 2012 10:58:52 -0700
+Subject: [PATCH] Revert "conf: enable right-button click by default on
+ non-Apple clickpads"
+
+This is a behavior change that is inappropriate at this point in the
+Precise release cycle
+
+This reverts commit b6779458bcdb049480310ba1acb3991ad061ffc7.
+---
+ conf/50-synaptics.conf |   18 ------------------
+ 1 files changed, 0 insertions(+), 18 deletions(-)
+
+diff --git a/conf/50-synaptics.conf b/conf/50-synaptics.conf
+index 822f7a4..5ec7e78 100644
+--- a/conf/50-synaptics.conf
++++ b/conf/50-synaptics.conf
+@@ -24,21 +24,3 @@ Section "InputClass"
+         MatchDevicePath "/dev/input/mouse*"
+         Option "Ignore" "on"
+ EndSection
+-
+-# This option enables the bottom right corner to be a right button on
+-# non-synaptics clickpads.
+-# This option is only interpreted by clickpads.
+-Section "InputClass"
+-        Identifier "Default clickpad buttons"
+-        MatchDriver "synaptics"
+-        Option "SoftButtonAreas" "50% 0 82% 0 0 0 0 0"
+-EndSection
+-
+-# This option disables software buttons on Apple touchpads.
+-# This option is only interpreted by clickpads.
+-Section "InputClass"
+-        Identifier "Disable clickpad buttons on Apple touchpads"
+-        MatchProduct "Apple"
+-        MatchDriver "synaptics"
+-        Option "SoftButtonAreas" "0 0 0 0 0 0 0 0"
+-EndSection
+-- 
+1.7.9.1
+
