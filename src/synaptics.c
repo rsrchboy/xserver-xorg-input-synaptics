@@ -511,15 +511,17 @@ static void set_softbutton_areas_option(InputInfoPtr pInfo)
     SynapticsPrivate *priv = pInfo->private;
     SynapticsParameters *pars = &priv->synpara;
     int values[8];
+    int in_percent = 0; /* bitmask for which ones are in % */
     char *option_string;
     char *next_num;
     char *end_str;
     int i;
+    int width, height;
 
     if (!pars->clickpad)
         return;
 
-    option_string = xf86CheckStrOption(pInfo->options, "SoftButtonAreas", NULL);
+    option_string = xf86SetStrOption(pInfo->options, "SoftButtonAreas", NULL);
     if (!option_string)
         return;
 
@@ -534,12 +536,36 @@ static void set_softbutton_areas_option(InputInfoPtr pInfo)
         values[i] = value;
 
         if (next_num != end_str)
+        {
+            if (end_str && *end_str == '%')
+            {
+                in_percent |= 1 << i;
+                end_str++;
+            }
             next_num = end_str;
-        else
+        } else
             goto fail;
     }
 
-    if (i < 8 || *next_num != '\0' || !SynapticsIsSoftButtonAreasValid(values))
+    if (i < 8 || *next_num != '\0')
+        goto fail;
+
+    width = priv->maxx - priv->minx;
+    height = priv->maxy - priv->miny;
+
+    for (i = 0; in_percent && i < 8; i++)
+    {
+        int base, size;
+
+        if ((in_percent & (1 << i)) == 0 || values[i] == 0)
+            continue;
+
+        size = ((i % 4) < 2) ? width : height;
+        base = ((i % 4) < 2) ? priv->minx : priv->miny;
+        values[i] = base + size * values[i]/100.0;
+    }
+
+    if (!SynapticsIsSoftButtonAreasValid(values))
         goto fail;
 
     memcpy(pars->softbutton_areas[0], values, 4 * sizeof(int));
@@ -1611,7 +1637,6 @@ ReadInput(InputInfoPtr pInfo)
 
 	SynapticsCopyHwState(priv->hwState, hw);
 	delay = HandleState(pInfo, hw, hw->millis, FALSE);
-	SynapticsCopyHwState(priv->old_hw_state, priv->hwState);
 	newDelay = TRUE;
     }
 
@@ -2552,9 +2577,9 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	double diff = diffa(priv->scroll.last_a, angle(priv, hw->x, hw->y));
 	if (delta >= 0.005 && diff != 0.0) {
 	    if (priv->circ_scroll_vert)
-		priv->scroll.delta_y += diff / delta * para->scroll_dist_vert;
+		priv->scroll.delta_y -= diff / delta * para->scroll_dist_vert;
 	    else
-		priv->scroll.delta_x += diff / delta * para->scroll_dist_horiz;;
+		priv->scroll.delta_x -= diff / delta * para->scroll_dist_horiz;
 	    priv->scroll.last_a = angle(priv, hw->x, hw->y);
         }
     }
@@ -2601,8 +2626,8 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
     for (i = 0; i < hw->num_mt_mask - 1; i++) {
         ValuatorMask *f1;
 
-        /* you can't click on open, you're not fast enough */
-        if (hw->slot_state[i] != SLOTSTATE_UPDATE)
+        if (hw->slot_state[i] == SLOTSTATE_EMPTY ||
+            hw->slot_state[i] == SLOTSTATE_CLOSE)
             continue;
 
         f1 = hw->mt_mask[i];
@@ -2611,7 +2636,8 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
             ValuatorMask *f2;
             double x1, x2, y1, y2;
 
-            if (hw->slot_state[j] != SLOTSTATE_UPDATE)
+            if (hw->slot_state[j] == SLOTSTATE_EMPTY ||
+                hw->slot_state[j] == SLOTSTATE_CLOSE)
                 continue;
 
             f2 = hw->mt_mask[j];
@@ -2780,7 +2806,8 @@ update_hw_button_state(const InputInfoPtr pInfo, struct SynapticsHwState *hw,
     /* Fingers emulate other buttons. ClickFinger can only be
        triggered on transition, when left is pressed
      */
-    if(hw->left && !old->left && hw->numFingers >= 1) {
+    if(hw->left && !old->left && !old->middle && !old->right &&
+       hw->numFingers >= 1) {
         handle_clickfinger(priv, hw);
     }
 
@@ -3236,6 +3263,10 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
     /* generate a history of the absolute positions */
     if (inside_active_area)
 	store_history(priv, hw->x, hw->y, hw->millis);
+
+    /* Save logical state for transition comparisons */
+    SynapticsCopyHwState(priv->old_hw_state, hw);
+
     return delay;
 }
 
