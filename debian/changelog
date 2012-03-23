@@ -1,8 +1,11 @@
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) UNRELEASED; urgency=low
 
   * New upstream release
+  * Drop patches merged upstream
+    - 200_fix_clickfinger_non-clickpads.patch
+    - 201_fix_clickfinger_clickpad_actions.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 23 Mar 2012 10:56:18 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 23 Mar 2012 10:57:54 -0700
 
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) precise; urgency=low
 
