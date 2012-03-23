@@ -1,0 +1,129 @@
+From 6e0268808fe6d7dfdb5beb198bf067df56452f15 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Fri, 23 Mar 2012 10:34:44 -0700
+Subject: [PATCH xf86-input-synaptics 1/2] Count number of multitouch touches
+ for multitouch finger count
+
+The evdev protocol only goes up to three touches for non-multitouch
+devices. If you perform a four touch tap, the finger count will only go
+up to three touches if you roll your fingers, or will always be 0 if all
+four touches land at the same time.
+
+This change ensures the correct finger count is reported.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+I test build with HAVE_MULTITOUCH undefined to be sure it didn't break
+anything.
+
+ src/eventcomm.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index 3721c91..b485377 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -72,6 +72,7 @@ struct eventcomm_proto_data
+     int axis_map[MT_ABS_SIZE];
+     int cur_slot;
+     ValuatorMask **last_mt_vals;
++    int num_touches;
+ #endif
+ };
+ 
+@@ -565,6 +566,7 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
+             if (ev->value >= 0)
+             {
+                 hw->slot_state[slot_index] = SLOTSTATE_OPEN;
++                proto_data->num_touches++;
+ 
+                 if (slot_index >= 0)
+                     valuator_mask_copy(hw->mt_mask[slot_index],
+@@ -574,7 +576,10 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
+                                 "Attempted to copy values from out-of-range "
+                                 "slot, touch events may be incorrect.\n");
+             } else
++            {
+                 hw->slot_state[slot_index] = SLOTSTATE_CLOSE;
++                proto_data->num_touches--;
++            }
+         } else
+         {
+             int map = proto_data->axis_map[ev->code - ABS_MT_TOUCH_MAJOR];
+@@ -607,10 +612,17 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
+  * @param comm Assembled information from previous events.
+  * @return The number of fingers currently set.
+  */
+-static int count_fingers(const struct CommData *comm)
++static int count_fingers(InputInfoPtr pInfo, const struct CommData *comm)
+ {
++    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
++    struct eventcomm_proto_data *proto_data = priv->proto_data;
+     int fingers = 0;
+ 
++#ifdef HAVE_MULTITOUCH
++    if (priv->has_touch)
++        return proto_data->num_touches;
++#endif
++
+     if (comm->oneFinger)
+ 	fingers = 1;
+     else if (comm->twoFingers)
+@@ -653,7 +665,7 @@ EventReadHwState(InputInfoPtr pInfo,
+ 	case EV_SYN:
+ 	    switch (ev.code) {
+ 	    case SYN_REPORT:
+-		hw->numFingers = count_fingers(comm);
++		hw->numFingers = count_fingers(pInfo, comm);
+ 		hw->millis = 1000 * ev.time.tv_sec + ev.time.tv_usec / 1000;
+ 		SynapticsCopyHwState(hwRet, hw);
+ 		return TRUE;
+-- 
+1.7.9.1
+
+From 4efb7524d12217ccbf1f777dddb7b4bb61b17196 Mon Sep 17 00:00:00 2001
+From: Chase Douglas <chase.douglas@canonical.com>
+Date: Fri, 23 Mar 2012 10:37:46 -0700
+Subject: [PATCH xf86-input-synaptics 2/2] Do not perform a tap action when
+ more than three touches
+
+Though this looks like a behavior change, it really isn't since the
+maximum tap_max_fingers that was previously possible was already handled.
+The only real change is that if a tap is recognized but the
+tap_max_fingers is zero, a tap will no longer be emitted. This shouldn't
+happen in the real world.
+
+Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+---
+In Unity we have a four tap gesture to show/hide the dash. Without this
+fix, the dash will often appear and disappear because Unity got the four
+tap gesture and then synaptics sends a button click.
+
+ src/synaptics.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index f07fd13..99b5085 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -1798,7 +1798,6 @@ SelectTapButton(SynapticsPrivate *priv, edge_type edge)
+ 
+     switch (priv->tap_max_fingers) {
+     case 1:
+-    default:
+ 	switch (edge) {
+ 	case RIGHT_TOP_EDGE:
+ 	    DBG(7, "right top edge\n");
+@@ -1830,6 +1829,9 @@ SelectTapButton(SynapticsPrivate *priv, edge_type edge)
+ 	DBG(7, "three finger tap\n");
+ 	tap = F3_TAP;
+ 	break;
++    default:
++        priv->tap_button = 0;
++        return;
+     }
+ 
+     priv->tap_button = priv->synpara.tap_action[tap];
+-- 
+1.7.9.1
+

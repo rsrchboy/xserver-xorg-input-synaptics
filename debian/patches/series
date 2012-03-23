@@ -22,3 +22,4 @@
 130_dont_enable_rightbutton_area.patch
 
 # Temporary patches until they are merged upstream
+200_fix_four_tap.patch
