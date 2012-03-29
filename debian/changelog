@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) precise; urgency=low
 
   * New upstream release
   * Drop patches merged upstream
@@ -9,7 +9,7 @@ xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) UNRELEASED; urgency=low
   * Fix erroneous tap actions on four-touch tap (LP: #963327)
     - Add temporary patch 200_fix_four_tap.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Fri, 23 Mar 2012 11:02:18 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Thu, 29 Mar 2012 15:31:40 -0700
 
 xserver-xorg-input-synaptics (1.5.99.901-0ubuntu2) precise; urgency=low
 
