@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu2) UNRELEASED; urgency=low
+
+  * Fix three touch taps and clicks on some trackpads (LP: #971783)
+    - Add temporary patch 201_fix_touch_count.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 02 Apr 2012 11:24:50 -0700
+
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu1) precise; urgency=low
 
   * New upstream release
