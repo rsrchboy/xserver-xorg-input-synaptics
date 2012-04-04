@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu3) UNRELEASED; urgency=low
+
+  * Fix bad default for two touch tap as middle button click (LP: #973783)
+    - Fixed 104_always_enable_tapping.patch
+    - Refreshed 129_disable_three_touch_tap.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Wed, 04 Apr 2012 14:36:25 -0700
+
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu2) precise; urgency=low
 
   * Fix three touch taps and clicks on some trackpads (LP: #971783)
