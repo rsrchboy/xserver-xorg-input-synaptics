@@ -24,3 +24,4 @@
 # Temporary patches until they are merged upstream
 200_fix_four_tap.patch
 201_fix_touch_count.patch
+202_touch_record_bounds_check.patch

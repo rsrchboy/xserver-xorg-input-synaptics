@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu4) UNRELEASED; urgency=low
+
+  * Fix crash on Apple trackpads when touching with more than 10 fingers
+    (LP: #974017)
+    - Add temporary patch 202_touch_record_bounds_check.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 09 Apr 2012 11:32:34 -0700
+
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu3) precise; urgency=low
 
   * Fix bad default for two touch tap as middle button click (LP: #973783)
