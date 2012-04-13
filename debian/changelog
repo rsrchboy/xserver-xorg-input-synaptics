@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.5.99.902-0ubuntu5) precise-proposed; urgency=low
+
+  * Fix coasting speed on multitouch touchpads (LP: #930938)
+    - Add patch 203_fix_coasting_speed.patch
+
+ -- Chow Loong Jin <hyperair@debian.org>  Fri, 13 Apr 2012 16:14:04 +0800
+
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu4) precise; urgency=low
 
   * Fix crash on Apple trackpads when touching with more than 10 fingers
