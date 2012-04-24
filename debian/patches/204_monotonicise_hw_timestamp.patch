@@ -1,0 +1,34 @@
+commit 3822d58777768b351940e58d8608ba9ab877d134
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 19 16:39:41 2012 +1000
+
+    Ensure hw millis are monotonic (#48777)
+    
+    The eventcomm backend takes the timestamp from the kernel, but the timer
+    uses the timer's "now". This timestamp may be later than the one from the
+    next event we read from the kernel, causing a negative dtime in get_delta()
+    and a cursor jump by (unsigned int)-1.
+    
+    Ensure that the new event's timestamp is at least the last used one.
+    
+    X.Org Bug 48777 <http://bugs.freedesktop.org/show_bug.cgi?id=48777>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Tested-by: Gavin Troy <gavtroy@gmail.com>
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index 350567d..8c34234 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -1635,6 +1635,10 @@ ReadInput(InputInfoPtr pInfo)
+ 	    hw->cumulative_dy = priv->hwState->cumulative_dy;
+ 	}
+ 
++	/* timer may cause actual events to lag behind (#48777) */
++	if (priv->hwState->millis > hw->millis)
++	    hw->millis = priv->hwState->millis;
++
+ 	SynapticsCopyHwState(priv->hwState, hw);
+ 	delay = HandleState(pInfo, hw, hw->millis, FALSE);
+ 	newDelay = TRUE;
