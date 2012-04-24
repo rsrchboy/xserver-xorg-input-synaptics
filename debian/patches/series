@@ -29,3 +29,4 @@
 
 # Cherry-picks
 204_monotonicise_hw_timestamp.patch
+205_end_touches_on_disable.patch

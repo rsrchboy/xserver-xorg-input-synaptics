@@ -1,12 +1,17 @@
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu5.1) precise-proposed; urgency=low
 
-  * Cherry-pick patch from upstream to ensure the timestamps used when
-    determining velocities are monotonic.  In certain circumstances the
-    timestamps from hardware events can be less than the timestamps
-    from the preceeding artificially-generated events.
-    - Fixes occasional huge jumps in pointer position.
-    - Fixes two-finger scrolling in GTK+3 windows (such as Nautilus and
-      Evolution) failing some time after login. (LP: #982771)
+  * debian/patches/204_monotonicise_hw_timestamp.patch:
+    - Cherry-pick patch from upstream to ensure the timestamps used when
+      determining velocities are monotonic.  In certain circumstances the
+      timestamps from hardware events can be less than the timestamps
+      from the preceeding artificially-generated events.
+      + Fixes occasional huge jumps in pointer position.
+      + Fixes two-finger scrolling in GTK+3 windows (such as Nautilus and
+        Evolution) failing some time after login. (LP: #982771)
+  * debian/patches/205_end_touches_on_disable.patch:
+    - Upstream patch to reset touch state on device disable.
+      + Fixes touchpad not working after suspend on some MacBook models
+        (LP: #968845)
 
  -- Christopher James Halse Rogers <raof@ubuntu.com>  Tue, 24 Apr 2012 14:32:49 +1000
 
