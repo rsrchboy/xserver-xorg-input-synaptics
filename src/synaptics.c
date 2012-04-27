@@ -702,7 +702,7 @@ static void set_default_parameters(InputInfoPtr pInfo)
     pars->tap_move = xf86SetIntOption(opts, "MaxTapMove", tapMove);
     pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
     pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
-    pars->clickpad = xf86SetIntOption(opts, "ClickPad", pars->clickpad); /* Probed */
+    pars->clickpad = xf86SetBoolOption(opts, "ClickPad", pars->clickpad); /* Probed */
     pars->fast_taps = xf86SetBoolOption(opts, "FastTaps", FALSE);
     /* middle mouse button emulation on a clickpad? nah, you're joking */
     middle_button_timeout = pars->clickpad ? 0 : 75;
@@ -1086,6 +1086,7 @@ DeviceOff(DeviceIntPtr dev)
     if (pInfo->fd != -1) {
 	TimerCancel(priv->timer);
 	xf86RemoveEnabledDevice(pInfo);
+        SynapticsResetTouchHwState(priv->hwState);
         if (priv->proto_ops->DeviceOffHook &&
             !priv->proto_ops->DeviceOffHook(pInfo))
             rc = !Success;
@@ -1186,7 +1187,7 @@ DeviceInitTouch(DeviceIntPtr dev, Atom *axes_labels)
 
     if (priv->has_touch)
     {
-        priv->num_slots = priv->max_touches ? priv->max_touches : 10;
+        priv->num_slots = priv->max_touches ? priv->max_touches : SYNAPTICS_MAX_TOUCHES;
 
         priv->open_slots = malloc(priv->num_slots * sizeof(int));
         if (!priv->open_slots)
@@ -1635,6 +1636,10 @@ ReadInput(InputInfoPtr pInfo)
 	    hw->cumulative_dy = priv->hwState->cumulative_dy;
 	}
 
+	/* timer may cause actual events to lag behind (#48777) */
+	if (priv->hwState->millis > hw->millis)
+	    hw->millis = priv->hwState->millis;
+
 	SynapticsCopyHwState(priv->hwState, hw);
 	delay = HandleState(pInfo, hw, hw->millis, FALSE);
 	newDelay = TRUE;
@@ -1798,7 +1803,6 @@ SelectTapButton(SynapticsPrivate *priv, edge_type edge)
 
     switch (priv->tap_max_fingers) {
     case 1:
-    default:
 	switch (edge) {
 	case RIGHT_TOP_EDGE:
 	    DBG(7, "right top edge\n");
@@ -1830,6 +1834,9 @@ SelectTapButton(SynapticsPrivate *priv, edge_type edge)
 	DBG(7, "three finger tap\n");
 	tap = F3_TAP;
 	break;
+    default:
+        priv->tap_button = 0;
+        return;
     }
 
     priv->tap_button = priv->synpara.tap_action[tap];
@@ -1840,7 +1847,7 @@ static void
 SetTapState(SynapticsPrivate *priv, enum TapState tap_state, CARD32 millis)
 {
     SynapticsParameters *para = &priv->synpara;
-    DBG(7, "SetTapState - %d -> %d (millis:%d)\n", priv->tap_state, tap_state, millis);
+    DBG(3, "SetTapState - %d -> %d (millis:%u)\n", priv->tap_state, tap_state, millis);
     switch (tap_state) {
     case TS_START:
 	priv->tap_button_state = TBS_BUTTON_UP;
@@ -1859,10 +1866,7 @@ SetTapState(SynapticsPrivate *priv, enum TapState tap_state, CARD32 millis)
 	priv->tap_button_state = TBS_BUTTON_UP;
 	break;
     case TS_3:
-	if (para->tap_and_drag_gesture)
-	    priv->tap_button_state = TBS_BUTTON_DOWN;
-	else
-	    priv->tap_button_state = TBS_BUTTON_UP;
+	priv->tap_button_state = TBS_BUTTON_DOWN;
 	break;
     case TS_SINGLETAP:
 	if (para->fast_taps)
@@ -1880,7 +1884,7 @@ SetTapState(SynapticsPrivate *priv, enum TapState tap_state, CARD32 millis)
 static void
 SetMovingState(SynapticsPrivate *priv, enum MovingState moving_state, CARD32 millis)
 {
-    DBG(7, "SetMovingState - %d -> %d center at %d/%d (millis:%d)\n", priv->moving_state,
+    DBG(7, "SetMovingState - %d -> %d center at %d/%d (millis:%u)\n", priv->moving_state,
 		  moving_state,priv->hwState->x, priv->hwState->y, millis);
 
     if (moving_state == MS_TRACKSTICK) {
@@ -2328,39 +2332,36 @@ start_coasting(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	double pkt_time = HIST_DELTA(0, 3, millis) / 1000.0;
 	if (vert && !circ) {
 	    double dy = estimate_delta(HIST(0).y, HIST(1).y, HIST(2).y, HIST(3).y);
-	    int sdelta = para->scroll_dist_vert;
-	    if (pkt_time > 0 && sdelta > 0) {
-		double scrolls_per_sec = dy / pkt_time / sdelta;
+	    if (pkt_time > 0) {
+		double scrolls_per_sec = dy / pkt_time;
 		if (fabs(scrolls_per_sec) >= para->coasting_speed) {
 		    priv->scroll.coast_speed_y = scrolls_per_sec;
-		    priv->scroll.coast_delta_y = (hw->y - priv->scroll.last_y) / (double)sdelta;
+		    priv->scroll.coast_delta_y = (hw->y - priv->scroll.last_y);
 		}
 	    }
 	}
 	if (horiz && !circ){
 	    double dx = estimate_delta(HIST(0).x, HIST(1).x, HIST(2).x, HIST(3).x);
-	    int sdelta = para->scroll_dist_horiz;
-	    if (pkt_time > 0 && sdelta > 0) {
-		double scrolls_per_sec = dx / pkt_time / sdelta;
+	    if (pkt_time > 0) {
+		double scrolls_per_sec = dx / pkt_time;
 		if (fabs(scrolls_per_sec) >= para->coasting_speed) {
 		    priv->scroll.coast_speed_x = scrolls_per_sec;
-		    priv->scroll.coast_delta_x = (hw->x - priv->scroll.last_x) / (double)sdelta;
+		    priv->scroll.coast_delta_x = (hw->x - priv->scroll.last_x);
 		}
 	    }
 	}
 	if (circ) {
 	    double da = estimate_delta_circ(priv);
-	    double sdelta = para->scroll_dist_circ;
-	    if (pkt_time > 0 && sdelta > 0) {
-	        double scrolls_per_sec = da / pkt_time / sdelta;
+	    if (pkt_time > 0) {
+	        double scrolls_per_sec = da / pkt_time;
 	        if (fabs(scrolls_per_sec) >= para->coasting_speed) {
 	            if (vert) {
 	                priv->scroll.coast_speed_y = scrolls_per_sec;
-	                priv->scroll.coast_delta_y = diffa(priv->scroll.last_a, angle(priv, hw->x, hw->y)) / sdelta;
+	                priv->scroll.coast_delta_y = diffa(priv->scroll.last_a, angle(priv, hw->x, hw->y));
 	            }
 	            else if (horiz) {
 	                priv->scroll.coast_speed_x = scrolls_per_sec;
-	                priv->scroll.coast_delta_x = diffa(priv->scroll.last_a, angle(priv, hw->x, hw->y)) / sdelta;
+	                priv->scroll.coast_delta_x = diffa(priv->scroll.last_a, angle(priv, hw->x, hw->y));
 	            }
 	        }
 	    }
@@ -2397,6 +2398,8 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
     /* scroll detection */
     if (finger && priv->finger_state == FS_UNTOUCHED) {
 	stop_coasting(priv);
+        priv->scroll.delta_y = 0;
+        priv->scroll.delta_x = 0;
 	if (para->circular_scrolling) {
 	    if ((para->circular_trigger == 0 && edge) ||
 		(para->circular_trigger == 1 && edge & TOP_EDGE) ||
@@ -2419,6 +2422,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 	    if (hw->numFingers == 2) {
 		if (!priv->vert_scroll_twofinger_on &&
 		    (para->scroll_twofinger_vert) && (para->scroll_dist_vert != 0)) {
+		    stop_coasting(priv);
 		    priv->vert_scroll_twofinger_on = TRUE;
 		    priv->vert_scroll_edge_on = FALSE;
 		    priv->scroll.last_y = hw->y;
@@ -2426,6 +2430,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 		}
 		if (!priv->horiz_scroll_twofinger_on &&
 		    (para->scroll_twofinger_horiz) && (para->scroll_dist_horiz != 0)) {
+		    stop_coasting(priv);
 		    priv->horiz_scroll_twofinger_on = TRUE;
 		    priv->horiz_scroll_edge_on = FALSE;
 		    priv->scroll.last_x = hw->x;
@@ -2559,14 +2564,14 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     if (priv->vert_scroll_edge_on || priv->vert_scroll_twofinger_on) {
 	/* + = down, - = up */
-	if (para->scroll_dist_vert > 0 && hw->y != priv->scroll.last_y) {
+	if (para->scroll_dist_vert != 0 && hw->y != priv->scroll.last_y) {
 	    priv->scroll.delta_y += (hw->y - priv->scroll.last_y);
 	    priv->scroll.last_y = hw->y;
 	}
     }
     if (priv->horiz_scroll_edge_on || priv->horiz_scroll_twofinger_on) {
 	/* + = right, - = left */
-	if (para->scroll_dist_horiz > 0 && hw->x != priv->scroll.last_x) {
+	if (para->scroll_dist_horiz != 0 && hw->x != priv->scroll.last_x) {
 	    priv->scroll.delta_x += (hw->x - priv->scroll.last_x);
 	    priv->scroll.last_x = hw->x;
 	}
@@ -2586,7 +2591,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     if (priv->scroll.coast_speed_y) {
 	double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
-	double ddy = para->coasting_friction * dtime;
+	double ddy = para->coasting_friction * dtime * para->scroll_dist_vert;
 	priv->scroll.delta_y += priv->scroll.coast_speed_y * dtime;
 	delay = MIN(delay, POLL_MS);
 	if (abs(priv->scroll.coast_speed_y) < ddy) {
@@ -2599,7 +2604,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     if (priv->scroll.coast_speed_x) {
 	double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
-	double ddx = para->coasting_friction * dtime;
+	double ddx = para->coasting_friction * dtime * para->scroll_dist_horiz;
 	priv->scroll.delta_x += priv->scroll.coast_speed_x * dtime;
 	delay = MIN(delay, POLL_MS);
 	if (abs(priv->scroll.coast_speed_x) < ddx) {
@@ -2622,7 +2627,10 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
 {
     int nfingers = 0;
 #if HAVE_MULTITOUCH
+    char close_point[SYNAPTICS_MAX_TOUCHES] = {0}; /* 1 for each point close
+                                                      to another one */
     int i, j;
+
     for (i = 0; i < hw->num_mt_mask - 1; i++) {
         ValuatorMask *f1;
 
@@ -2653,14 +2661,18 @@ clickpad_guess_clickfingers(SynapticsPrivate *priv, struct SynapticsHwState *hw)
              * you'll need to find a touchpad that doesn't lie about it's
              * size. Good luck. */
             if (abs(x1 - x2) < (priv->maxx - priv->minx) * .3 &&
-                abs(y1 - y2) < (priv->maxy - priv->miny) * .3)
-                nfingers++;
+                abs(y1 - y2) < (priv->maxy - priv->miny) * .3) {
+                close_point[j] = 1;
+                close_point[i] = 1;
+            }
         }
     }
+
+    for (i = 0; i < SYNAPTICS_MAX_TOUCHES; i++)
+        nfingers += close_point[i];
 #endif
 
-    /* 1 doesn't make sense */
-    return nfingers ? nfingers + 1 : 0;
+    return nfingers;
 }
 
 
@@ -2854,31 +2866,29 @@ post_scroll_events(const InputInfoPtr pInfo)
     SynapticsParameters *para = &priv->synpara;
 
     /* smooth scrolling uses the dist as increment */
-    priv->scroll.delta_y /= para->scroll_dist_vert;
-    priv->scroll.delta_x /= para->scroll_dist_horiz;
 
-    while (priv->scroll.delta_y <= -1.0)
+    while (priv->scroll.delta_y <= -para->scroll_dist_vert)
     {
         post_button_click(pInfo, 4);
-        priv->scroll.delta_y += 1.0;
+        priv->scroll.delta_y += para->scroll_dist_vert;
     }
 
-    while (priv->scroll.delta_y >= 1.0)
+    while (priv->scroll.delta_y >= para->scroll_dist_vert)
     {
         post_button_click(pInfo, 5);
-        priv->scroll.delta_y -= 1.0;
+        priv->scroll.delta_y -= para->scroll_dist_vert;
     }
 
-    while (priv->scroll.delta_x <= -1.0)
+    while (priv->scroll.delta_x <= -para->scroll_dist_horiz)
     {
         post_button_click(pInfo, 6);
-        priv->scroll.delta_x += 1.0;
+        priv->scroll.delta_x += para->scroll_dist_horiz;
     }
 
-    while (priv->scroll.delta_x >= 1.0)
+    while (priv->scroll.delta_x >= para->scroll_dist_horiz)
     {
         post_button_click(pInfo, 7);
-        priv->scroll.delta_x -= 1.0;
+        priv->scroll.delta_x -= para->scroll_dist_horiz;
     }
 #endif
 }
@@ -2924,13 +2934,13 @@ repeat_scrollbuttons(const InputInfoPtr pInfo,
 		id = ffs(change);
 		change &= ~(1 << (id - 1));
 		if (id == 4)
-		    priv->scroll.delta_y -= 1.0;
+		    priv->scroll.delta_y -= para->scroll_dist_vert;
 		else if (id == 5)
-		    priv->scroll.delta_y += 1.0;
+		    priv->scroll.delta_y += para->scroll_dist_vert;
 		else if (id == 6)
-		    priv->scroll.delta_x -= 1.0;
+		    priv->scroll.delta_x -= para->scroll_dist_horiz;
 		else if (id == 7)
-		    priv->scroll.delta_x += 1.0;
+		    priv->scroll.delta_x += para->scroll_dist_horiz;
 	    }
 
 	    priv->nextRepeat = now + repeat_delay;

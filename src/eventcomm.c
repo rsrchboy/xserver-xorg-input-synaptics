@@ -45,6 +45,12 @@
 #include <mtdev.h>
 #endif
 
+#ifndef INPUT_PROP_BUTTONPAD
+#define INPUT_PROP_BUTTONPAD 0x02
+#endif
+#ifndef INPUT_PROP_SEMI_MT
+#define INPUT_PROP_SEMI_MT 0x03
+#endif
 
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
@@ -72,6 +78,7 @@ struct eventcomm_proto_data
     int axis_map[MT_ABS_SIZE];
     int cur_slot;
     ValuatorMask **last_mt_vals;
+    int num_touches;
 #endif
 };
 
@@ -121,6 +128,7 @@ UninitializeTouch(InputInfoPtr pInfo)
 
     mtdev_close(proto_data->mtdev);
     proto_data->mtdev = NULL;
+    proto_data->num_touches = 0;
 }
 
 static void
@@ -142,6 +150,7 @@ InitializeTouch(InputInfoPtr pInfo)
     }
 
     proto_data->cur_slot = proto_data->mtdev->caps.slot.value;
+    proto_data->num_touches = 0;
 
     proto_data->last_mt_vals = calloc(priv->num_slots,
                                       sizeof(ValuatorMask *));
@@ -557,6 +566,9 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
     {
         int slot_index = last_mt_vals_slot(priv);
 
+        if (slot_index < 0)
+            return;
+
         if (hw->slot_state[slot_index] == SLOTSTATE_EMPTY ||
             hw->slot_state[slot_index] == SLOTSTATE_OPEN_EMPTY)
             hw->slot_state[slot_index] = SLOTSTATE_UPDATE;
@@ -565,6 +577,7 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
             if (ev->value >= 0)
             {
                 hw->slot_state[slot_index] = SLOTSTATE_OPEN;
+                proto_data->num_touches++;
 
                 if (slot_index >= 0)
                     valuator_mask_copy(hw->mt_mask[slot_index],
@@ -574,7 +587,10 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
                                 "Attempted to copy values from out-of-range "
                                 "slot, touch events may be incorrect.\n");
             } else
+            {
                 hw->slot_state[slot_index] = SLOTSTATE_CLOSE;
+                proto_data->num_touches--;
+            }
         } else
         {
             int map = proto_data->axis_map[ev->code - ABS_MT_TOUCH_MAJOR];
@@ -607,8 +623,10 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
  * @param comm Assembled information from previous events.
  * @return The number of fingers currently set.
  */
-static int count_fingers(const struct CommData *comm)
+static int count_fingers(InputInfoPtr pInfo, const struct CommData *comm)
 {
+    SynapticsPrivate *priv = (SynapticsPrivate *)pInfo->private;
+    struct eventcomm_proto_data *proto_data = priv->proto_data;
     int fingers = 0;
 
     if (comm->oneFinger)
@@ -617,6 +635,11 @@ static int count_fingers(const struct CommData *comm)
 	fingers = 2;
     else if (comm->threeFingers)
 	fingers = 3;
+
+#ifdef HAVE_MULTITOUCH
+    if (priv->has_touch && proto_data->num_touches > fingers)
+        fingers = proto_data->num_touches;
+#endif
 
     return fingers;
 }
@@ -653,7 +676,7 @@ EventReadHwState(InputInfoPtr pInfo,
 	case EV_SYN:
 	    switch (ev.code) {
 	    case SYN_REPORT:
-		hw->numFingers = count_fingers(comm);
+		hw->numFingers = count_fingers(pInfo, comm);
 		hw->millis = 1000 * ev.time.tv_sec + ev.time.tv_usec / 1000;
 		SynapticsCopyHwState(hwRet, hw);
 		return TRUE;
@@ -760,6 +783,7 @@ event_query_touch(InputInfoPtr pInfo)
     priv->max_touches = 0;
     priv->num_mt_axes = 0;
 
+#ifdef EVIOCGPROP
     SYSCALL(rc = ioctl(pInfo->fd, EVIOCGPROP(sizeof(prop)), &prop));
     if (rc >= 0 && BitIsOn(&prop, INPUT_PROP_SEMI_MT))
     {
@@ -773,6 +797,7 @@ event_query_touch(InputInfoPtr pInfo)
         xf86IDrvMsg(pInfo, X_INFO, "found clickpad property\n");
         para->clickpad = TRUE;
     }
+#endif
 
     mtdev = mtdev_new_open(pInfo->fd);
     if (!mtdev)
