@@ -1,3 +1,10 @@
+xserver-xorg-input-synaptics (1.5.99.904-2) UNRELEASED; urgency=low
+
+  * Add a build-dep on libmtdev-dev now that X server 1.12 is in sid,
+    for XI 2.2 support.
+
+ -- Cyril Brulebois <kibi@debian.org>  Tue, 01 May 2012 15:01:47 +0200
+
 xserver-xorg-input-synaptics (1.5.99.904-1) unstable; urgency=low
 
   * New upstream release candidate (1.6 RC4).
