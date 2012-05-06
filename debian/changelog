@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.6.0-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.0-1) unstable; urgency=low
 
   * New upstream release.
 
- -- Cyril Brulebois <kibi@debian.org>  Mon, 07 May 2012 01:12:35 +0200
+ -- Cyril Brulebois <kibi@debian.org>  Mon, 07 May 2012 01:13:08 +0200
 
 xserver-xorg-input-synaptics (1.5.99.904-2) unstable; urgency=low
 
