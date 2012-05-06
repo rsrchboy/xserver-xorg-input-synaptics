@@ -1074,6 +1074,39 @@ DeviceOn(DeviceIntPtr dev)
     return Success;
 }
 
+static void
+SynapticsReset(SynapticsPrivate *priv)
+{
+    SynapticsResetHwState(priv->hwState);
+    SynapticsResetHwState(priv->local_hw_state);
+    SynapticsResetHwState(priv->old_hw_state);
+    SynapticsResetHwState(priv->comm.hwState);
+
+    memset(priv->move_hist, 0, sizeof(priv->move_hist));
+    priv->hyst_center_x = 0;
+    priv->hyst_center_y = 0;
+    memset(&priv->scroll, 0, sizeof(priv->scroll));
+    priv->count_packet_finger = 0;
+    priv->finger_state = FS_UNTOUCHED;
+    priv->last_motion_millis = 0;
+    priv->tap_state = TS_START;
+    priv->tap_button = 0;
+    priv->tap_button_state = TBS_BUTTON_UP;
+    priv->moving_state = MS_FALSE;
+    priv->vert_scroll_edge_on = FALSE;
+    priv->horiz_scroll_edge_on = FALSE;
+    priv->vert_scroll_twofinger_on = FALSE;
+    priv->horiz_scroll_twofinger_on = FALSE;
+    priv->circ_scroll_on = FALSE;
+    priv->circ_scroll_vert = FALSE;
+    priv->mid_emu_state = MBE_OFF;
+    priv->nextRepeat = 0;
+    priv->lastButtons = 0;
+    priv->prev_z = 0;
+    priv->prevFingers = 0;
+}
+
+
 static Bool
 DeviceOff(DeviceIntPtr dev)
 {
@@ -1086,7 +1119,8 @@ DeviceOff(DeviceIntPtr dev)
     if (pInfo->fd != -1) {
 	TimerCancel(priv->timer);
 	xf86RemoveEnabledDevice(pInfo);
-        SynapticsResetTouchHwState(priv->hwState);
+	SynapticsReset(priv);
+
         if (priv->proto_ops->DeviceOffHook &&
             !priv->proto_ops->DeviceOffHook(pInfo))
             rc = !Success;
@@ -1585,7 +1619,7 @@ timerFunc(OsTimerPtr timer, CARD32 now, pointer arg)
 
     priv->hwState->millis += now - priv->timer_time;
     SynapticsCopyHwState(hw, priv->hwState);
-    SynapticsResetTouchHwState(hw);
+    SynapticsResetTouchHwState(hw, FALSE);
     delay = HandleState(pInfo, hw, hw->millis, TRUE);
 
     priv->timer_time = now;
@@ -1625,7 +1659,7 @@ ReadInput(InputInfoPtr pInfo)
     int delay = 0;
     Bool newDelay = FALSE;
 
-    SynapticsResetTouchHwState(hw);
+    SynapticsResetTouchHwState(hw, FALSE);
 
     while (SynapticsGetHwState(pInfo, priv, hw)) {
 	/* Semi-mt device touch slots do not track touches. When there is a
@@ -2591,7 +2625,8 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     if (priv->scroll.coast_speed_y) {
 	double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
-	double ddy = para->coasting_friction * dtime * para->scroll_dist_vert;
+	double ddy = para->coasting_friction * dtime * abs(para->scroll_dist_vert);
+
 	priv->scroll.delta_y += priv->scroll.coast_speed_y * dtime;
 	delay = MIN(delay, POLL_MS);
 	if (abs(priv->scroll.coast_speed_y) < ddy) {
@@ -2604,7 +2639,7 @@ HandleScrolling(SynapticsPrivate *priv, struct SynapticsHwState *hw,
 
     if (priv->scroll.coast_speed_x) {
 	double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
-	double ddx = para->coasting_friction * dtime * para->scroll_dist_horiz;
+	double ddx = para->coasting_friction * dtime * abs(para->scroll_dist_horiz);
 	priv->scroll.delta_x += priv->scroll.coast_speed_x * dtime;
 	delay = MIN(delay, POLL_MS);
 	if (abs(priv->scroll.coast_speed_x) < ddx) {
@@ -2983,7 +3018,7 @@ UpdateTouchState(InputInfoPtr pInfo, struct SynapticsHwState *hw)
         }
     }
 
-    SynapticsResetTouchHwState(hw);
+    SynapticsResetTouchHwState(hw, FALSE);
 #endif
 }
 

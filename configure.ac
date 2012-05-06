@@ -23,7 +23,7 @@
 # Initialize Autoconf
 AC_PREREQ([2.60])
 AC_INIT([xf86-input-synaptics],
-        [1.5.99.904],
+        [1.6.0],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
         [xf86-input-synaptics])
 AC_CONFIG_SRCDIR([Makefile.am])
@@ -115,8 +115,12 @@ case "${host}" in
 	BUILD_PS2COMM="yes"
 	BUILD_PSMCOMM="yes"
 	;;
+*solaris*)
+	AC_MSG_RESULT([ps2comm alpscomm])
+	BUILD_PS2COMM="yes"
+	;;
 *)
-	AC_MSG_RESULT([none])
+	AC_MSG_ERROR([Cannot find suitable backends for this platform.])
 	;;
 esac
 if test "x$BUILD_EVENTCOMM" = xyes; then
