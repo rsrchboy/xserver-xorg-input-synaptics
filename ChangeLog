@@ -1,3 +1,86 @@
+commit a1162f80324c379bc7581e53275e8ff6d569f8b0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 3 08:06:32 2012 +1000
+
+    synaptics 1.6.0
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 52e194b76c9598e0fbf556e3aa97168ed4f0e2b6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 2 10:16:30 2012 +1000
+
+    Fix coasting for negative scroll directions
+    
+    1874094f0e99d8db319f6cf769ce5a25c9bc490c introduced negative scroll
+    directions. Coasting assumed always-positive increments and triggered an
+    endless scrolling loop.
+    
+    Reported-by: Matthias Clasen <mclasen@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 6f086b86e4bd3c720289e91fdbb933bf3e559e72
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 2 09:16:27 2012 +1000
+
+    Fail if no backends can be found
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 655d3100fc3f06e714ec4aa01607d86509952e4b
+Author: Niveditha Rau <niveditha.rau@oracle.com>
+Date:   Mon Apr 30 14:51:07 2012 -0700
+
+    Include a build for solaris
+    
+    Signed-off-by: Niveditha Rau <niveditha.rau@oracle.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d13e83b921a398b9472b07874cf5061c8a0ea6a6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 11:39:49 2012 +1000
+
+    Force SLOTSTATE_EMPTY on DeviceOff
+    
+    SLOTSTATE_OPEN_EMPTY on resume leads to erroneously detected touches.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit cc595bd323aab2b0ef7b41fded2f0b5571cf0a8e
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 10:47:14 2012 +1000
+
+    Reset all hardware state on DEVICE_OFF (#49161)
+    
+    Reset all state on DeviceOff to avoid stuck buttons on resume.
+    
+    X.Org Bug 49161 <http://bugs.freedesktop.org/show_bug.cgi?id=49161>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit e19fff64f76200291c22d6b822bb4e8b06816745
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 09:30:53 2012 +1000
+
+    man: fix hyphenation
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3cc828b4764c101f9acd0db9ee3638036ec7a948
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 09:28:39 2012 +1000
+
+    man: drop mention of shm configuration
+    
+    SHM is for debugging only now, not configuration.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit 085662e9fe13d46b9633f1b7b9e8f95bacdec30c
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Apr 27 09:20:56 2012 +1000
