@@ -1,3 +1,18 @@
+xserver-xorg-input-synaptics (1.6.0-0ubuntu1) UNRELEASED; urgency=low
+
+  * Update to upstream version 1.6.0
+    - Bug fixes only
+    - Fully fixes touchpad bugs on suspend/resume (LP: #968845)
+  * Drop patches merged upstream
+    - 200_fix_four_tap.patch
+    - 201_fix_touch_count.patch
+    - 202_touch_record_bounds_check.patch
+    - 203_fix_coasting_speed.patch
+    - 204_monotonicise_hw_timestamp.patch
+    - 205_end_touches_on_disable.patch
+
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 07 May 2012 09:11:43 -0700
+
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu5.1) precise-proposed; urgency=low
 
   * debian/patches/204_monotonicise_hw_timestamp.patch:

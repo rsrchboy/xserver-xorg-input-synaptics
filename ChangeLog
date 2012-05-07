@@ -1,3 +1,444 @@
+commit a1162f80324c379bc7581e53275e8ff6d569f8b0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 3 08:06:32 2012 +1000
+
+    synaptics 1.6.0
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 52e194b76c9598e0fbf556e3aa97168ed4f0e2b6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 2 10:16:30 2012 +1000
+
+    Fix coasting for negative scroll directions
+    
+    1874094f0e99d8db319f6cf769ce5a25c9bc490c introduced negative scroll
+    directions. Coasting assumed always-positive increments and triggered an
+    endless scrolling loop.
+    
+    Reported-by: Matthias Clasen <mclasen@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 6f086b86e4bd3c720289e91fdbb933bf3e559e72
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 2 09:16:27 2012 +1000
+
+    Fail if no backends can be found
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 655d3100fc3f06e714ec4aa01607d86509952e4b
+Author: Niveditha Rau <niveditha.rau@oracle.com>
+Date:   Mon Apr 30 14:51:07 2012 -0700
+
+    Include a build for solaris
+    
+    Signed-off-by: Niveditha Rau <niveditha.rau@oracle.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d13e83b921a398b9472b07874cf5061c8a0ea6a6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 11:39:49 2012 +1000
+
+    Force SLOTSTATE_EMPTY on DeviceOff
+    
+    SLOTSTATE_OPEN_EMPTY on resume leads to erroneously detected touches.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit cc595bd323aab2b0ef7b41fded2f0b5571cf0a8e
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 10:47:14 2012 +1000
+
+    Reset all hardware state on DEVICE_OFF (#49161)
+    
+    Reset all state on DeviceOff to avoid stuck buttons on resume.
+    
+    X.Org Bug 49161 <http://bugs.freedesktop.org/show_bug.cgi?id=49161>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit e19fff64f76200291c22d6b822bb4e8b06816745
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 09:30:53 2012 +1000
+
+    man: fix hyphenation
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3cc828b4764c101f9acd0db9ee3638036ec7a948
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 30 09:28:39 2012 +1000
+
+    man: drop mention of shm configuration
+    
+    SHM is for debugging only now, not configuration.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 085662e9fe13d46b9633f1b7b9e8f95bacdec30c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Apr 27 09:20:56 2012 +1000
+
+    synaptics 1.5.99.904
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 58581bfbecfc15e7fa63c2fa4be20d2b0654f9b8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 26 12:00:49 2012 +1000
+
+    Reset scroll delta when no finger is touching
+    
+    Provides for a more consistent scrolling experience, otherwise delta
+    leftovers may trigger extra events even when the actual scrolling action
+    stays the same.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 1a76d9f00e1e54ba912a47aa665968e0cfe1b8a0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 26 11:47:19 2012 +1000
+
+    Don't unconditionally divide by scroll_dist_vert (#46617)
+    
+    Regression introduced in cddab79c408db3b13905a2be72aff4f7bf1406f8.
+    
+    If an event has a delta of less than scroll_dist_vert, the delta is
+    unconditionally divided by the distance, leaving some remainder close to 0
+    and never actually triggering the scroll amount.
+    
+    Fix this by working with the increment, not the normalised values.
+    
+    X.Org Bug 46617 <http://bugs.freedesktop.org/show_bug.cgi?id=46617>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit ba31b09ba8aff6b8f3b0590e724183b0d2802ffc
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 26 10:03:28 2012 +1000
+
+    ClickPad is most definitely a bool option.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit f0c2f1d82a21de315a0088dd28ffeb394cf32c8e
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 26 09:27:05 2012 +1000
+
+    Init num_touches to 0 on start
+    
+    We implicitly rely on this already since we calloc the struct. Do it
+    expliclity on DeviceOn().
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 9ecf505c6473c65cd850a58b1b6eeb86f7d390e6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Apr 24 15:31:36 2012 +1000
+
+    Reset touch state on DeviceOff (#49161)
+    
+    Don't leave touches lingering around during suspend.
+    
+    Test case:
+    1) leave finger on touchpad
+    2) xinput set-prop "SynPS/2 Synaptics TouchPad" "Device Enabled" 0
+    3) lift fingers
+    4) xinput set-prop "SynPS/2 Synaptics TouchPad" "Device Enabled" 1
+    
+    X.Org Bug 49161 <http://bugs.freedesktop.org/show_bug.cgi?id=49161>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit f300adb027b856c944e0e25d0f32948823fe6b62
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Apr 23 15:39:57 2012 -0700
+
+    Update src/synproto.c license to the preferred MIT/X11 license
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5a176dc23d7dfb4648fef50ac0af144026b45078
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Apr 20 11:13:16 2012 +1000
+
+    Don't release the button on TS_3 if TapAndDrag is disabled (#31854)
+    
+    TS_3 is second tap down. Unconditionally set the button as down, later, in
+    HandleTapProcessing we have the required conditions to reset it to TS_START
+    and TBS_BUTTON_UP.
+    
+    Meanwhile, TBS_BUTTON_DOWN stays down, so the second tap is counted and sent
+    as button event. This restores double-tapping if TapAndDrag is disabled.
+    
+    X.Org Bug 31854 <http://bugs.freedesktop.org/show_bug.cgi?id=31854>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0322d301844a7e78fc9aa4ec6493bf50bc7f926c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Apr 20 11:10:47 2012 +1000
+
+    Print millis as unsigned int
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3822d58777768b351940e58d8608ba9ab877d134
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Apr 19 16:39:41 2012 +1000
+
+    Ensure hw millis are monotonic (#48777)
+    
+    The eventcomm backend takes the timestamp from the kernel, but the timer
+    uses the timer's "now". This timestamp may be later than the one from the
+    next event we read from the kernel, causing a negative dtime in get_delta()
+    and a cursor jump by (unsigned int)-1.
+    
+    Ensure that the new event's timestamp is at least the last used one.
+    
+    X.Org Bug 48777 <http://bugs.freedesktop.org/show_bug.cgi?id=48777>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Tested-by: Gavin Troy <gavtroy@gmail.com>
+
+commit 11d8929647a67258ca86121a45ea638ca7299237
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Apr 18 09:30:06 2012 +1000
+
+    man: move ClickPad documentation into a single area
+    
+    Having to read only one section is a tad easier than collecting the separate
+    options.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 1c155f644824133315ac5b3dac9076db71430eb6
+Author: Chow Loong Jin <hyperair@debian.org>
+Date:   Mon Apr 16 11:39:44 2012 +0800
+
+    Fix coasting friction
+    
+    As a result of commit 5a1612d4496b51682c9043aa064025c545249de6, coasting speed
+    was bumped up to a different scale by removing the divisor during the
+    calculation of initial coasting speed. This caused coasting friction to have
+    little to no effect, resulting in coasting that lasted virtually forever using
+    the default coasting friction value of 50.
+    
+    This patch multiplies the scroll_dist_{horiz,vert} which was previously used as
+    a divisor for initial coasting speed to the coasting friction before deducting
+    it at each step, thus bringing coasting friction back under control.
+    
+    Signed-off-by: Chow Loong Jin <hyperair@debian.org>
+    Tested-by: <Magnus.Kessler@gmx.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 50124d3ddf9bbc4be6734b47a273dbd46b4db0ba
+Author: Pierre Lulé <pierre@lule.fr>
+Date:   Mon Apr 16 12:01:56 2012 +0200
+
+    Stop coasting when two-finger scroll begins
+    
+    There is currently a problem that can lead the coasting to continue while scrolling in a particular situation :
+    with
+     Option "VertTwoFingerScroll" "on"
+     Option "CornerCoasting" "0"
+     Option "CoastingSpeed" "10"
+     Option "CoastingFriction" "50"
+     Option "CornerCoasting" "0"
+    If you scroll down with two finger then raise a finger, coasting will start. But if you put down that finger and try to
+    scroll up, the inertia will still scroll down while you scroll up. This can look like a very particular situation, but
+    happens to me often while scrolling in a big document.
+    
+    This (awfully simple) patch stop coasting when detecting two-finger scroll.
+    
+    Signed-off-by: Pierre Lulé <pierre@lule.fr>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d90003383cbec75da88bf1a88b886b1131597f3f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Apr 16 16:47:38 2012 +1000
+
+    synaptics 1.5.99.903
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1874094f0e99d8db319f6cf769ce5a25c9bc490c
+Author: Alyssa Hung <ahung@isisview.org>
+Date:   Fri Apr 13 01:04:38 2012 -0400
+
+    Support inverted scroll direction.
+    
+    This patch allows scroll direction to be inverted by allowing
+    VertScrollDelta and HorizScrollDelta to be set to negative values. This
+    enables behaviour that is consistent with modern touchscreen devices,
+    where the content scrolls in the same direction as the user's finger
+    movement.
+    
+    Signed-off-by: Alyssa Hung <ahung@isisview.org>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 38b93b71c812c6d7b7085f40d049b0a4927e52dd
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Apr 2 11:23:05 2012 -0700
+
+    Use maximum number of touches reported by evdev
+    
+    This resolves a regression from da461b91659d0c64aa6827e065aee2682116a57e
+    where three touch tap and click actions on certain devices no longer
+    work.
+    
+    Some devices report a higher touch count than the number of touches they
+    can provide data for. For example, many Synaptics touchpads can report
+    up to five touches, but only provide data for two of them. We need to be
+    able to report the correct number of touches for these devices when
+    there are three touches. Using the maximum of the reported touch count
+    and the number of touches provided ensures the count is accurate for all
+    device types.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 5a1612d4496b51682c9043aa064025c545249de6
+Author: Pierre Lulé <pierre@lule.fr>
+Date:   Wed Mar 28 00:13:30 2012 +0200
+
+    Fix coasting speed
+    
+    Fixes a bug introduced in commit 2603ad69b997c999404ecc441e0d64ea2cc22018
+    (Use the scroll distances as increment for scrolling valuator axes)
+    
+    Since this commit, scroll distance was set with SetScrollValuator function
+    but it was still used as a divisor to calculate coasting,
+    thus making coasting too slow. (at least on my computer)
+    
+    Deleting the divisor fixes the issue.
+    
+    A report of the same bug : https://bugs.archlinux.org/task/28955
+    
+    Signed-off-by: Pierre Lulé <pierre@lule.fr>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit f68ddd9be4202333a1c3ccf536966a96dc0bfde7
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Apr 10 13:06:49 2012 +1000
+
+    Don't count fingers twice when guessing distance (#48316)
+    
+    A finger may be closer than the required distance to more than one finger.
+    e.g. for fingers A, B, C, AB, AC and BC may trigger the check and count
+    C twice -resulting in a 4 finger click.
+    
+    Avoid double-counting by marking those fingers already close enough to a
+    previous finger to avoid overcounting.
+    
+    X.Org Bug 48316 <http://bugs.freedesktop.org/show_bug.cgi?id=48316>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit c745604461541c7b21779c60c9bd09ff1a390df2
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Apr 11 10:15:07 2012 +1000
+
+    tools: skip non-existing properties
+    
+    If a property doesn't exist on a device, skip it.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 8e297cb586ab855dc7c018c6f3f2f42c08db0419
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Apr 10 13:03:35 2012 +1000
+
+    Replace hardcoded max number of touches with a define.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 3f9794a8a0f019a4b153941c9ec1927c7797ce6f
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Mon Apr 9 11:38:16 2012 -0700
+
+    Check touch record bounds before access
+    
+    We guess ten simultaneous touches if the device does not tell us. The
+    Linux drivers for the Apple multitouch trackpads do not tell the number
+    of simultaneous touches, but they can do more than ten. When this
+    occurs, the array index into the touch records will be invalid. We must
+    not process the touch or else we will segfault.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4c87455f3ecd1b82a3612a3050e463a0efb90f0c
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Fri Mar 23 10:51:59 2012 -0700
+
+    Do not perform a tap action when more than three touches
+    
+    Though this looks like a behavior change, it really isn't since the
+    maximum tap_max_fingers that was previously possible was already handled.
+    The only real change is that if a tap is recognized but the
+    tap_max_fingers is zero, a tap will no longer be emitted. This shouldn't
+    happen in the real world.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit da461b91659d0c64aa6827e065aee2682116a57e
+Author: Chase Douglas <chase.douglas@canonical.com>
+Date:   Fri Mar 23 10:51:58 2012 -0700
+
+    Count number of multitouch touches for multitouch finger count
+    
+    The evdev protocol only goes up to three touches for non-multitouch
+    devices. If you perform a four touch tap, the finger count will only go
+    up to three touches if you roll your fingers, or will always be 0 if all
+    four touches land at the same time.
+    
+    This change ensures the correct finger count is reported.
+    
+    Signed-off-by: Chase Douglas <chase.douglas@canonical.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit bc95d90be17d52726b85c785a8e7503512e8fa3d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Sat Mar 24 19:52:35 2012 +1000
+
+    Define various EVIOCGPROP bits if non-existent
+    
+    And make the ioctl conditional.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 291fdc69801c91310839fc8667ba7aa2e9a66b95
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Mar 23 15:45:10 2012 +1000
+
+    conf: the bcm5974 doesn't have Apple in the product name
+    
+    But it's still a single-button device from the known fruit manufacturer.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
 commit 4a80c0dc38ea4dafcb112191c2dd7e0082193263
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Mar 23 10:38:20 2012 +1000
