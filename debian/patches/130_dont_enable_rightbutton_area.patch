@@ -34,7 +34,7 @@ index 822f7a4..5ec7e78 100644
 -# This option is only interpreted by clickpads.
 -Section "InputClass"
 -        Identifier "Disable clickpad buttons on Apple touchpads"
--        MatchProduct "Apple"
+-        MatchProduct "Apple|bcm5974"
 -        MatchDriver "synaptics"
 -        Option "SoftButtonAreas" "0 0 0 0 0 0 0 0"
 -EndSection

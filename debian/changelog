@@ -10,8 +10,9 @@ xserver-xorg-input-synaptics (1.6.0-0ubuntu1) UNRELEASED; urgency=low
     - 203_fix_coasting_speed.patch
     - 204_monotonicise_hw_timestamp.patch
     - 205_end_touches_on_disable.patch
+  * Refreshed 130_dont_enable_rightbutton_area.patch
 
- -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 07 May 2012 09:11:43 -0700
+ -- Chase Douglas <chase.douglas@ubuntu.com>  Mon, 07 May 2012 11:45:30 -0700
 
 xserver-xorg-input-synaptics (1.5.99.902-0ubuntu5.1) precise-proposed; urgency=low
 
