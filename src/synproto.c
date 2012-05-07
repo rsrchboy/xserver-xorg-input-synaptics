@@ -1,29 +1,24 @@
 /*
  * Copyright © 2012 Canonical, Ltd.
  *
- * Permission to use, copy, modify, distribute, and sell this software
- * and its documentation for any purpose is hereby granted without
- * fee, provided that the above copyright notice appear in all copies
- * and that both that copyright notice and this permission notice
- * appear in supporting documentation, and that the name of Red Hat
- * not be used in advertising or publicity pertaining to distribution
- * of the software without specific, written prior permission.  Red
- * Hat makes no representations about the suitability of this software
- * for any purpose.  It is provided "as is" without express or implied
- * warranty.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * THE AUTHORS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
- * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
  *
- * Authors:
- *      Chase Douglas <chase.douglas@canonical.com>
- *
- * Trademarks are the property of their respective owners.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 
@@ -139,7 +134,30 @@ SynapticsCopyHwState(struct SynapticsHwState *dst,
 }
 
 void
-SynapticsResetTouchHwState(struct SynapticsHwState *hw)
+SynapticsResetHwState(struct SynapticsHwState *hw)
+{
+    hw->millis = 0;
+    hw->x = 0;
+    hw->y = 0;
+    hw->z = 0;
+    hw->cumulative_dx = 0;
+    hw->cumulative_dy = 0;
+    hw->numFingers = 0;
+    hw->fingerWidth = 0;
+
+    hw->left = 0;
+    hw->right = 0;
+    hw->up = 0;
+    hw->down = 0;
+
+    hw->middle = 0;
+    memset(hw->multi, 0, sizeof(hw->multi));
+
+    SynapticsResetTouchHwState(hw, TRUE);
+}
+
+void
+SynapticsResetTouchHwState(struct SynapticsHwState *hw, Bool set_slot_empty)
 {
 #ifdef HAVE_MULTITOUCH
     int i;
@@ -157,7 +175,7 @@ SynapticsResetTouchHwState(struct SynapticsHwState *hw)
             case SLOTSTATE_OPEN:
             case SLOTSTATE_OPEN_EMPTY:
             case SLOTSTATE_UPDATE:
-                hw->slot_state[i] = SLOTSTATE_OPEN_EMPTY;
+                hw->slot_state[i] = set_slot_empty ? SLOTSTATE_EMPTY : SLOTSTATE_OPEN_EMPTY;
                 break;
 
             default:

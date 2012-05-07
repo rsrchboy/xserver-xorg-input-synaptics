@@ -90,8 +90,8 @@ static struct Parameter params[] = {
     {"EmulateMidButtonTime",  PT_INT,    0, 1000,  SYNAPTICS_PROP_MIDDLE_TIMEOUT,32,	0},
     {"EmulateTwoFingerMinZ",  PT_INT,    0, 1000,  SYNAPTICS_PROP_TWOFINGER_PRESSURE,	32,	0},
     {"EmulateTwoFingerMinW",  PT_INT,    0, 15,    SYNAPTICS_PROP_TWOFINGER_WIDTH,	32,	0},
-    {"VertScrollDelta",       PT_INT,    0, 1000,  SYNAPTICS_PROP_SCROLL_DISTANCE,	32,	0},
-    {"HorizScrollDelta",      PT_INT,    0, 1000,  SYNAPTICS_PROP_SCROLL_DISTANCE,	32,	1},
+    {"VertScrollDelta",       PT_INT,    -1000, 1000,  SYNAPTICS_PROP_SCROLL_DISTANCE,	32,	0},
+    {"HorizScrollDelta",      PT_INT,    -1000, 1000,  SYNAPTICS_PROP_SCROLL_DISTANCE,	32,	1},
     {"VertEdgeScroll",        PT_BOOL,   0, 1,     SYNAPTICS_PROP_SCROLL_EDGE,	8,	0},
     {"HorizEdgeScroll",       PT_BOOL,   0, 1,     SYNAPTICS_PROP_SCROLL_EDGE,	8,	1},
     {"CornerCoasting",        PT_BOOL,   0, 1,     SYNAPTICS_PROP_SCROLL_EDGE,	8,	2},
@@ -446,6 +446,13 @@ dp_set_variables(Display *dpy, XDevice* dev, int argc, char *argv[], int first_c
 	XGetDeviceProperty(dpy, dev, prop, 0, 1000, False, AnyPropertyType,
 				&type, &format, &nitems, &bytes_after, &data);
 
+	if (type == None)
+	{
+	    fprintf(stderr, "Property for '%s' not available. Skipping.\n",
+		    par->name);
+	    continue;
+	}
+
 	switch(par->prop_format)
 	{
 	    case 8:
@@ -517,6 +524,8 @@ dp_show_settings(Display *dpy, XDevice *dev)
 	XGetDeviceProperty(dpy, dev, a, 0, len, False,
 				AnyPropertyType, &type, &format,
 				&nitems, &bytes_after, &data);
+	if (type == None)
+	    continue;
 
 	switch(par->prop_format) {
 	    case 8:
