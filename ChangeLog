@@ -1,3 +1,95 @@
+commit e0f5688994baa85a8c658120681575cdd0ba2a58
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri May 11 10:30:21 2012 +1000
+
+    synaptics 1.6.1
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7f2d9d88204c62de3cb63b48001b9e2408d3a20d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri May 11 10:54:47 2012 +1000
+
+    tools: coasting speed is not capped at 20, cap it at 255
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 0352c67fa2a7224b5a3bf03a934b3c7af42b4f51)
+
+commit ace20a02c371478f6a9d224dfd31ea219d91fc46
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 9 14:26:40 2012 +1000
+
+    Fix coasting speed trigger
+    
+    CoastingSpeed is defined as scrolls/s. The previous code just used
+    delta/seconds which depended on the device coordinate range and exceeded the
+    default CoastingSpeed at almost any scroll event.
+    
+    Divide the estimated delta by the scroll distance to get the accurate
+    scrolls/s number. Since that now changes the contents of what's in
+    coast_speed_y, change the users of that too.
+    
+    http://bugzilla.redhat.com/813686
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 0de4445ff8e75aab208faf6383e76045934c6720)
+
+commit 04d24116db59872d4cd00f38a0d1c87957fe4914
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 9 12:23:46 2012 +1000
+
+    Don't check for soft buttons if a button is already down
+    
+    Moving into a different soft button's area during drag-n-drop would trigger
+    a click of that button.
+    
+    We only have the current button state and we mess with it, so the conditions
+    for a possible clickpad soft-button event are:
+    - hw->left is down now
+    - none of left|right|middle were down before. since we change hw->left to
+      hw->right/left we need to check all three
+    
+    If hw->left is down but one of the other buttons was already down, copy that
+    button state and continue.
+    
+    http://bugzilla.redhat.com/819348
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+    (cherry picked from commit a1d6784d790f081f8a6ea3a10d3cfa578aa10d5b)
+
+commit 4e8ddb3a6f1ba1f7642f0a23d6f22a8c40d68cf0
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 3 12:00:50 2012 +1000
+
+    whitespace fix
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit d1eebac72e4a5cc7a67efead13fbd32f9cd1fbd9
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 3 14:21:24 2012 +1000
+
+    tools: undo indentation in synclient's parameter list
+    
+    more more readable this way
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+commit 0434d7776640861d0c8c19a02c2445d2f61627f8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu May 3 11:49:31 2012 +1000
+
+    Indent consistently
+    
+    x-indent-all.sh from xorg/util/modular as of
+    c2d630fab65dbe3409af3947f6f442782ddb026f
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
 commit a1162f80324c379bc7581e53275e8ff6d569f8b0
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Thu May 3 08:06:32 2012 +1000

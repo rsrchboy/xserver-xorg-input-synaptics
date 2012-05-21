@@ -16,7 +16,7 @@ Build-Depends:
  quilt,
  xutils-dev (>= 1:7.5+4),
  x11proto-input-dev (>= 2.1.99.5),
- libmtdev-dev,
+ libmtdev-dev [linux-any],
 Build-Conflicts:
  libxtst-dev
 Standards-Version: 3.9.3
