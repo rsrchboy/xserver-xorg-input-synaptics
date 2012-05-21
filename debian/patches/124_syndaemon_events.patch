@@ -22,22 +22,20 @@ probably should not be committed upstream though.
  tools/syndaemon.c |    8 ++++++++
  1 files changed, 8 insertions(+), 0 deletions(-)
 
-Index: xserver-xorg-input-synaptics/tools/syndaemon.c
-===================================================================
---- xserver-xorg-input-synaptics.orig/tools/syndaemon.c	2011-07-05 11:55:06.211347676 +0300
-+++ xserver-xorg-input-synaptics/tools/syndaemon.c	2011-07-05 11:55:19.281347678 +0300
-@@ -429,6 +429,14 @@
- 	        fprintf(stderr, "bad event received, major opcode %d\n", event.type);
- 	    }
+--- a/tools/syndaemon.c
++++ b/tools/syndaemon.c
+@@ -450,6 +450,14 @@
+                         event.type);
+             }
  
-+	    /* If there are any events left over, they are in error. Drain them
-+	     * from the connection queue so we don't get stuck. */
-+	    while (XEventsQueued(dpy_data, QueuedAlready) > 0) {
-+	        XEvent event;
-+	        XNextEvent(dpy_data, &event);
-+	        fprintf(stderr, "bad event received, major opcode %d\n", event.type);
-+	    }
++            /* If there are any events left over, they are in error. Drain them
++             * from the connection queue so we don't get stuck. */
++            while (XEventsQueued(dpy_data, QueuedAlready) > 0) {
++                XEvent event;
++                XNextEvent(dpy_data, &event);
++                fprintf(stderr, "bad event received, major opcode %d\n", event.type);
++            }
 +
- 	    if (!ignore_modifier_keys && cbres.key_event) {
- 		disable_event = 1;
- 	    }
+             if (!ignore_modifier_keys && cbres.key_event) {
+                 disable_event = 1;
+             }

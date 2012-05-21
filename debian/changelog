@@ -1,3 +1,14 @@
+xserver-xorg-input-synaptics (1.6.1-1ubuntu1) UNRELEASED; urgency=low
+
+  * Merged from Debian unstable
+  * Refreshed patches for indentation changes
+    - 101_resolution_detect_option.patch
+    - 118_quell_error_msg.patch
+    - 124_syndaemon_events.patch
+    - 125_option_rec_revert.patch
+
+ -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 21 May 2012 13:50:48 +0200
+
 xserver-xorg-input-synaptics (1.6.1-1) unstable; urgency=low
 
   [ Julien Cristau ]
