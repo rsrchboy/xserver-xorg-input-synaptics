@@ -1,0 +1,44 @@
+From 67a02d676c96d5b3d4729290cd96af0201eb76bb Mon Sep 17 00:00:00 2001
+From: Chun Yang <Chuck.Yang@gmail.com>
+Date: Tue, 15 May 2012 14:51:42 -0500
+Subject: [PATCH 3/6] Fix coasting for negative ScrollDelta
+
+Fix the coasting direction for when VertScrollDelta or HorizScrollDelta is
+negative.
+
+Fixes: https://bugs.freedesktop.org/show_bug.cgi?id=49966
+
+Regression introduced in 0de4445ff8e75aab208faf6383e76045934c6720
+
+Signed-off-by: Chun Yang <Chuck.Yang@gmail.com>
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+(cherry picked from commit 53557a5cab1e253dc8f4393207954ae0fe76068f)
+---
+ src/synaptics.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/synaptics.c b/src/synaptics.c
+index 1d32093..074bcb8 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -2740,7 +2740,7 @@ HandleScrolling(SynapticsPrivate * priv, struct SynapticsHwState *hw,
+         double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
+         double ddy = para->coasting_friction * dtime;
+ 
+-        priv->scroll.delta_y += priv->scroll.coast_speed_y * dtime * para->scroll_dist_vert;
++        priv->scroll.delta_y += priv->scroll.coast_speed_y * dtime * abs(para->scroll_dist_vert);
+         delay = MIN(delay, POLL_MS);
+         if (abs(priv->scroll.coast_speed_y) < ddy) {
+             priv->scroll.coast_speed_y = 0;
+@@ -2755,7 +2755,7 @@ HandleScrolling(SynapticsPrivate * priv, struct SynapticsHwState *hw,
+     if (priv->scroll.coast_speed_x) {
+         double dtime = (hw->millis - priv->scroll.last_millis) / 1000.0;
+         double ddx = para->coasting_friction * dtime;
+-        priv->scroll.delta_x += priv->scroll.coast_speed_x * dtime * para->scroll_dist_vert;
++        priv->scroll.delta_x += priv->scroll.coast_speed_x * dtime * abs(para->scroll_dist_horiz);
+         delay = MIN(delay, POLL_MS);
+         if (abs(priv->scroll.coast_speed_x) < ddx) {
+             priv->scroll.coast_speed_x = 0;
+-- 
+1.7.9.5
+

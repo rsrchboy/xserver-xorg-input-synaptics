@@ -1,0 +1,44 @@
+From 7ccca8e7d8fbf2ccb5a2dbbfbf06ff4dbd6b7149 Mon Sep 17 00:00:00 2001
+From: Peter Hutterer <peter.hutterer@who-t.net>
+Date: Thu, 17 May 2012 12:10:04 +1000
+Subject: [PATCH 6/6] Don't allow for scroll distances of 0 (#49965)
+
+It'll either hang the server or blow up with divisions by 0, whichever one
+comes first.
+
+X.Org Bug 49965 <http://bugs.freedesktop.org/show_bug.cgi?id=49965>
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+(cherry picked from commit 6d47d334d8a876e7e094306c313246b87016b78a)
+---
+ src/properties.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/properties.c b/src/properties.c
+index 44ac306..3b3f1c5 100644
+--- a/src/properties.c
++++ b/src/properties.c
+@@ -519,6 +519,9 @@ SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
+             return BadMatch;
+ 
+         dist = (INT32 *) prop->data;
++        if (dist[0] == 0 || dist[1] == 0)
++            return BadValue;
++
+         if (para->scroll_dist_vert != dist[0]) {
+             para->scroll_dist_vert = dist[0];
+ #ifdef HAVE_SMOOTH_SCROLL
+@@ -715,6 +718,9 @@ SetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
+             return BadMatch;
+ 
+         circdist = *(float *) prop->data;
++        if (circdist == 0)
++            return BadValue;
++
+         para->scroll_dist_circ = circdist;
+     }
+     else if (property == prop_circscroll_trigger) {
+-- 
+1.7.9.5
+

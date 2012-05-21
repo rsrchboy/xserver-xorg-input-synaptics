@@ -6,8 +6,20 @@ xserver-xorg-input-synaptics (1.6.1-1ubuntu1) UNRELEASED; urgency=low
     - 118_quell_error_msg.patch
     - 124_syndaemon_events.patch
     - 125_option_rec_revert.patch
+  * Add temporary patches, for upstream git commits on synaptics-1.6-branch
+  * Fix memory corruption by driver (LP: #941953) FDo #49439
+   - 201-Avoid-out-of-bounds-access-by-running-num_active_tou.patch
+   - 202-Ignore-pre-existing-touches.patch
+  * Fix FDo #49966
+   - 203-Fix-coasting-for-negative-ScrollDelta.patch
+  * Fix jumpy cursor after suspend/resume
+   - 204-Reset-open-slots-array-on-device-disable.patch
+  * Fix another resume bug
+   - 205-Reset-hw-x-y-to-INT_MIN-and-skip-HandleState-until-w.patch
+  * Fix division by 0 or infinite loop with zero scroll distance FDo #49965
+   - 206-Don-t-allow-for-scroll-distances-of-0-49965.patch
 
- -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 21 May 2012 13:50:48 +0200
+ -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 21 May 2012 14:14:49 +0200
 
 xserver-xorg-input-synaptics (1.6.1-1) unstable; urgency=low
 
