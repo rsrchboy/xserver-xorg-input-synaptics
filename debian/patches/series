@@ -19,7 +19,6 @@
 126_ubuntu_xi22.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch
-130_dont_enable_rightbutton_area.patch
 
 # in synaptics-1.6-branch, scheduled for 1.6.2 release
 201-Avoid-out-of-bounds-access-by-running-num_active_tou.patch
