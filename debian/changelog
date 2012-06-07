@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.6.1-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.1-1ubuntu1) quantal; urgency=low
 
   * Merged from Debian unstable
   * Refreshed patches for indentation changes
