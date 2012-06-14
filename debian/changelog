@@ -1,3 +1,28 @@
+xserver-xorg-input-synaptics (1.6.2-1ubuntu1) UNRELEASED; urgency=low
+
+  * Merged from Debian unstable
+  * Removed patches that were cherry picked commits and now in 1.6.2:
+    - 201-Avoid-out-of-bounds-access-by-running-num_active_tou.patch
+    - 202-Ignore-pre-existing-touches.patch
+    - 203-Fix-coasting-for-negative-ScrollDelta.patch
+    - 204-Reset-open-slots-array-on-device-disable.patch
+    - 205-Reset-hw-x-y-to-INT_MIN-and-skip-HandleState-until-w.patch
+    - 206-Don-t-allow-for-scroll-distances-of-0-49965.patch
+  * Remaining patches:
+    - 101_resolution_detect_option.patch
+    - 103_enable_cornertapping.patch
+    - 104_always_enable_tapping.patch
+    - 106_always_enable_vert_edge_scroll.patch
+    - 115_evdev_only.patch
+    - 118_quell_error_msg.patch
+    - 124_syndaemon_events.patch
+    - 125_option_rec_revert.patch
+    - 126_ubuntu_xi22.patch
+    - 128_disable_three_click_action.patch
+    - 129_disable_three_touch_tap.patch
+
+ -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Thu, 14 Jun 2012 09:35:21 +0200
+
 xserver-xorg-input-synaptics (1.6.2-1) unstable; urgency=low
 
   * New upstream release, from the 1.6 branch.

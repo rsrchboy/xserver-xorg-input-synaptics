@@ -19,12 +19,3 @@
 126_ubuntu_xi22.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch
-
-# in synaptics-1.6-branch, scheduled for 1.6.2 release
-201-Avoid-out-of-bounds-access-by-running-num_active_tou.patch
-202-Ignore-pre-existing-touches.patch
-203-Fix-coasting-for-negative-ScrollDelta.patch
-204-Reset-open-slots-array-on-device-disable.patch
-205-Reset-hw-x-y-to-INT_MIN-and-skip-HandleState-until-w.patch
-206-Don-t-allow-for-scroll-distances-of-0-49965.patch
-
