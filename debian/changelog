@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.6.2-1ubuntu2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.2-1ubuntu2) quantal-proposed; urgency=low
 
   * Removed patches:
     - 125_option_rec_revert.patch
