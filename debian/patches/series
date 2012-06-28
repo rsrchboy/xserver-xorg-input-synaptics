@@ -15,7 +15,5 @@
 #121_semi-mt_num_fingers.patch
 #123_order_ProcessTouch_for_numFingers.patch
 124_syndaemon_events.patch
-125_option_rec_revert.patch
-126_ubuntu_xi22.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch

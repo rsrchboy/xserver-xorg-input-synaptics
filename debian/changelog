@@ -1,3 +1,12 @@
+xserver-xorg-input-synaptics (1.6.2-1ubuntu2) UNRELEASED; urgency=low
+
+  * Removed patches:
+    - 125_option_rec_revert.patch
+    - 126_ubuntu_xi22.patch
+  * Bump xserver to 1.12 minimum
+
+ -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Thu, 28 Jun 2012 21:49:46 +0200
+
 xserver-xorg-input-synaptics (1.6.2-1ubuntu1) quantal; urgency=low
 
   * Merged from Debian unstable
