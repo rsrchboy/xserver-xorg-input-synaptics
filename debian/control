@@ -14,7 +14,8 @@ Build-Depends:
  xserver-xorg-dev (>= 2:1.11.99.901),
  pkg-config,
  quilt,
- xutils-dev (>= 1:7.5+4)
+ xutils-dev (>= 1:7.5+4),
+ libmtdev-dev [linux-any],
 Standards-Version: 3.9.2
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
