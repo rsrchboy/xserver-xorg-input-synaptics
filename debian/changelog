@@ -1,6 +1,7 @@
 xserver-xorg-input-synaptics (1.6.2-2) UNRELEASED; urgency=low
 
   * Rebuild against xserver 1.13rc1
+  * Add -dbg package
 
  -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
 

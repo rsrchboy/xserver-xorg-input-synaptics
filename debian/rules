@@ -15,3 +15,7 @@ override_dh_shlibdeps:
 
 %:
 	dh $@ --with quilt,autoreconf,xsf --builddirectory=build/
+
+# Debug package:
+override_dh_strip:
+	dh_strip --dbg-package=xserver-xorg-input-synaptics-dbg
