@@ -1,8 +1,8 @@
-xserver-xorg-input-synaptics (1.6.2-1ubuntu3) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.2-1ubuntu3) quantal-proposed; urgency=low
 
   * control: Bump the build-depends for new xserver.
 
- -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 01 Aug 2012 14:26:22 +0300
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Wed, 01 Aug 2012 14:27:06 +0300
 
 xserver-xorg-input-synaptics (1.6.2-1ubuntu2) quantal-proposed; urgency=low
 
