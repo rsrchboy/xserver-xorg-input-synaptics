@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.6.2-1ubuntu4) UNRELEASED; urgency=low
+
+  * Add -dbg package
+
+ -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
+
 xserver-xorg-input-synaptics (1.6.2-1ubuntu3) quantal-proposed; urgency=low
 
   * control: Bump the build-depends for new xserver.
