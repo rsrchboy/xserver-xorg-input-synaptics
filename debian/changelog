@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.6.2-1ubuntu5) quantal; urgency=low
+
+  * Added 130_reset-num_active_touches-on-deviceoff.patch (LP: #956071)
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Thu, 30 Aug 2012 20:13:39 +0300
+
 xserver-xorg-input-synaptics (1.6.2-1ubuntu4) quantal-proposed; urgency=low
 
   [ Maarten Lankhorst ]
