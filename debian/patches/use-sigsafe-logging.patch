@@ -1,0 +1,89 @@
+commit e28575b29b394b38f1d92b75353fc0fe82838b7c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri May 25 14:20:39 2012 +1000
+
+    Use LogMessageVerbSigSafe on ABI 18
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+
+diff --git a/src/eventcomm.c b/src/eventcomm.c
+index 172a59e..b1d5460 100644
+--- a/src/eventcomm.c
++++ b/src/eventcomm.c
+@@ -508,13 +508,13 @@ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
+     if (len <= 0) {
+         /* We use X_NONE here because it doesn't alloc */
+         if (errno != EAGAIN)
+-            xf86MsgVerb(X_NONE, 0, "%s: Read error %s\n", pInfo->name,
+-                        strerror(errno));
++            LogMessageVerbSigSafe(X_ERROR, 0, "%s: Read error %d\n", pInfo->name,
++                                  errno);
+         rc = FALSE;
+     }
+     else if (len % sizeof(*ev)) {
+-        xf86MsgVerb(X_NONE, 0, "%s: Read error, invalid number of bytes.",
+-                    pInfo->name);
++        LogMessageVerbSigSafe(X_ERROR, 0, "%s: Read error, invalid number of bytes.",
++                              pInfo->name);
+         rc = FALSE;
+     }
+     return rc;
+diff --git a/src/ps2comm.c b/src/ps2comm.c
+index d681167..ed2f751 100644
+--- a/src/ps2comm.c
++++ b/src/ps2comm.c
+@@ -480,8 +480,8 @@ ps2_synaptics_get_packet(InputInfoPtr pInfo, struct PS2SynapticsHwInfo *synhw,
+ 
+         /* to avoid endless loops */
+         if (count++ > 30) {
+-            xf86IDrvMsg(pInfo, X_ERROR,
+-                        "Synaptics driver lost sync... got gigantic packet!\n");
++            LogMessageVerbSigSafe(X_ERROR, 0,
++                                  "Synaptics driver lost sync... got gigantic packet!\n");
+             return FALSE;
+         }
+ 
+@@ -534,8 +534,8 @@ PS2ReadHwStateProto(InputInfoPtr pInfo,
+ 
+     synhw = (struct PS2SynapticsHwInfo *) priv->proto_data;
+     if (!synhw) {
+-        xf86IDrvMsg(pInfo, X_ERROR,
+-                    "PS2ReadHwState, synhw is NULL. This is a bug.\n");
++        LogMessageVerbSigSafe(X_ERROR, 0,
++                              "PS2ReadHwState, synhw is NULL. This is a bug.\n");
+         return FALSE;
+     }
+ 
+diff --git a/src/synapticsstr.h b/src/synapticsstr.h
+index 0acb2ec..f6cbb4a 100644
+--- a/src/synapticsstr.h
++++ b/src/synapticsstr.h
+@@ -24,6 +24,10 @@
+ 
+ #include "synproto.h"
+ 
++#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 18
++#define LogMessageVerbSigSafe xf86MsgVerb
++#endif
++
+ #ifdef DBG
+ #undef DBG
+ #endif
+diff --git a/test/fake-symbols.c b/test/fake-symbols.c
+index 173e1af..4674ea1 100644
+--- a/test/fake-symbols.c
++++ b/test/fake-symbols.c
+@@ -317,6 +317,12 @@ xf86IDrvMsg(InputInfoPtr dev, MessageType type, const char *format, ...)
+ }
+ 
+ _X_EXPORT void
++LogMessageVerbSigSafe(MessageType type, int verb, const char *format, ...)
++{
++    return;
++}
++
++_X_EXPORT void
+ xf86PostMotionEventP(DeviceIntPtr device,
+                      int is_absolute, int first_valuator, int num_valuators,
+                      const int *valuators)
