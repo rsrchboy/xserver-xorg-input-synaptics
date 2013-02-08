@@ -1,8 +1,12 @@
 xserver-xorg-input-synaptics (1.6.3-1) UNRELEASED; urgency=low
 
+  [ Maarten Lankhorst ]
   * New upstream release.
   * Rebuild against xserver 1.13rc1
   * Add -dbg package
+
+  [ Timo Aaltonen ]
+  * control: Bump policy to 3.9.4, no changes.
 
  -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
 
