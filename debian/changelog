@@ -1,9 +1,17 @@
-xserver-xorg-input-synaptics (1.6.2-2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.2-3) UNRELEASED; urgency=low
 
   * Rebuild against xserver 1.13rc1
   * Add -dbg package
 
  -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
+
+xserver-xorg-input-synaptics (1.6.2-2) unstable; urgency=low
+
+  * Pull latest synaptics-1.6-branch:
+    - Reset num_active_touches on DeviceOff (closes: #681796).  Fixes memory
+      corruption leading to crashes.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 01 Oct 2012 21:55:06 +0200
 
 xserver-xorg-input-synaptics (1.6.2-1) unstable; urgency=low
 

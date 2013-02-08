@@ -1,3 +1,33 @@
+commit eae444eb1a85d2401501d29f9a6c654c046f806b
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Aug 30 16:38:38 2012 +1000
+
+    Reset num_active_touches on DeviceOff (#52496)
+    
+    When disabling the device, reset num_active_touches to zero. Otherwise,
+    num_active_touches stays at the value it was on DeviceOff(). Future touches
+    add to that value until the index may go past priv->open_slots[].
+    That causes spurious memory corruption on touch ends.
+    
+    And as of 55fc42e7c9b4948cadd4f98ef7b6a3b12e268e3e we ignore pre-existing
+    touches anyway.
+    
+    Test-case:
+    - place num_touches fingers on the touchpad
+    - xinput disable <device>
+    - lift fingers
+    - xinput enable <device>
+    - place finger on device, num_active_touches is now (num_touches + 1)
+    
+    X.Org Bug 52496 <http://bugs.freedesktop.org/show_bug.cgi?id=52496>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Chase Douglas <chase.douglas@canonical.com>
+    (cherry picked from commit a245d42f53096b1ae81e6702729f97ca508e5b5b)
+    
+    Conflicts:
+    	src/synaptics.c
+
 commit d5ff9d8b0b186cf39695df84a10984eac559b746
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Tue Jun 12 13:46:34 2012 +1000
