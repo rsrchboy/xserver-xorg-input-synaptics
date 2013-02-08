@@ -1,5 +1,6 @@
-xserver-xorg-input-synaptics (1.6.2-3) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.3-1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * Rebuild against xserver 1.13rc1
   * Add -dbg package
 
