@@ -17,5 +17,3 @@
 124_syndaemon_events.patch
 128_disable_three_click_action.patch
 129_disable_three_touch_tap.patch
-130_reset-num_active_touches-on-deviceoff.patch
-use-sigsafe-logging.patch
