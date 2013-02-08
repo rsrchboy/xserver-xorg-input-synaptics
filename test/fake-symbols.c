@@ -85,12 +85,6 @@ xf86NameCmp(const char *s1, const char *s2)
     return 0;
 }
 
-_X_EXPORT char *
-xf86CheckStrOption(OPTTYPE optlist, const char *name, char *deflt)
-{
-    return NULL;
-}
-
 _X_EXPORT void
 xf86AddEnabledDevice(InputInfoPtr pInfo)
 {
@@ -322,6 +316,12 @@ xf86MsgVerb(MessageType type, int verb, const char *format, ...)
 
 _X_EXPORT void
 xf86IDrvMsg(InputInfoPtr dev, MessageType type, const char *format, ...)
+{
+    return;
+}
+
+_X_EXPORT void
+LogMessageVerbSigSafe(MessageType type, int verb, const char *format, ...)
 {
     return;
 }
