@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.6.3-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
 
   [ Maarten Lankhorst ]
   * New upstream release.
