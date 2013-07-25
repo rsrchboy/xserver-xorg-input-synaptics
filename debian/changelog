@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.7.1-0ubuntu1) UNRELEASED; urgency=low
+
+  * Merge from unreleased debian git.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Thu, 25 Jul 2013 15:32:00 +0200
+
 xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
 
   [ Maarten Lankhorst ]
