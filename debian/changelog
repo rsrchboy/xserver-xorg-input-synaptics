@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.6.3-0ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.6.3-0ubuntu1.1) raring; urgency=low
 
   * Merge from unreleased debian git.
   * 130_reset-num_active_touches-on-deviceoff.patch, use-sigsafe-logging.patch:
