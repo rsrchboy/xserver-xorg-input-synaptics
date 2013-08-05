@@ -8,6 +8,9 @@ xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
   [ Timo Aaltonen ]
   * control: Bump policy to 3.9.4, no changes.
 
+  [ Michele Cane ]
+  * Build against Xserver 1.14.
+
  -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
 
 xserver-xorg-input-synaptics (1.6.2-2) unstable; urgency=low
