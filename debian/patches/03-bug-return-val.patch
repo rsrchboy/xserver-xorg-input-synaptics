@@ -1,0 +1,14 @@
+diff --git a/src/synaptics.c b/src/synaptics.c
+index eb38271..24d4674 100644
+--- a/src/synaptics.c
++++ b/src/synaptics.c
+@@ -2461,7 +2461,9 @@ clickpad_guess_clickfingers(SynapticsPrivate * priv,
+     uint32_t close_point = 0; /* 1 bit for each point close to another one */
+     int i, j;
+ 
++#ifdef BUG_RETURN_VAL
+     BUG_RETURN_VAL(hw->num_mt_mask > sizeof(close_point) * 8, 0);
++#endif
+ 
+     for (i = 0; i < hw->num_mt_mask - 1; i++) {
+         ValuatorMask *f1;
