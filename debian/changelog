@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.7.1-1) unstable; urgency=low
 
   [ Maarten Lankhorst ]
   * New upstream release.
@@ -10,7 +10,7 @@ xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
   [ Julien Cristau ]
   * Don't use BUG_RETURN_VAL if it's not defined (added in xserver 1.13)
 
- -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
+ -- Julien Cristau <jcristau@debian.org>  Thu, 05 Sep 2013 22:27:28 +0200
 
 xserver-xorg-input-synaptics (1.6.2-2) unstable; urgency=low
 
