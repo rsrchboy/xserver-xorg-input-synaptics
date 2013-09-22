@@ -1,9 +1,9 @@
-xserver-xorg-input-synaptics (1.7.1-2) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.7.1-2) unstable; urgency=low
 
   * Add Breaks on kde-config-touchpad (<< 0.8.1-2~) because of #722058
     (closes: #722006).
 
- -- Julien Cristau <jcristau@debian.org>  Sun, 22 Sep 2013 15:42:38 +0200
+ -- Julien Cristau <jcristau@debian.org>  Sun, 22 Sep 2013 16:17:34 +0200
 
 xserver-xorg-input-synaptics (1.7.1-1) unstable; urgency=low
 
