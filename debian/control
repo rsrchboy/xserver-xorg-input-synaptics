@@ -30,6 +30,8 @@ Conflicts: xorg-driver-synaptics
 Replaces: xorg-driver-synaptics
 Provides: ${xinpdriver:Provides}, xorg-driver-synaptics
 Suggests: gpointing-device-settings, touchfreeze
+Breaks:
+ kde-config-touchpad (<< 0.8.1-2~),
 Description: Synaptics TouchPad driver for X.Org server
  This package provides an input driver for the X.Org X server to enable
  advanced features of the Synaptics Touchpad including:
