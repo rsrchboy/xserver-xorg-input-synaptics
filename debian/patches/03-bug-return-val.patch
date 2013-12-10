@@ -1,8 +1,8 @@
-diff --git a/src/synaptics.c b/src/synaptics.c
-index eb38271..24d4674 100644
---- a/src/synaptics.c
-+++ b/src/synaptics.c
-@@ -2461,7 +2461,9 @@ clickpad_guess_clickfingers(SynapticsPrivate * priv,
+Index: xserver-xorg-input-synaptics.git/src/synaptics.c
+===================================================================
+--- xserver-xorg-input-synaptics.git.orig/src/synaptics.c	2013-12-10 13:41:57.754590117 +0100
++++ xserver-xorg-input-synaptics.git/src/synaptics.c	2013-12-10 13:41:57.754590117 +0100
+@@ -2466,7 +2466,9 @@
      uint32_t close_point = 0; /* 1 bit for each point close to another one */
      int i, j;
  
