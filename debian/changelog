@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.7.2-1) UNRELEASED; urgency=medium
+xserver-xorg-input-synaptics (1.7.2-1) unstable; urgency=medium
 
   [ Michele Cane ]
   * New upstream release.
@@ -8,7 +8,7 @@ xserver-xorg-input-synaptics (1.7.2-1) UNRELEASED; urgency=medium
   [ Julien Cristau ]
   * Disable silent build rules and silent test failures.
 
- -- Michele Cane <michele.cane@gmail.com>  Tue, 10 Dec 2013 13:38:48 +0100
+ -- Julien Cristau <jcristau@debian.org>  Sun, 15 Dec 2013 19:07:48 +0100
 
 xserver-xorg-input-synaptics (1.7.1-2) unstable; urgency=low
 
