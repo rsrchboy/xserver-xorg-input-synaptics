@@ -1,8 +1,9 @@
-xserver-xorg-input-synaptics (1.7.3-1) UNRELEASED; urgency=medium
+xserver-xorg-input-synaptics (1.7.3-1) unstable; urgency=medium
 
+  [ Michele Cane ]
   * New upstream release.
 
- -- Michele Cane <michele.cane@gmail.com>  Mon, 13 Jan 2014 10:40:31 +0100
+ -- Julien Cristau <jcristau@debian.org>  Sun, 19 Jan 2014 11:46:16 +0100
 
 xserver-xorg-input-synaptics (1.7.2-1) unstable; urgency=medium
 
