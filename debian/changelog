@@ -13,6 +13,12 @@ xserver-xorg-input-synaptics (1.7.3-1ubuntu1) trusty; urgency=low
 
  -- Robert Hooker <sarvatt@ubuntu.com>  Thu, 06 Feb 2014 11:11:26 -0500
 
+xserver-xorg-input-synaptics (1.7.1-0ubuntu2) trusty; urgency=medium
+
+  * Rebuild for xorg 1.15 abi.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Wed, 05 Feb 2014 09:40:08 +0000
+
 xserver-xorg-input-synaptics (1.7.3-1) unstable; urgency=medium
 
   [ Michele Cane ]
