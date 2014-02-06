@@ -9,6 +9,7 @@ xserver-xorg-input-synaptics (1.7.3-1ubuntu1) UNRELEASED; urgency=low
     - 120_active_touches_num_fingers.patch
     - 121_semi-mt_num_fingers.patch
     - 123_order_ProcessTouch_for_numFingers.patch  
+  * Fixes xserver 1.15 compatibility. (LP: #1276875)
 
  -- Robert Hooker <sarvatt@ubuntu.com>  Thu, 06 Feb 2014 11:11:26 -0500
 
