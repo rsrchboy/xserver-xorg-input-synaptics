@@ -1,6 +1,6 @@
 #01-synaptics-dont-grab-if-not-on-current-VT.patch
 02-do-not-use-synaptics-for-keyboards.patch
-
+03-bug-return-val.patch
 101_resolution_detect_option.patch
 103_enable_cornertapping.patch
 104_always_enable_tapping.patch

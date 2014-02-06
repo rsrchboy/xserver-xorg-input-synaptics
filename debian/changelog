@@ -1,20 +1,42 @@
-xserver-xorg-input-synaptics (1.7.1-0ubuntu1) saucy; urgency=low
+xserver-xorg-input-synaptics (1.7.3-1) unstable; urgency=medium
 
-  * Merge from unreleased debian git.
+  [ Michele Cane ]
+  * New upstream release.
 
- -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Thu, 25 Jul 2013 15:35:14 +0200
+ -- Julien Cristau <jcristau@debian.org>  Sun, 19 Jan 2014 11:46:16 +0100
 
-xserver-xorg-input-synaptics (1.7.1-1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.7.2-1) unstable; urgency=medium
+
+  [ Michele Cane ]
+  * New upstream release.
+  * Bump Standard-Version to 3.9.5, no changes needed.
+  * Refresh patches.
+
+  [ Julien Cristau ]
+  * Disable silent build rules and silent test failures.
+
+ -- Julien Cristau <jcristau@debian.org>  Sun, 15 Dec 2013 19:07:48 +0100
+
+xserver-xorg-input-synaptics (1.7.1-2) unstable; urgency=low
+
+  * Add Breaks on kde-config-touchpad (<< 0.8.1-2~) because of #722058
+    (closes: #722006).
+
+ -- Julien Cristau <jcristau@debian.org>  Sun, 22 Sep 2013 16:17:34 +0200
+
+xserver-xorg-input-synaptics (1.7.1-1) unstable; urgency=low
 
   [ Maarten Lankhorst ]
   * New upstream release.
-  * Rebuild against xserver 1.13rc1
   * Add -dbg package
 
   [ Timo Aaltonen ]
   * control: Bump policy to 3.9.4, no changes.
 
- -- Maarten Lankhorst <maarten.lankhorst@canonical.com>  Mon, 16 Jul 2012 14:15:22 +0200
+  [ Julien Cristau ]
+  * Don't use BUG_RETURN_VAL if it's not defined (added in xserver 1.13)
+
+ -- Julien Cristau <jcristau@debian.org>  Thu, 05 Sep 2013 22:27:28 +0200
 
 xserver-xorg-input-synaptics (1.6.3-0ubuntu1.1) raring; urgency=low
 
