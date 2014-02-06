@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.7.3-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.7.3-1ubuntu1) trusty; urgency=low
 
   * Merge from debian-unstable.
   * Drop long disabled patches from the archive.
