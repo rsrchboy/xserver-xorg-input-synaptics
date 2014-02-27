@@ -10,14 +10,13 @@ Build-Depends:
  libx11-dev,
  libxext-dev,
  libxi-dev (>= 2:1.2.0),
+ libxtst-dev,
  x11proto-core-dev,
  xserver-xorg-dev (>= 2:1.12),
  pkg-config,
  quilt,
  xutils-dev (>= 1:7.5+4),
  libmtdev-dev [linux-any],
-Build-Conflicts:
- libxtst-dev
 Standards-Version: 3.9.5
 Vcs-Git: git://git.debian.org/git/pkg-xorg/driver/xserver-xorg-input-synaptics
 Vcs-Browser: http://git.debian.org/?p=pkg-xorg/driver/xserver-xorg-input-synaptics.git
