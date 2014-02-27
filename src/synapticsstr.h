@@ -55,10 +55,15 @@
 #define SYNAPTICS_MAX_TOUCHES	10
 #define SYN_MAX_BUTTONS 12      /* Max number of mouse buttons */
 
+/* Minimum and maximum values for scroll_button_repeat */
+#define SBR_MIN 10
+#define SBR_MAX 1000
+
 enum OffState {
     TOUCHPAD_ON = 0,
     TOUCHPAD_OFF = 1,
     TOUCHPAD_TAP_OFF = 2,
+    TOUCHPAD_CLICK_ONLY = 3
 };
 
 enum TapEvent {
@@ -155,6 +160,7 @@ typedef struct _SynapticsParameters {
     int tap_time_2;             /* max. tapping time for double taps */
     int click_time;             /* The duration of a single click */
     Bool clickpad;              /* Device is a has integrated buttons */
+    int clickpad_ignore_motion_time; /* Ignore motion for X ms after a click */
     int emulate_mid_button_time;        /* Max time between left and right button presses to
                                            emulate a middle button press. */
     int emulate_twofinger_z;    /* pressure threshold to emulate two finger touch (for Alps) */
@@ -168,10 +174,17 @@ typedef struct _SynapticsParameters {
     Bool scroll_twofinger_horiz;        /* Enable/disable horizontal two-finger scrolling */
     double min_speed, max_speed, accl;  /* movement parameters */
 
+    Bool updown_button_scrolling;       /* Up/Down-Button scrolling or middle/double-click */
+    Bool leftright_button_scrolling;    /* Left/right-button scrolling, or two lots of middle button */
+    Bool updown_button_repeat;  /* If up/down button being used to scroll, auto-repeat? */
+    Bool leftright_button_repeat;       /* If left/right button being used to scroll, auto-repeat? */
+    int scroll_button_repeat;   /* time, in milliseconds, between scroll events being
+                                 * sent when holding down scroll buttons */
     int touchpad_off;           /* Switches the touchpad off
                                  * 0 : Not off
                                  * 1 : Off
                                  * 2 : Only tapping and scrolling off
+                                 * 3 : All but physical clicks off
                                  */
     Bool locked_drags;          /* Enable locked drags */
     int locked_drag_time;       /* timeout for locked drags */
@@ -180,6 +193,7 @@ typedef struct _SynapticsParameters {
     Bool circular_scrolling;    /* Enable circular scrolling */
     double scroll_dist_circ;    /* Scrolling angle radians */
     int circular_trigger;       /* Trigger area for circular scrolling */
+    Bool circular_pad;          /* Edge has an oval or circular shape */
     Bool palm_detect;           /* Enable Palm Detection */
     int palm_min_width;         /* Palm detection width */
     int palm_min_z;             /* Palm detection depth */
@@ -194,7 +208,7 @@ typedef struct _SynapticsParameters {
     unsigned int resolution_horiz;      /* horizontal resolution of touchpad in units/mm */
     unsigned int resolution_vert;       /* vertical resolution of touchpad in units/mm */
     int area_left_edge, area_right_edge, area_top_edge, area_bottom_edge;       /* area coordinates absolute */
-    int softbutton_areas[2][4]; /* soft button area coordinates, 0 => right, 1 => middle button */
+    int softbutton_areas[4][4]; /* soft button area coordinates, 0 => right, 1 => middle , 2 => secondary right, 3 => secondary middle button */
     int hyst_x, hyst_y;         /* x and y width of hysteresis box */
 } SynapticsParameters;
 
@@ -205,11 +219,10 @@ struct _SynapticsPrivateRec {
     void *proto_data;           /* protocol-specific data */
 
     struct SynapticsHwState *hwState;
-    struct SynapticsHwState *old_hw_state;      /* previous logical hw state */
 
     const char *device;         /* device node */
     CARD32 timer_time;          /* when timer last fired */
-    OsTimerPtr timer;           /* for tap processing, etc */
+    OsTimerPtr timer;           /* for up/down-button repeat, tap processing, etc */
 
     struct CommData comm;
 
@@ -237,6 +250,8 @@ struct _SynapticsPrivateRec {
     Bool prev_up;               /* Previous up button value, for double click emulation */
     enum FingerState finger_state;      /* previous finger state */
     CARD32 last_motion_millis;  /* time of the last motion */
+    Bool inside_button_area;    /* Inside button area (ignore motion) */
+    int clickpad_click_millis;  /* Time of last clickpad click */
 
     enum TapState tap_state;    /* State of tap processing */
     int tap_max_fingers;        /* Max number of fingers seen since entering start state */
@@ -254,6 +269,8 @@ struct _SynapticsPrivateRec {
                                    False: Generate horizontal events */
     double frac_x, frac_y;      /* absolute -> relative fraction */
     enum MidButtonEmulation mid_emu_state;      /* emulated 3rd button */
+    int repeatButtons;          /* buttons for repeat */
+    int nextRepeat;             /* Time when to trigger next auto repeat event */
     int lastButtons;            /* last state of the buttons */
     int prev_z;                 /* previous z value, for palm detection */
     int prevFingers;            /* previous numFingers, for transition detection */
