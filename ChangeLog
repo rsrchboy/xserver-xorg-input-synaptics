@@ -1,29 +1,360 @@
-commit 90d93891be0dcc55d87c349ab438144ead818402
+commit c431d900f54696f608312ea51b1fa671839f7d42
 Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Mon Jan 13 15:14:06 2014 +1000
+Date:   Wed Feb 26 15:30:55 2014 +1000
 
-    synaptics 1.7.3
+    man: fix documentation about the new touchpad state
+    
+    leftover from an earlier revision
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit b227ca373de79fe6852ac09e71465c048790cd5b
+commit bbe4c56c4998a90b478581a4d93717251d8e05be
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:44 2014 +0100
+
+    Wait for *new* coordinates on a clickpad click before reporting the click
+    
+    It is possible for a click to get reported before any related touch events
+    get reported, here is the relevant part of an evemu-record session on a T440s:
+    
+    E: 3.985585 0000 0000 0000	# ------------ SYN_REPORT (0) ----------
+    E: 3.997419 0003 0039 -001	# EV_ABS / ABS_MT_TRACKING_ID   -1
+    E: 3.997419 0001 014a 0000	# EV_KEY / BTN_TOUCH            0
+    E: 3.997419 0003 0018 0000	# EV_ABS / ABS_PRESSURE         0
+    E: 3.997419 0001 0145 0000	# EV_KEY / BTN_TOOL_FINGER      0
+    E: 3.997419 0000 0000 0000	# ------------ SYN_REPORT (0) ----------
+    E: 5.117881 0001 0110 0001	# EV_KEY / BTN_LEFT             1
+    E: 5.117881 0000 0000 0000	# ------------ SYN_REPORT (0) ----------
+    E: 5.133422 0003 0039 0187	# EV_ABS / ABS_MT_TRACKING_ID   187
+    E: 5.133422 0003 0035 3098	# EV_ABS / ABS_MT_POSITION_X    3098
+    E: 5.133422 0003 0036 3282	# EV_ABS / ABS_MT_POSITION_Y    3282
+    E: 5.133422 0003 003a 0046	# EV_ABS / ABS_MT_PRESSURE      46
+    E: 5.133422 0001 014a 0001	# EV_KEY / BTN_TOUCH            1
+    E: 5.133422 0003 0000 3102	# EV_ABS / ABS_X                3102
+    E: 5.133422 0003 0001 3282	# EV_ABS / ABS_Y                3282
+    E: 5.133422 0003 0018 0046	# EV_ABS / ABS_PRESSURE         46
+    E: 5.133422 0001 0145 0001	# EV_KEY / BTN_TOOL_FINGER      1
+    E: 5.133422 0000 0000 0000	# ------------ SYN_REPORT (0) ----------
+    
+    Notice the BTN_LEFT event all by itself!
+    
+    If this happens, it may lead to the following problem scenario:
+    -touch the touchpad in its right click area
+    -let go of the touchpad
+    -rapidly click in the middle area, so that BTN_LEFT gets reported before the
+     new coordinates (such as seen in the trace above, this may require some
+     practicing with evemu-record to reproduce)
+    -the driver registers the click as a right click because it uses the
+     old coordinates from the cumulative coordinates to determine the
+     click location
+    
+    This commit fixes this by:
+    1) Resetting the cumulative coordinates not only when no button is pressed,
+       but also when there is no finger touching the touchpad, so that when
+       we do get a touch the cumulative coordinates start at the right place
+    2) Delaying processing the BTN_LEFT down transition if there is no finger
+       touching the touchpad
+    
+    This approach has one downside, if we wrongly identify a touchpad as
+    a clickpad, then the left button won't work unless the user touches the
+    touchpad while clicking the left button.
+    
+    If we want we can fix this by doing something like this:
+    1) Making update_hw_button_state return a delay; and
+    2) Tracking that we've delayed BTN_LEFT down transition processing; and
+    3) When we've delayed BTN_LEFT down transition return a small delay value; and
+    4) If when we're called again we still don't have a finger down, just
+       treat the click as a BTN_LEFT
+    
+    But this is not worth the trouble IMHO, the proper thing to do in this
+    scenario is to fix the mis-identification of the touchpad as a clickpad.
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 743c45b9cfd057d00c37dab1cfca4b6202fb2642
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:43 2014 +0100
+
+    On button down update cumulative to current x and y, instead of previous
+    
+    When a button click and new coordinates get reported in one go we sync the
+    cumulative coordinates to the old x and y, rather then the newly reported ones.
+    
+    This keeping of the old coordinates causes the following issue:
+    -touch the touchpad in its right click area
+    -let go of the touchpad
+    -rapidly click in the left click area (or middle area), so that the
+     new location and the click get reported in one syn (may require some
+     practicing with evemu-record to reproduce)
+    -the driver registers the click as a right click because it uses the
+     old coordinates from the cumulative coordinates to determine the
+     click location
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 71652fe1f0800b081ba5602e9edda22a8d8d628e
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:42 2014 +0100
+
+    Ignore motion the first X ms after a clickpad click
+    
+    This fixes my #1 anoyance with clickpads, where 2 out of 3 clicks turn into
+    a click + drag unless I hold my finger really really still.
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    
+    Replaced property with a hardcoded 100ms. This is not something that we should
+    expose as property, we should find a delay that works best and live with it.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3adaf4623845dce54129b6474f4f8f2966f9bc47
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:41 2014 +0100
+
+    Don't report motion inside soft-button areas
+    
+    Unless the motion has started outside the soft-button area.
+    
+    Note that we must start reporting motions regardless of whether we think we're
+    in the button area or not as soon as we've switched to using cumulative
+    coordinates, since then the coordinates are no longer absolute.
+    
+    This fixes the reporting of unintended motion just before a click in a soft
+    button area which sometimes causes mis-clicks.
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit effeee86c1c286cd09ab750efc4932790dd560dd
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:40 2014 +0100
+
+    Get rid of old_hw_state
+    
+    We only use it to store button state which we already have in
+    priv->lastButtons.
+    
+    While at it also properly indent the code block checking the various
+    soft button areas.
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 840670508e0150ae11ae744c676253c7fba332dc
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Fri Feb 21 10:31:39 2014 +0100
+
+    Add an enum for the different soft_button_areas
+    
+    While at it also move the enum for the soft button edges out of
+    is_inside_button_area() so that it can be used elsewhere too.
+    
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit eea73358760c7ff9c9dac061f265753637c6f25c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Feb 21 10:31:37 2014 +0100
+
+    Add another third state to TouchpadOff for disabling all but button clicks
+    
+    On a new set of laptops like the Lenovo T440 the trackstick does not have
+    physical buttons. Instead, the touchpad's top edge is supposed to acts
+    software button area. To avoid spurious cursor jumps when the trackstick is in
+    use and the finger is resting on the touchpad, add another mode that disables
+    motion events.
+    
+    Enabled by syndaemon with -t click-only, the default stays unchanged. No
+    specific integration with the traditional disable-while-typing is needed. On
+    such touchpads, disabling motion events is sufficient to avoid spurious
+    events and we don't want to stop HW buttons to send events.
+    
+    Note that this only adds the new state to the driver and to syndaemon, there
+    is nothing hooked up otherwise to actually monitor the trackstick.
+    
+    Special note for syndaemon: optional arguments are a GNU extension, so work
+    around it by messing with an optstring starting with ":" which allows us to
+    manually parse the options.
+    
+    Original version of this patch by John Pham <jhnphm@gmail.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ac78616d074f2d248543411c106f0d1befeef58d
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Feb 22 01:44:38 2014 -0800
+
+    When re-opening evdev, set the fd before trying to grab
+    
+    If we try to grab the evdev device before we've set the new file
+    descriptor, libevdev_grab returns -EFAULT, which causes DeviceOn to
+    fail.
+    
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 22fe8bdc6668e78853768c62f4d1331114c7eca0
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Feb 22 01:44:37 2014 -0800
+
+    Close device if DeviceOnHook fails
+    
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 402cc872570b58b8420e7973d0706f3b2a2aaf91
+Author: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date:   Thu Feb 20 13:13:18 2014 -0500
+
+    Add secondary (top) software buttons area
+    
+    New generation of laptops with trackstick do not have physical buttons
+    associated with the trackstick, but instead rely on software buttons at
+    the top of the clickpad.
+    Adding a secondary software button area for this purpose.
+    As we're likely detecting the devices that need it based on udev tags
+    and MatchTag configuration items, this area doesn't need to be exposed
+    through properties. So static configuration is fine.
+    
+    Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    
+    [couple of man-page additions and rewrites]
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 945acfc261707be78cbc5438c22b061e20076004
+Author: Hans de Goede <hdegoede@redhat.com>
+Date:   Wed Feb 19 18:30:35 2014 +0100
+
+    Allow using the entire touchpad for motions started inside the active area
+    
+    synaptics offers an option to make parts of the touchpad insensitive. This
+    is ie useful to do palm avoidance rather then palm detection (which may be
+    unreliable) by disabling an area of 15% on the right and left side of the
+    touchpad.
+    
+    Currently a motion which has started inside the active area, stops as soon
+    as it moves outside of the active area.
+    
+    If a motion started inside the active area and thus has already generated some
+    move events, this makes no sense. If the user moves outside of the active
+    area in this case, this is very likely because the user wants to continue
+    the motion.
+    
+    This commit allows such motions to continue normally.
+    
+    I would like to thank Juerd Waalboer for the basic idea, some coding and lots
+    of testing for this fix.
+    
+    Cc: Juerd Waalboer <juerd@tnx.nl>
+    Reported-by: Juerd Waalboer <juerd@tnx.nl>
+    Tested-by: Juerd Waalboer <juerd@tnx.nl>
+    Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 2ea76fad6545a712713de1a09965158805e83c55
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Feb 18 10:14:37 2014 +1000
+
+    man: setting scroll deltas to 0 doesn't work (#75074)
+    
+    6d47d33 disallows a zero value for horizontal/vertical scroll deltas but the
+    man page wasn't updated. We've added separate toggles to enable/disable
+    scrolling a few years ago, setting the distance to 0 is not recommended.
+    
+    X.Org Bug 75074 <http://bugs.freedesktop.org/show_bug.cgi?id=75074>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 4f543ce1d6ae9ca11086a3009d149505590584a8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Feb 13 14:55:12 2014 +1000
+
+    Revert "Drop circular pad support"
+    
+    This reverts commit 3b02e7fd81da4b100fb9ac32378f6d50f54cf0e2.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    
+    Conflicts:
+    	man/synaptics.man
+    	src/synaptics.c
+    
+    Acked-by: Daniel Stone <daniel@fooishbar.org>
+
+commit 5d8cdaf4b1552c12fe6626059b9af4a6da6491e9
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Feb 10 08:57:19 2014 +1000
+
+    Drop the half-baked test suite
+    
+    This suite was never really maintained anyway, and it is quite hard to do so
+    anyway. The driver is linked to the server's API too tightly to easily do
+    independent testing. We need to re-implement stubs for the API the driver
+    uses, have to track API changes, etc. Not worth the effort.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e0069c154440305ece6def92a9813a9f8004b2fb
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Jan 17 08:24:35 2014 +1000
+
+    Revert "Purge scrollbuttons (repeat)"
+    
+    This reverts commit 0903d99ada1755f11a2a5cbf89a345de896e18ec.
+    
+    Scroll buttons are still present in some modern devices, e.g. the Fujitsu
+    Lifebook E782 and others in the series.
+    
+    Conflicts:
+    	include/synaptics.h
+    	man/synaptics.man
+    	src/synaptics.c
+
+commit 48fbf44a3903bc6975add21be35586914a53c310
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Jan 17 08:18:03 2014 +1000
+
+    Bump to 1.7.99
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 51b6bf3c1083638527b18696c2b682fd78c97070
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Dec 16 09:43:40 2013 +1000
+
+    On clickpads with two touchpoints, try to detect clickfinger 3 actions
+    
+    Some touchpads provide BTN_TOOL_TRIPLETAP but do not track more than two
+    touchpoints. For those, try to detect clickfinger3 actions as best as we can.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    (cherry picked from commit 9388b54a109bbd634e05611e6c90110d698f13d1)
+
+commit 49fe70e99d1b0932ab915824c78f952a0fdb3ee7
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Jan 3 11:23:22 2014 +1000
 
     Fix ABI detection for in-driver scaling
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit 49fe70e99d1b0932ab915824c78f952a0fdb3ee7)
 
-commit 88d926d12a1f5c06ee2825de5bc4b2222ec29c78
+commit 29318c1d94510cfb6d5d712e912af111f99edb42
 Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Mon Dec 9 11:28:23 2013 +1000
+Date:   Thu Dec 5 09:31:11 2013 +1000
 
-    synaptics 1.7.2
+    Add missing property handler for the pressure motion factor
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
 
-commit 61243ada3e1e10f6d32a899a6cc595efa244eb25
+commit 5d391e352f4e502ada6444a7ce860683e3480fbf
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Wed Dec 4 07:58:26 2013 +1000
 
@@ -32,21 +363,52 @@ Date:   Wed Dec 4 07:58:26 2013 +1000
     For symmetry, the kernel should ungrab when we close the fd.
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    
-    [modified for the 1.7 branch which isn't using libevdev yet]
-    
-    (cherry picked from commit 5d391e352f4e502ada6444a7ce860683e3480fbf)
 
-commit 09ac39309fbee01aa047dab1b0f577dc2571cdd1
+commit 3b9267e5a67a153675174818114e390e17c61f2d
 Author: Peter Hutterer <peter.hutterer@who-t.net>
-Date:   Thu Dec 5 09:31:11 2013 +1000
+Date:   Wed Nov 6 10:52:55 2013 +1000
 
-    Add missing property handler for the pressure motion factor
+    Drop edge speed from get_delta
+    
+    Always 0 anyway, and the feature was purged in
+    xf86-input-synaptics-1.6.0-8-g54f65f3
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit 29318c1d94510cfb6d5d712e912af111f99edb42)
 
-commit f4ddbde165843924195b08551d7d6d6200c44b23
+commit 0fc2679c4d148f9753e1964d7df8b00dc94401f6
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Nov 4 15:23:39 2013 +1000
+
+    autogen.sh: support NOCONFIGURE=1
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 03b4faeadfb50b26452dd2f494540b0f5a8b7399
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Nov 4 15:22:31 2013 +1000
+
+    Drop maintainer mode
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 41840a656f5c790b49fe798b9d99136c23e09a5f
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed May 29 15:07:44 2013 +1000
+
+    Switch to libevdev for the eventcomm backend
+    
+    This has a potential bug that would need to be fixed in mtdev first:
+    if we get a SYN_DROPPED and we miss out on events, the current code emulates a
+    normal EV_SYN, feeds that to mtdev and hopes that that fills the mtdev output
+    queue.
+    
+    If mtdev doesn't generate events on that EV_SYN, we're stuck in limbo and may
+    get weird results. The loop will continue and sync the device, but there's the
+    off chance we get odd events.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0fb59b3487d57523a03f078a2061e2ea0cacbc7c
 Author: Peter Hutterer <peter.hutterer@who-t.net>
 Date:   Fri Jul 19 11:08:43 2013 +1000
 
@@ -57,7 +419,6 @@ Date:   Fri Jul 19 11:08:43 2013 +1000
     scale, so we deactivate those bits in the driver.
     
     Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
-    (cherry picked from commit 0fb59b3487d57523a03f078a2061e2ea0cacbc7c)
 
 commit 96cf04dce19e7c90bc05b8b3b192b5bfb97381d2
 Author: Peter Hutterer <peter.hutterer@who-t.net>

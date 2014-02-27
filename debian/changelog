@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.7.99-1) UNRELEASED; urgency=low
+
+  * New upstream release + git snapshot.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Thu, 27 Feb 2014 17:08:12 +0100
+
 xserver-xorg-input-synaptics (1.7.3-1ubuntu1) trusty; urgency=low
 
   * Merge from debian-unstable.
