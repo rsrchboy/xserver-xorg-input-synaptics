@@ -63,7 +63,6 @@ enum OffState {
     TOUCHPAD_ON = 0,
     TOUCHPAD_OFF = 1,
     TOUCHPAD_TAP_OFF = 2,
-    TOUCHPAD_CLICK_ONLY = 3
 };
 
 enum TapEvent {
@@ -150,6 +149,23 @@ enum TouchpadModel {
     MODEL_UNIBODY_MACBOOK
 };
 
+enum SoftButtonAreas {
+    NO_BUTTON_AREA = -1,
+    BOTTOM_BUTTON_AREA = 0,
+    BOTTOM_RIGHT_BUTTON_AREA = 0,
+    BOTTOM_MIDDLE_BUTTON_AREA = 1,
+    TOP_BUTTON_AREA = 2,
+    TOP_RIGHT_BUTTON_AREA = 2,
+    TOP_MIDDLE_BUTTON_AREA = 3
+};
+
+enum SoftButtonAreaEdges {
+    LEFT = 0,
+    RIGHT = 1,
+    TOP = 2,
+    BOTTOM = 3
+};
+
 typedef struct _SynapticsParameters {
     /* Parameter data */
     int left_edge, right_edge, top_edge, bottom_edge;   /* edge coordinates absolute */
@@ -184,7 +200,6 @@ typedef struct _SynapticsParameters {
                                  * 0 : Not off
                                  * 1 : Off
                                  * 2 : Only tapping and scrolling off
-                                 * 3 : All but physical clicks off
                                  */
     Bool locked_drags;          /* Enable locked drags */
     int locked_drag_time;       /* timeout for locked drags */
@@ -250,7 +265,7 @@ struct _SynapticsPrivateRec {
     Bool prev_up;               /* Previous up button value, for double click emulation */
     enum FingerState finger_state;      /* previous finger state */
     CARD32 last_motion_millis;  /* time of the last motion */
-    Bool inside_button_area;    /* Inside button area (ignore motion) */
+    enum SoftButtonAreas last_button_area;    /* Last button area we were in */
     int clickpad_click_millis;  /* Time of last clickpad click */
 
     enum TapState tap_state;    /* State of tap processing */
