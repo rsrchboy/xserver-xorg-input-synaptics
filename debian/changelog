@@ -1,6 +1,6 @@
-xserver-xorg-input-synaptics (1.7.99-1) UNRELEASED; urgency=medium
+xserver-xorg-input-synaptics (1.7.99.1-1) UNRELEASED; urgency=medium
 
-  * New upstream release + git snapshot.
+  * New upstream release.
   * Drop libxtst-dev conflicts, add libevdev-dev.
 
  -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Thu, 27 Feb 2014 17:27:33 +0100
