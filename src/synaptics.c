@@ -89,22 +89,6 @@ enum EdgeType {
     LEFT_TOP_EDGE = TOP_EDGE | LEFT_EDGE
 };
 
-enum SoftButtonAreas {
-    BOTTOM_BUTTON_AREA = 0,
-    BOTTOM_RIGHT_BUTTON_AREA = 0,
-    BOTTOM_MIDDLE_BUTTON_AREA = 1,
-    TOP_BUTTON_AREA = 2,
-    TOP_RIGHT_BUTTON_AREA = 2,
-    TOP_MIDDLE_BUTTON_AREA = 3
-};
-
-enum SoftButtonAreaEdges {
-    LEFT = 0,
-    RIGHT = 1,
-    TOP = 2,
-    BOTTOM = 3
-};
-
 /*
  * We expect to be receiving a steady 80 packets/sec (which gives 40
  * reports/sec with more than one finger on the pad, as Advanced Gesture Mode
@@ -184,6 +168,10 @@ InputDriverRec SYNAPTICS = {
     SynapticsPreInit,
     SynapticsUnInit,
     NULL,
+    NULL,
+#ifdef XI86_DRV_CAP_SERVER_FD
+    XI86_DRV_CAP_SERVER_FD
+#endif
 };
 
 static XF86ModuleVersionInfo VersionRec = {
@@ -215,6 +203,15 @@ _X_EXPORT XF86ModuleData synapticsModuleData = {
 /*****************************************************************************
  *	Function Definitions
  ****************************************************************************/
+static inline void
+SynapticsCloseFd(InputInfoPtr pInfo)
+{
+    if (pInfo->fd > -1 && !(pInfo->flags & XI86_SERVER_FD)) {
+        xf86CloseSerial(pInfo->fd);
+        pInfo->fd = -1;
+    }
+}
+
 /**
  * Fill in default dimensions for backends that cannot query the hardware.
  * Eventually, we want the edges to be 1900/5400 for x, 1900/4000 for y.
@@ -893,22 +890,16 @@ SynapticsPreInit(InputDriverPtr drv, InputInfoPtr pInfo, int flags)
 
     xf86ProcessCommonOptions(pInfo, pInfo->options);
 
-    if (pInfo->fd != -1) {
-        if (priv->comm.buffer) {
-            XisbFree(priv->comm.buffer);
-            priv->comm.buffer = NULL;
-        }
-        xf86CloseSerial(pInfo->fd);
+    if (priv->comm.buffer) {
+        XisbFree(priv->comm.buffer);
+        priv->comm.buffer = NULL;
     }
-    pInfo->fd = -1;
+    SynapticsCloseFd(pInfo);
 
     return Success;
 
  SetupProc_fail:
-    if (pInfo->fd >= 0) {
-        xf86CloseSerial(pInfo->fd);
-        pInfo->fd = -1;
-    }
+    SynapticsCloseFd(pInfo);
 
     if (priv->comm.buffer)
         XisbFree(priv->comm.buffer);
@@ -989,33 +980,31 @@ DeviceOn(DeviceIntPtr dev)
     }
 
     if (priv->proto_ops->DeviceOnHook &&
-        !priv->proto_ops->DeviceOnHook(pInfo, &priv->synpara)) {
-        xf86CloseSerial(pInfo->fd);
-        return !Success;
-    }
+        !priv->proto_ops->DeviceOnHook(pInfo, &priv->synpara))
+         goto error;
 
     priv->comm.buffer = XisbNew(pInfo->fd, INPUT_BUFFER_SIZE);
-    if (!priv->comm.buffer) {
-        xf86CloseSerial(pInfo->fd);
-        pInfo->fd = -1;
-        return !Success;
-    }
+    if (!priv->comm.buffer)
+        goto error;
 
     xf86FlushInput(pInfo->fd);
 
     /* reinit the pad */
-    if (!QueryHardware(pInfo)) {
-        XisbFree(priv->comm.buffer);
-        priv->comm.buffer = NULL;
-        xf86CloseSerial(pInfo->fd);
-        pInfo->fd = -1;
-        return !Success;
-    }
+    if (!QueryHardware(pInfo))
+        goto error;
 
     xf86AddEnabledDevice(pInfo);
     dev->public.on = TRUE;
 
     return Success;
+
+error:
+    if (priv->comm.buffer) {
+        XisbFree(priv->comm.buffer);
+        priv->comm.buffer = NULL;
+    }
+    SynapticsCloseFd(pInfo);
+    return !Success;
 }
 
 static void
@@ -1033,7 +1022,7 @@ SynapticsReset(SynapticsPrivate * priv)
     priv->finger_state = FS_UNTOUCHED;
     priv->last_motion_millis = 0;
     priv->clickpad_click_millis = 0;
-    priv->inside_button_area = FALSE;
+    priv->last_button_area = NO_BUTTON_AREA;
     priv->tap_state = TS_START;
     priv->tap_button = 0;
     priv->tap_button_state = TBS_BUTTON_UP;
@@ -1074,8 +1063,7 @@ DeviceOff(DeviceIntPtr dev)
             XisbFree(priv->comm.buffer);
             priv->comm.buffer = NULL;
         }
-        xf86CloseSerial(pInfo->fd);
-        pInfo->fd = -1;
+        SynapticsCloseFd(pInfo);
     }
     dev->public.on = FALSE;
     return rc;
@@ -1576,12 +1564,15 @@ is_inside_top_or_bottom_button_area(SynapticsParameters * para, int offset,
     return inside_area;
 }
 
-static Bool
-is_inside_anybutton_area(SynapticsParameters * para, int x, int y)
+static enum SoftButtonAreas
+current_button_area(SynapticsParameters * para, int x, int y)
 {
-    return
-        is_inside_top_or_bottom_button_area(para, BOTTOM_BUTTON_AREA, x, y) ||
-        is_inside_top_or_bottom_button_area(para, TOP_BUTTON_AREA, x, y);
+    if (is_inside_top_or_bottom_button_area(para, BOTTOM_BUTTON_AREA, x, y))
+        return BOTTOM_BUTTON_AREA;
+    else if (is_inside_top_or_bottom_button_area(para, TOP_BUTTON_AREA, x, y))
+        return TOP_BUTTON_AREA;
+    else
+        return NO_BUTTON_AREA;
 }
 
 static CARD32
@@ -1819,8 +1810,7 @@ SelectTapButton(SynapticsPrivate * priv, enum EdgeType edge)
 {
     enum TapEvent tap;
 
-    if (priv->synpara.touchpad_off == TOUCHPAD_TAP_OFF ||
-        priv->synpara.touchpad_off == TOUCHPAD_CLICK_ONLY) {
+    if (priv->synpara.touchpad_off == TOUCHPAD_TAP_OFF) {
         priv->tap_button = 0;
         return;
     }
@@ -1944,7 +1934,8 @@ HandleTapProcessing(SynapticsPrivate * priv, struct SynapticsHwState *hw,
     enum EdgeType edge;
     int delay = 1000000000;
 
-    if (priv->finger_state == FS_BLOCKED)
+    if (para->touchpad_off == TOUCHPAD_OFF ||
+        priv->finger_state == FS_BLOCKED)
         return delay;
 
     touch = finger >= FS_TOUCHED && priv->finger_state == FS_UNTOUCHED;
@@ -2359,9 +2350,9 @@ HandleScrolling(SynapticsPrivate * priv, struct SynapticsHwState *hw,
     SynapticsParameters *para = &priv->synpara;
     int delay = 1000000000;
 
-    if ((priv->synpara.touchpad_off == TOUCHPAD_TAP_OFF) ||
-        (priv->synpara.touchpad_off == TOUCHPAD_CLICK_ONLY) ||
-        (priv->finger_state == FS_BLOCKED)) {
+    if (priv->synpara.touchpad_off == TOUCHPAD_TAP_OFF ||
+        priv->synpara.touchpad_off == TOUCHPAD_OFF ||
+        priv->finger_state == FS_BLOCKED) {
         stop_coasting(priv);
         priv->circ_scroll_on = FALSE;
         priv->vert_scroll_edge_on = FALSE;
@@ -2973,9 +2964,6 @@ HandleTouches(InputInfoPtr pInfo, struct SynapticsHwState *hw)
     Bool restart_touches = FALSE;
     int i;
 
-    if (para->touchpad_off == TOUCHPAD_CLICK_ONLY)
-        goto out;
-
     if (para->click_action[F3_CLICK1] || para->tap_action[F3_TAP])
         min_touches = 4;
     else if (para->click_action[F2_CLICK1] || para->tap_action[F2_TAP] ||
@@ -3095,12 +3083,6 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
     Bool using_cumulative_coords = FALSE;
     Bool ignore_motion;
 
-    /* If touchpad is switched off, we skip the whole thing and return delay */
-    if (para->touchpad_off == TOUCHPAD_OFF) {
-        UpdateTouchState(pInfo, hw);
-        return delay;
-    }
-
     /* We need both and x/y, the driver can't handle just one of the two
      * yet. But since it's possible to hit a phys button on non-clickpads
      * without ever getting motion data first, we must continue with 0/0 for
@@ -3116,7 +3098,8 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
 
     /* If a physical button is pressed on a clickpad, use cumulative relative
      * touch movements for motion */
-    if (para->clickpad && (hw->left || hw->right || hw->middle)) {
+    if (para->clickpad && (priv->lastButtons & 7) &&
+        priv->last_button_area != TOP_BUTTON_AREA) {
         hw->x = hw->cumulative_dx;
         hw->y = hw->cumulative_dy;
         using_cumulative_coords = TRUE;
@@ -3131,13 +3114,15 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
 
     /* Ignore motion *starting* inside softbuttonareas */
     if (priv->finger_state < FS_TOUCHED)
-        priv->inside_button_area = is_inside_anybutton_area(para, hw->x, hw->y);
-    /* If we already have a finger down, clear inside_button_area if it goes
+        priv->last_button_area = current_button_area(para, hw->x, hw->y);
+    /* If we already have a finger down, clear last_button_area if it goes
        outside of the softbuttonareas */
-    else if (priv->inside_button_area && !is_inside_anybutton_area(para, hw->x, hw->y))
-        priv->inside_button_area = FALSE;
+    else if (priv->last_button_area != NO_BUTTON_AREA &&
+             current_button_area(para, hw->x, hw->y) == NO_BUTTON_AREA)
+        priv->last_button_area = NO_BUTTON_AREA;
 
-    ignore_motion = !using_cumulative_coords && priv->inside_button_area;
+    ignore_motion = para->touchpad_off == TOUCHPAD_OFF ||
+        (!using_cumulative_coords && priv->last_button_area != NO_BUTTON_AREA);
 
     /* these two just update hw->left, right, etc. */
     update_hw_button_state(pInfo, hw, now, &delay);
@@ -3219,8 +3204,7 @@ HandleState(InputInfoPtr pInfo, struct SynapticsHwState *hw, CARD32 now,
     }
 
     /* Post events */
-    if (finger >= FS_TOUCHED && (dx || dy) && !ignore_motion &&
-            (para->touchpad_off != TOUCHPAD_CLICK_ONLY))
+    if (finger >= FS_TOUCHED && (dx || dy) && !ignore_motion)
         xf86PostMotionEvent(pInfo->dev, 0, 0, 2, dx, dy);
 
     if (priv->mid_emu_state == MBE_LEFT_CLICK) {

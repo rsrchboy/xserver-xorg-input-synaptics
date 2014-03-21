@@ -261,10 +261,14 @@ Valid values are:
 .TS
 l l.
 0	Touchpad is enabled
-1	Touchpad is switched off
+1	Touchpad is switched off (physical clicks still work)
 2	Only tapping and scrolling is switched off
-3	Only physical clicks are possible
 .TE
+When the touchpad is switched off, button events caused by a physical
+button press are still interpreted. On a ClickPad, this includes
+software-emulated middle and right buttons as defined by
+the SoftButtonAreas setting.
+.TP
 Property: "Synaptics Off"
 .TP
 .BI "Option \*qLockedDrags\*q \*q" boolean \*q
@@ -499,7 +503,8 @@ For the allowed values for this option, see
 .B Option \*qSoftButtonAreas\*q.
 Primary and secondary soft button areas must not overlap each other. If they do,
 the behavior of the driver is undefined.
-No property associated, this option must be set in the
+Property: "Synaptics Secondary Soft Button Areas". This property is only
+initialized if the option is set in the
 __xconfigfile__(__filemansuffix__).
 .
 

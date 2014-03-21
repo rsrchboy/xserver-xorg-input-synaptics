@@ -23,7 +23,7 @@
 # Initialize Autoconf
 AC_PREREQ([2.60])
 AC_INIT([xf86-input-synaptics],
-        [1.7.99],
+        [1.7.99.1],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
         [xf86-input-synaptics])
 AC_CONFIG_SRCDIR([Makefile.am])
@@ -116,9 +116,6 @@ case "${host}" in
 esac
 if test "x$BUILD_EVENTCOMM" = xyes; then
     AC_DEFINE(BUILD_EVENTCOMM, 1, [Optional backend eventcomm enabled])
-
-    # Obtain compiler/linker options for mtdev
-    PKG_CHECK_MODULES(MTDEV, mtdev)
     PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 0.4])
 fi
 if test "x$BUILD_PSMCOMM" = xyes; then
