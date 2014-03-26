@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.7.99.1-0ubuntu1) UNRELEASED; urgency=medium
+
+  * Merge from unreleased debian-experimental. (LP: #1294515)
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Wed, 26 Mar 2014 10:02:42 +0100
+
 xserver-xorg-input-synaptics (1.7.99.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
