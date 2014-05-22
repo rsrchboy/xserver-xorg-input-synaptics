@@ -7,6 +7,7 @@ xserver-xorg-input-synaptics (1.8.0-1~exp1) UNRELEASED; urgency=medium
   * New upstream release (closes: #743488).
     - Revert "Purge scrollbuttons (repeat)" (closes: #722006).
     - support newer Thinkpads (closes: #705807)
+  * add myself to Uploaders.
 
  -- maximilian attems <maks@debian.org>  Fri, 23 May 2014 00:09:40 +0200
 
