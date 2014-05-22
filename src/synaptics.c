@@ -576,6 +576,8 @@ set_default_parameters(InputInfoPtr pInfo)
     int width, height, diag, range;
     int horizHyst, vertHyst;
     int middle_button_timeout;
+    int grab_event_device = 0;
+    const char *source;
 
     /* The synaptics specs specify typical edge widths of 4% on x, and 5.4% on
      * y (page 7) [Synaptics TouchPad Interfacing Guide, 510-000080 - A
@@ -672,6 +674,10 @@ set_default_parameters(InputInfoPtr pInfo)
     pars->tap_time_2 = xf86SetIntOption(opts, "MaxDoubleTapTime", 180);
     pars->click_time = xf86SetIntOption(opts, "ClickTime", 100);
     pars->clickpad = xf86SetBoolOption(opts, "ClickPad", pars->clickpad);       /* Probed */
+    if (pars->clickpad)
+        pars->has_secondary_buttons = xf86SetBoolOption(opts,
+                                                        "HasSecondarySoftButtons",
+                                                        pars->has_secondary_buttons);
     pars->clickpad_ignore_motion_time = 100; /* ms */
     /* middle mouse button emulation on a clickpad? nah, you're joking */
     middle_button_timeout = pars->clickpad ? 0 : 75;
@@ -747,7 +753,16 @@ set_default_parameters(InputInfoPtr pInfo)
         xf86SetRealOption(opts, "PressureMotionMinFactor", 1.0);
     pars->press_motion_max_factor =
         xf86SetRealOption(opts, "PressureMotionMaxFactor", 1.0);
-    pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", TRUE);
+
+    /* Only grab the device by default if it's not coming from a config
+       backend. This way we avoid the device being added twice and sending
+       duplicate events.
+      */
+    source = xf86CheckStrOption(opts, "_source", NULL);
+    if (source == NULL || strncmp(source, "server/", 7) != 0)
+        grab_event_device = TRUE;
+    pars->grab_event_device = xf86SetBoolOption(opts, "GrabEventDevice", grab_event_device);
+
     pars->tap_and_drag_gesture =
         xf86SetBoolOption(opts, "TapAndDragGesture", TRUE);
     pars->resolution_horiz =
@@ -766,7 +781,8 @@ set_default_parameters(InputInfoPtr pInfo)
     }
 
     set_primary_softbutton_areas_option(pInfo);
-    set_secondary_softbutton_areas_option(pInfo);
+    if (pars->has_secondary_buttons)
+        set_secondary_softbutton_areas_option(pInfo);
 }
 
 static double
@@ -2662,26 +2678,11 @@ clickpad_guess_clickfingers(SynapticsPrivate * priv,
     }
 
     /* Some trackpads touchpad only track two touchpoints but announce
-       BTN_TOOL_TRIPLETAP (which sets hw->numFingers to 3).
-       This can affect clickfingers, in the following ways:
-       * one finger down: normal click
-       * two fingers down, close together: 2 finger click
-       * two fingers down, apart: normal click
-       * three fingers down, close together: 3 finger click
-       * three fingers down, with two grouped next to each other: should be
-       * 2-finger click but we can't detect this.
-       * so: if two detected fingers are close together and HW says three
-       * fingers, make it three fingers.
-       * if two detected fingers are apart and HW says three fingers, make
-       * it a two-finger click, guessing that the third finger is somewhere
-       * close to another finger.
-       */
-    if (hw->numFingers >= 3 && nfingers < hw->numFingers) {
-        if (!nfingers) /* touchpoints too far apart */
-            nfingers = 2;
-        else
-            nfingers++;
-    }
+     * BTN_TOOL_TRIPLETAP (which sets hw->numFingers to 3), when this happens
+     * the user likely intents to do a 3 finger click, so handle it as such.
+     */
+    if (hw->numFingers >= 3 && hw->num_mt_mask < 3)
+        nfingers = 3;
 
     return nfingers;
 }

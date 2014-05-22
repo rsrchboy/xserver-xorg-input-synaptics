@@ -50,6 +50,9 @@
 #ifndef INPUT_PROP_SEMI_MT
 #define INPUT_PROP_SEMI_MT 0x03
 #endif
+#ifndef INPUT_PROP_TOPBUTTONPAD
+#define INPUT_PROP_TOPBUTTONPAD 0x04
+#endif
 #ifndef ABS_MT_TOOL_Y
 #define ABS_MT_TOOL_Y 0x3d
 #endif
@@ -87,11 +90,45 @@ struct eventcomm_proto_data {
     enum libevdev_read_flag read_flag;
 };
 
+static void
+libevdev_log_func(enum libevdev_log_priority priority,
+                  void *data,
+                  const char *file, int line, const char *func,
+                  const char *format, va_list args)
+_X_ATTRIBUTE_PRINTF(6, 0);
+
+static void
+libevdev_log_func(enum libevdev_log_priority priority,
+                  void *data,
+                  const char *file, int line, const char *func,
+                  const char *format, va_list args)
+{
+    int verbosity;
+
+    switch(priority) {
+        case LIBEVDEV_LOG_ERROR: verbosity = 0; break;
+        case LIBEVDEV_LOG_INFO: verbosity = 4; break;
+        case LIBEVDEV_LOG_DEBUG: verbosity = 10; break;
+    }
+
+    LogVMessageVerbSigSafe(X_NOTICE, verbosity, format, args);
+}
+
+static void
+set_libevdev_log_handler(void)
+{
+                              /* be quiet, gcc *handwave* */
+    libevdev_set_log_function((libevdev_log_func_t)libevdev_log_func, NULL);
+    libevdev_set_log_priority(LIBEVDEV_LOG_DEBUG);
+}
+
 struct eventcomm_proto_data *
 EventProtoDataAlloc(int fd)
 {
     struct eventcomm_proto_data *proto_data;
     int rc;
+
+    set_libevdev_log_handler();
 
     proto_data = calloc(1, sizeof(struct eventcomm_proto_data));
     if (!proto_data)
@@ -108,16 +145,6 @@ EventProtoDataAlloc(int fd)
         proto_data->read_flag = LIBEVDEV_READ_FLAG_NORMAL;
 
     return proto_data;
-}
-
-static int
-last_mt_vals_slot(const SynapticsPrivate * priv)
-{
-    struct eventcomm_proto_data *proto_data =
-        (struct eventcomm_proto_data *) priv->proto_data;
-    int value = proto_data->cur_slot;
-
-    return value < priv->num_slots ? value : -1;
 }
 
 static void
@@ -191,6 +218,8 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters * para)
     struct eventcomm_proto_data *proto_data =
         (struct eventcomm_proto_data *) priv->proto_data;
 
+    set_libevdev_log_handler();
+
     if (libevdev_get_fd(proto_data->evdev) != -1) {
         struct input_event ev;
 
@@ -234,6 +263,8 @@ EventDeviceOffHook(InputInfoPtr pInfo)
 
     UninitializeTouch(pInfo);
     libevdev_grab(proto_data->evdev, LIBEVDEV_UNGRAB);
+    libevdev_set_log_function(NULL, NULL);
+    libevdev_set_log_priority(LIBEVDEV_LOG_INFO); /* reset to default */
 
     return Success;
 }
@@ -306,7 +337,9 @@ static struct model_lookup_t model_lookup_table[] = {
     {0x0002, 0x0007, 0x0007, MODEL_SYNAPTICS},
     {0x0002, 0x0008, 0x0008, MODEL_ALPS},
     {0x05ac, PRODUCT_ANY, 0x222, MODEL_APPLETOUCH},
-    {0x05ac, 0x223, PRODUCT_ANY, MODEL_UNIBODY_MACBOOK},
+    {0x05ac, 0x223, 0x228, MODEL_UNIBODY_MACBOOK},
+    {0x05ac, 0x229, 0x22b, MODEL_APPLETOUCH},
+    {0x05ac, 0x22c, PRODUCT_ANY, MODEL_UNIBODY_MACBOOK},
     {0x0002, 0x000e, 0x000e, MODEL_ELANTECH},
     {0x0, 0x0, 0x0, 0x0}
 };
@@ -501,8 +534,10 @@ SynapticsReadEvent(InputInfoPtr pInfo, struct input_event *ev)
         if (rc != -EAGAIN) {
             LogMessageVerbSigSafe(X_ERROR, 0, "%s: Read error %d\n", pInfo->name,
                     errno);
-        } else if (proto_data->read_flag == LIBEVDEV_READ_FLAG_SYNC)
+        } else if (proto_data->read_flag == LIBEVDEV_READ_FLAG_SYNC) {
             proto_data->read_flag = LIBEVDEV_READ_FLAG_NORMAL;
+            return SynapticsReadEvent(pInfo, ev);
+        }
 
         return FALSE;
     }
@@ -549,7 +584,7 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
         proto_data->cur_slot = ev->value;
     }
     else {
-        int slot_index = last_mt_vals_slot(priv);
+        int slot_index = proto_data->cur_slot;
 
         if (slot_index < 0)
             return;
@@ -632,6 +667,8 @@ EventReadHwState(InputInfoPtr pInfo,
     SynapticsParameters *para = &priv->synpara;
     struct eventcomm_proto_data *proto_data = priv->proto_data;
     Bool sync_cumulative = FALSE;
+
+    set_libevdev_log_handler();
 
     SynapticsResetTouchHwState(hw, FALSE);
 
@@ -769,6 +806,11 @@ event_query_touch(InputInfoPtr pInfo)
     if (libevdev_has_property(dev, INPUT_PROP_BUTTONPAD)) {
         xf86IDrvMsg(pInfo, X_INFO, "found clickpad property\n");
         para->clickpad = TRUE;
+    }
+
+    if (libevdev_has_property(dev, INPUT_PROP_TOPBUTTONPAD)) {
+        xf86IDrvMsg(pInfo, X_INFO, "found top buttonpad property\n");
+        para->has_secondary_buttons = TRUE;
     }
 #endif
 
