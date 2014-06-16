@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.8.0-1~exp3) UNRELEASED; urgency=medium
+
+  * Remove Cyril from Uploaders.
+
+ -- Julien Cristau <jcristau@debian.org>  Mon, 16 Jun 2014 20:19:21 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1~exp2) experimental; urgency=medium
 
   * Mark libevdev-dev build dependency [linux-any]. (closes: #749286)
