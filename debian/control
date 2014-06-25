@@ -3,14 +3,14 @@ Section: x11
 Priority: optional
 Maintainer: Ubuntu X-SWAT <ubuntu-x@lists.ubuntu.com>
 XSBC-Original-Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
-Uploaders: Mattia Dongili <malattia@debian.org>, Cyril Brulebois <kibi@debian.org>
+Uploaders: Mattia Dongili <malattia@debian.org>, maximilian attems <maks@debian.org>
 Build-Depends:
  debhelper (>= 8),
  dh-autoreconf,
  libx11-dev,
  libxext-dev,
  libxi-dev (>= 2:1.2.0),
- libevdev-dev,
+ libevdev-dev [linux-any],
  x11proto-core-dev,
  xserver-xorg-dev (>= 2:1.12),
  pkg-config,
