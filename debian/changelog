@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu1) utopic; urgency=medium
+
+  * Merge from debian-experimental.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Wed, 02 Jul 2014 16:36:40 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1~exp3) UNRELEASED; urgency=medium
 
   * Remove Cyril from Uploaders.
