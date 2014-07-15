@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.8.0-2) UNRELEASED; urgency=medium
+
+  [ Maarten Lankhorst ]
+  * Drop libmtdev-dev, unused in 1.8.0.
+  * Add dependency on libxtst-dev again to enable support for XRecord.
+
+ -- maximilian attems <maks@debian.org>  Wed, 16 Jul 2014 22:04:44 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1) unstable; urgency=medium
 
   [ Julien Cristau ]
