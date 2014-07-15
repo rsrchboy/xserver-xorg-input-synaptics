@@ -1,3 +1,11 @@
+xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu2) utopic; urgency=medium
+
+  * Remerge from debian-experimental to pick up libxtst-dev.
+    - Fixes touchpad sometimes not disabling by allowing
+      'syndaemon -R' to use XRecord correctly. (LP: #1323006)
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Tue, 15 Jul 2014 15:07:15 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu1) utopic; urgency=medium
 
   * Merge from debian-experimental.
