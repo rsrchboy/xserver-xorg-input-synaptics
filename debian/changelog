@@ -1,6 +1,11 @@
 xserver-xorg-input-synaptics (1.8.0-1~exp3) UNRELEASED; urgency=medium
 
+  [ Julien Cristau ]
   * Remove Cyril from Uploaders.
+
+  [ Maarten Lankhorst ]
+  * Drop libmtdev-dev, unused in 1.8.0.
+  * Add dependency on libxtst-dev again to enable support for XRecord.
 
  -- Julien Cristau <jcristau@debian.org>  Mon, 16 Jun 2014 20:19:21 +0200
 
