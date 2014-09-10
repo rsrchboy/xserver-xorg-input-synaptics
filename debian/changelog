@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu3) utopic; urgency=medium
+
+  * Rebuild for new xorg-server abi.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Wed, 10 Sep 2014 16:29:27 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu2) utopic; urgency=medium
 
   * Remerge from debian-experimental to pick up libxtst-dev.
