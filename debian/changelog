@@ -1,10 +1,13 @@
-xserver-xorg-input-synaptics (1.8.99-1) UNRELEASED; urgency=medium
+xserver-xorg-input-synaptics (1.8.1-1) unstable; urgency=medium
 
   * New upstream release
+  - eventcomm: ensure we're on the same clock as the server (closes: #760779)
+  - Limit the movement to 20 mm per event (closes: #672601)
 
   [ Maarten Lankhorst ]
   * Drop libmtdev-dev, unused in 1.8.0.
   * Add dependency on libxtst-dev again to enable support for XRecord.
+    (closes: #759345)
 
  -- maximilian attems <maks@debian.org>  Wed, 16 Jul 2014 22:04:44 +0200
 
