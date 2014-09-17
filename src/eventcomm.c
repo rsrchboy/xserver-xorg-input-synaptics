@@ -39,6 +39,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include "synproto.h"
 #include "synapticsstr.h"
 #include <xf86.h>
@@ -88,17 +89,22 @@ struct eventcomm_proto_data {
 
     struct libevdev *evdev;
     enum libevdev_read_flag read_flag;
+
+    int have_monotonic_clock;
 };
 
+#ifdef HAVE_LIBEVDEV_DEVICE_LOG_FUNCS
 static void
-libevdev_log_func(enum libevdev_log_priority priority,
+libevdev_log_func(const struct libevdev *dev,
+                  enum libevdev_log_priority priority,
                   void *data,
                   const char *file, int line, const char *func,
                   const char *format, va_list args)
-_X_ATTRIBUTE_PRINTF(6, 0);
+_X_ATTRIBUTE_PRINTF(7, 0);
 
 static void
-libevdev_log_func(enum libevdev_log_priority priority,
+libevdev_log_func(const struct libevdev *dev,
+                  enum libevdev_log_priority priority,
                   void *data,
                   const char *file, int line, const char *func,
                   const char *format, va_list args)
@@ -108,19 +114,15 @@ libevdev_log_func(enum libevdev_log_priority priority,
     switch(priority) {
         case LIBEVDEV_LOG_ERROR: verbosity = 0; break;
         case LIBEVDEV_LOG_INFO: verbosity = 4; break;
-        case LIBEVDEV_LOG_DEBUG: verbosity = 10; break;
+        case LIBEVDEV_LOG_DEBUG:
+        default:
+            verbosity = 10;
+            break;
     }
 
     LogVMessageVerbSigSafe(X_NOTICE, verbosity, format, args);
 }
-
-static void
-set_libevdev_log_handler(void)
-{
-                              /* be quiet, gcc *handwave* */
-    libevdev_set_log_function((libevdev_log_func_t)libevdev_log_func, NULL);
-    libevdev_set_log_priority(LIBEVDEV_LOG_DEBUG);
-}
+#endif
 
 struct eventcomm_proto_data *
 EventProtoDataAlloc(int fd)
@@ -128,7 +130,6 @@ EventProtoDataAlloc(int fd)
     struct eventcomm_proto_data *proto_data;
     int rc;
 
-    set_libevdev_log_handler();
 
     proto_data = calloc(1, sizeof(struct eventcomm_proto_data));
     if (!proto_data)
@@ -137,12 +138,31 @@ EventProtoDataAlloc(int fd)
     proto_data->st_to_mt_scale[0] = 1;
     proto_data->st_to_mt_scale[1] = 1;
 
-    rc = libevdev_new_from_fd(fd, &proto_data->evdev);
+    proto_data->evdev = libevdev_new();
+    if (!proto_data->evdev) {
+        rc = -1;
+        goto out;
+    }
+
+#ifdef HAVE_LIBEVDEV_DEVICE_LOG_FUNCS
+    libevdev_set_device_log_function(proto_data->evdev, libevdev_log_func,
+                                     LIBEVDEV_LOG_DEBUG, NULL);
+#endif
+
+    rc = libevdev_set_fd(proto_data->evdev, fd);
     if (rc < 0) {
+        goto out;
+    }
+
+    proto_data->read_flag = LIBEVDEV_READ_FLAG_NORMAL;
+
+out:
+    if (rc < 0) {
+        if (proto_data && proto_data->evdev)
+            libevdev_free(proto_data->evdev);
         free(proto_data);
         proto_data = NULL;
-    } else
-        proto_data->read_flag = LIBEVDEV_READ_FLAG_NORMAL;
+    }
 
     return proto_data;
 }
@@ -217,8 +237,7 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters * para)
     SynapticsPrivate *priv = (SynapticsPrivate *) pInfo->private;
     struct eventcomm_proto_data *proto_data =
         (struct eventcomm_proto_data *) priv->proto_data;
-
-    set_libevdev_log_handler();
+    int ret;
 
     if (libevdev_get_fd(proto_data->evdev) != -1) {
         struct input_event ev;
@@ -238,7 +257,6 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters * para)
 
     if (para->grab_event_device) {
         /* Try to grab the event device so that data don't leak to /dev/input/mice */
-        int ret;
 
         ret = libevdev_grab(proto_data->evdev, LIBEVDEV_GRAB);
         if (ret < 0) {
@@ -249,6 +267,9 @@ EventDeviceOnHook(InputInfoPtr pInfo, SynapticsParameters * para)
     }
 
     proto_data->need_grab = FALSE;
+
+    ret = libevdev_set_clock_id(proto_data->evdev, CLOCK_MONOTONIC);
+    proto_data->have_monotonic_clock = (ret == 0);
 
     InitializeTouch(pInfo);
 
@@ -585,6 +606,14 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
                 hw->slot_state[slot_index] = SLOTSTATE_CLOSE;
                 proto_data->num_touches--;
             }
+
+            /* When there are no fingers on the touchpad, set width and
+             * pressure to zero as ABS_MT_TOUCH_MAJOR and ABS_MT_PRESSURE
+             * are not zero when fingers are released. */
+            if (proto_data->num_touches == 0) {
+                hw->fingerWidth = 0;
+                hw->z = 0;
+            }
         }
         else {
             ValuatorMask *mask = proto_data->last_mt_vals[slot_index];
@@ -597,6 +626,10 @@ EventProcessTouchEvent(InputInfoPtr pInfo, struct SynapticsHwState *hw,
                     hw->cumulative_dx += ev->value - last_val;
                 else if (ev->code == ABS_MT_POSITION_Y)
                     hw->cumulative_dy += ev->value - last_val;
+                else if (ev->code == ABS_MT_TOUCH_MAJOR)
+                    hw->fingerWidth = ev->value;
+                else if (ev->code == ABS_MT_PRESSURE)
+                    hw->z = ev->value;
             }
 
             valuator_mask_set(mask, map, ev->value);
@@ -651,13 +684,13 @@ EventReadHwState(InputInfoPtr pInfo,
     struct eventcomm_proto_data *proto_data = priv->proto_data;
     Bool sync_cumulative = FALSE;
 
-    set_libevdev_log_handler();
-
     SynapticsResetTouchHwState(hw, FALSE);
 
-    /* Reset cumulative values if buttons were not previously pressed,
-     * or no finger was previously present. */
-    if ((!hw->left && !hw->right && !hw->middle) || hw->z < para->finger_low) {
+    /* Reset cumulative values if buttons were not previously pressed and no
+     * two-finger scrolling is ongoing, or no finger was previously present. */
+    if (((!hw->left && !hw->right && !hw->middle) &&
+        !(priv->vert_scroll_twofinger_on || priv->vert_scroll_twofinger_on)) ||
+        hw->z < para->finger_low) {
         hw->cumulative_dx = hw->x;
         hw->cumulative_dy = hw->y;
         sync_cumulative = TRUE;
@@ -669,7 +702,10 @@ EventReadHwState(InputInfoPtr pInfo,
             switch (ev.code) {
             case SYN_REPORT:
                 hw->numFingers = count_fingers(pInfo, comm);
-                hw->millis = 1000 * ev.time.tv_sec + ev.time.tv_usec / 1000;
+                if (proto_data->have_monotonic_clock)
+                    hw->millis = 1000 * ev.time.tv_sec + ev.time.tv_usec / 1000;
+                else
+                    hw->millis = GetTimeInMillis();
                 SynapticsCopyHwState(hwRet, hw);
                 return TRUE;
             }
@@ -819,7 +855,7 @@ event_query_touch(InputInfoPtr pInfo)
     if (priv->has_touch) {
         int axnum;
 
-        static const char *labels[] = {
+        static const char *labels[ABS_MT_MAX] = {
             AXIS_LABEL_PROP_ABS_MT_TOUCH_MAJOR,
             AXIS_LABEL_PROP_ABS_MT_TOUCH_MINOR,
             AXIS_LABEL_PROP_ABS_MT_WIDTH_MAJOR,
@@ -831,6 +867,9 @@ event_query_touch(InputInfoPtr pInfo)
             AXIS_LABEL_PROP_ABS_MT_BLOB_ID,
             AXIS_LABEL_PROP_ABS_MT_TRACKING_ID,
             AXIS_LABEL_PROP_ABS_MT_PRESSURE,
+            AXIS_LABEL_PROP_ABS_MT_DISTANCE,
+            AXIS_LABEL_PROP_ABS_MT_TOOL_X,
+            AXIS_LABEL_PROP_ABS_MT_TOOL_Y,
         };
 
         priv->max_touches = libevdev_get_num_slots(dev);
@@ -864,7 +903,13 @@ event_query_touch(InputInfoPtr pInfo)
                     break;
 
                 default:
-                    priv->touch_axes[axnum].label = labels[axis_idx];
+                    if (axis_idx >= sizeof(labels)/sizeof(labels[0])) {
+                        xf86IDrvMsg(pInfo, X_ERROR,
+                                    "Axis %d out of label range. This is a bug\n",
+                                    axis);
+                        priv->touch_axes[axnum].label = NULL;
+                    } else
+                        priv->touch_axes[axnum].label = labels[axis_idx];
                     priv->touch_axes[axnum].min = libevdev_get_abs_minimum(dev, axis);
                     priv->touch_axes[axnum].max = libevdev_get_abs_maximum(dev, axis);
                     /* Kernel provides units/mm, X wants units/m */
