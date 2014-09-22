@@ -1,3 +1,33 @@
+xserver-xorg-input-synaptics (1.8.1-1ubuntu1) UNRELEASED; urgency=low
+
+  * Merge from released sid.
+  * Drop postinst file, only needed for updating from synaptics <= 1.4.1.
+  * Remaining changes:
+    - A bunch of behavioral patches.
+    - Install some behavioral quirks.
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Mon, 22 Sep 2014 09:39:42 +0200
+
+xserver-xorg-input-synaptics (1.8.1-1) unstable; urgency=medium
+
+  * New upstream release
+  - eventcomm: ensure we're on the same clock as the server (closes: #760779)
+  - Limit the movement to 20 mm per event (closes: #672601)
+
+  [ Maarten Lankhorst ]
+  * Drop libmtdev-dev, unused in 1.8.0.
+  * Add dependency on libxtst-dev again to enable support for XRecord.
+    (closes: #759345)
+
+ -- maximilian attems <maks@debian.org>  Wed, 16 Jul 2014 22:04:44 +0200
+
+xserver-xorg-input-synaptics (1.8.0-1) unstable; urgency=medium
+
+  [ Julien Cristau ]
+  * Remove Cyril from Uploaders.
+
+ -- maximilian attems <maks@debian.org>  Sat, 12 Jul 2014 19:20:04 +0200
+
 xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu3) utopic; urgency=medium
 
   * Rebuild for new xorg-server abi.
@@ -17,17 +47,6 @@ xserver-xorg-input-synaptics (1.8.0-1~exp2ubuntu1) utopic; urgency=medium
   * Merge from debian-experimental.
 
  -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Wed, 02 Jul 2014 16:36:40 +0200
-
-xserver-xorg-input-synaptics (1.8.0-1~exp3) UNRELEASED; urgency=medium
-
-  [ Julien Cristau ]
-  * Remove Cyril from Uploaders.
-
-  [ Maarten Lankhorst ]
-  * Drop libmtdev-dev, unused in 1.8.0.
-  * Add dependency on libxtst-dev again to enable support for XRecord.
-
- -- Julien Cristau <jcristau@debian.org>  Mon, 16 Jun 2014 20:19:21 +0200
 
 xserver-xorg-input-synaptics (1.8.0-1~exp2) experimental; urgency=medium
 
