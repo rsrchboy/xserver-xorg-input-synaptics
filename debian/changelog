@@ -1,4 +1,4 @@
-xserver-xorg-input-synaptics (1.8.1-1ubuntu1) UNRELEASED; urgency=low
+xserver-xorg-input-synaptics (1.8.1-1ubuntu1) utopic; urgency=medium
 
   * Merge from released sid.
   * Drop postinst file, only needed for updating from synaptics <= 1.4.1.
@@ -6,7 +6,7 @@ xserver-xorg-input-synaptics (1.8.1-1ubuntu1) UNRELEASED; urgency=low
     - A bunch of behavioral patches.
     - Install some behavioral quirks.
 
- -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Mon, 22 Sep 2014 09:39:42 +0200
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Mon, 22 Sep 2014 09:44:47 +0200
 
 xserver-xorg-input-synaptics (1.8.1-1) unstable; urgency=medium
 
