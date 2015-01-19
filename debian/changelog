@@ -1,3 +1,9 @@
+xserver-xorg-input-synaptics (1.8.1-1ubuntu1~14.04~ppa1) trusty; urgency=medium
+
+  * Build for trusty.
+
+ -- Chris Weyl <cweyl@alumni.drew.edu>  Mon, 19 Jan 2015 14:02:14 -0800
+
 xserver-xorg-input-synaptics (1.8.1-1ubuntu1) utopic; urgency=medium
 
   * Merge from released sid.
